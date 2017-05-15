@@ -10,8 +10,9 @@ public class CMSendEmails {
     private List<CampaignMember> cMVol;
     public List<WrapCM> cMs {get;set;}
     public String message {get;set;}
-	public list<WrapTemp> pEmails;
-	public CMSendEmails (ApexPages.StandardController stdCtrl)
+	public Email_Content__c email_template;
+
+    public CMSendEmails (ApexPages.StandardController stdCtrl)
     {
     	camp = [SELECT id, Name, RecordTypeId, Type, Description, StartDate,
                 Email_Message__c, Related_Campaign__c
@@ -94,94 +95,76 @@ public class CMSendEmails {
     }
 
     public PageReference SendTheEmails(){
-        addCampaignMessage(); //Add the campaign message to the selected CMs and add the records
-        						//to the custom object (temporarily)
-        String participant_template_name = 'Reminder'+camp.type;
-        if (picklist.etype__c == 'After Campaign Emails')
-			participant_template_name = 'Email_After'+camp.type;
-        String volunteer_template_name = 'Vol'+participant_template_name;
-		EmailTemplate temp = [select id from EmailTemplate where Name = :participant_template_name limit 1];
-		system.debug('template temp = ' + temp.id);
-        EmailTemplate volTemp = [select id from EmailTemplate where Name = :volunteer_template_name limit 1];
-		system.debug('template voltemp = ' + volTemp.id);
-        //instantiate the singleEmailMessage object
         List<Messaging.SingleEmailMessage> messages = new List<Messaging.SingleEmailMessage>();
 		//add a SingleEmailMessage to each campaignmember selected
-        for (WrapTemp wCM : pEmails){
+		//+++ here get the records from the Email_Content__c one for participants
+		List<Email_Content__c> emailBody = [Select For_Participants__c, For_Volunteers__c,
+                        					Type_of_Email__c, Campaign_Type__c, Body__c
+                                            From Email_Content__c
+                                      		Where Type_of_Email__c = :picklist.etype__c AND
+                                      		Campaign_Type__c = :camp.Type];
+        String pBody = '';
+        String vBody = '';
+        for (Email_Content__c body : emailBody)
+        {
+            if(body.For_Participants__c) pBody = body.Body__c;
+            if(body.For_Volunteers__c) vBody = body.Body__c;
+        }
+        List<String> bccAddys = new List<String>();
+        bccAddys.add(UserInfo.getUserId());
+        for (WrapCM wCM : cMs){
             Messaging.SingleEmailMessage mess = new Messaging.SingleEmailMessage();
-            List<String> bccAddys = new List<String>();
-            bccAddys.add(UserInfo.getUserId());
             mess.setBccAddresses(bccAddys);
-            system.debug('wCM.tempRec.ContactId = ' + wCM.tempRec.ContactId__c);
-            system.debug('wCM.tempRec.Id = '+wCM.tempRec.Id);
+            system.debug('wCM.part.ContactId = ' + wCM.part.ContactId);
+            system.debug('wCM.part.Id = '+wCM.part.Id);
             //set the contact to be emailed
-			mess.setTargetObjectId(wCM.tempRec.ContactId__c);
-            system.debug('wCM.tempRec.Id = '+wCM.tempRec.Id);
-            id theRecId = wCM.tempRec.Id;
-            system.debug('theRecId = '+ theRecId);
-            mess.setWhatId(theRecId);
+			mess.setTargetObjectId(wCM.part.ContactId);
+            String body = '';
             if (wCM.type_member == 'Participant')
-                mess.setTemplateId(temp.Id);
+                body = makeBody(wCM.part, camp, pbody);
             else
-                mess.setTemplateId(volTemp.Id);
-        	messages.add(mess);
+                body = makeBody(wCM.part, camp, vbody);
+        	mess.setHtmlBody(body);
+            messages.add(mess);
         }
         messaging.sendEmail(messages);
         return new PageReference('/'+camp.id);
     }
 
-    public void addCampaignMessage ()
+    private String makeBody(CampaignMember c, Campaign camp, String template)
     {
-    	String personalizedMessage;
-    	pEmails = new List<WrapTemp>();
-    	List<ParticipantEmail__c> emailInfo = new List<ParticipantEmail__c>();
-    	List<String> tempList = new List<String>();
-    	//if the campaign member is selected, add the record to the temporary object where the
-    	//template will take the information from.
-        for (WrapCM wCM : cMs)
-        {
-        	if (wCM.selected == True)
-        	{
-            	if (wCM.type_member == 'Participant' && wCM.selected)
-            	{
-            	    personalizedMessage = camp.Email_Message__c;
-            	}
-            	else
-            	{
-            	    personalizedMessage = volCamp.Email_Message__c;
-            	}
-            	ParticipantEmail__c pe = new ParticipantEmail__c(CampaignStartDate__c = camp.StartDate,
-            													ContactId__c = wCM.part.ContactId,
-            													ContactNm__c = wCM.part.Name,
-            													FirstName__c = wCM.part.FirstName,
-            													LastName__c = wCM.part.LastName,
-            													Description__c = camp.Description,
-            													Email__c = wCM.part.Email,
-            													Email_Message__c = personalizedMessage,
-            													ActivityDays__c = wCM.part.Activity_Days__c);
-            	emailInfo.add(pe);
-            	tempList.add(wCM.Type_member);
-        	}
-        }
-        if (emailInfo.size() > 0 )
-    	{
-        	insert emailInfo;
-        	for (Integer x = 0; x < emailInfo.size(); x++)
-            {
-                system.debug('emailInfo[' + x + '].id = ' + emailInfo[x].id);
-        		pEmails.add(new WrapTemp(emailInfo[x], tempList[x]));
-            }
-    	}
+        If (picklist.etype__c == 'Reminder') return Reminder(c, camp, template);
+        else return ThankYou(c, camp, template);
     }
 
-    public class WrapTemp{
-    	public ParticipantEmail__c tempRec;
-    	public String type_member;
-    	public WrapTemp (ParticipantEmail__c pe, String tCM)
-    	{
-    		tempRec = pe;
-    		type_member = tCM;
-    	}
+	private String Reminder(CampaignMember c, Campaign camp, String template)
+    {
+        String body = '<h3 >Hi ' + c.FirstName + ',</h3><br />';
+        body = body + camp.Email_Message__c + '<br />' + template;
+		body = body + '<p>We are looking forward to our adventure with you!</p>';
+		body = body + '<br />Your friends at Daring Adventures,<br/>';
+        body = body + UserInfo.getName() + '<br />';
+        body = body + UserInfo.getUserEmail()+'<br />';
+        body = body + '555-555-5555';
+        return body;
+    }
+
+    public String ThankYou(CampaignMember c, Campaign camp, String template)
+    {
+        String body = '<h3 >Hi '+ c.FirstName + ' ,</h3>';
+		body = body + '<br /><p>Congratulations! You have completed XXXXXX ';
+        body = body + 'Active Days with Daring Adventures during your recent adventure. ';
+        body = body + 'We were thrilled that you were able to join us.</p><br />';
+		body = body + campaign.email_message__c +'<br /><p>Do not forget to look for more adventures ';
+        body = body + 'in our calendar <a href="http://www.daring-adventures.org/">';
+		body = body + 'www.daring-adventures.org</a> and sign up for your next adventure.</p>';
+		body = body + '<p>We are looking forward to our next adventure with you!</p>';
+		body = body + '<br />Your friends at Daring Adventures,<br/>';
+        body = body + UserInfo.getName() + '<br />';
+        body = body + UserInfo.getUserEmail();
+        String activity_days = ''+ c.Activity_Days__c;
+        body = body.replace('XXXXXX', activity_days);
+        return body;
     }
 
     public class WrapCM {
