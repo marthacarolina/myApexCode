@@ -69,8 +69,9 @@ public class CMSendEmails {
     }
 
     public void Make_Wrap (List<CampaignMember> campMems, String type_Cm){
-    	//this method adds the email perosnalized message as well as adding the temporary
-    	//records to the ParticipantEmail__c object to use with the templates
+    	//this method makes the wrap to include the checkbox and distinguish
+    	//participants from volunteers. It adds the object to a list which will
+    	//be the list of recipients
         boolean selected = false;
         system.debug('in Make_Wrap type_Cm = '+ type_Cm);
         system.debug('campMems.size() = '+ campMems.size());
@@ -112,13 +113,19 @@ public class CMSendEmails {
         }
         List<String> bccAddys = new List<String>();
         bccAddys.add(UserInfo.getUserId());
+        String subj = '';
+        if (picklist.etype__c == 'Reminder')
+            subj = 'Reminder of your upcoming '+camp.Type + ' adventure';
+        else
+            subj = 'We are so glad you were able to join us!';
         for (WrapCM wCM : cMs){
             Messaging.SingleEmailMessage mess = new Messaging.SingleEmailMessage();
             mess.setBccAddresses(bccAddys);
-            system.debug('wCM.part.ContactId = ' + wCM.part.ContactId);
-            system.debug('wCM.part.Id = '+wCM.part.Id);
-            //set the contact to be emailed
-			mess.setTargetObjectId(wCM.part.ContactId);
+            List<String> addresses = new List<String>();
+            addresses.add(wCM.part.email);
+            mess.setToAddresses(addresses);
+            mess.setSenderDisplayName('Daring Adventures');
+            mess.setSubject(subj);
             String body = '';
             if (wCM.type_member == 'Participant')
                 body = makeBody(wCM.part, camp, pbody);
