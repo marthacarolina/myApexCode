@@ -10,7 +10,6 @@ public class CMSendEmails {
     private List<CampaignMember> cMVol;
     public List<WrapCM> cMs {get;set;}
     public String message {get;set;}
-	public Email_Content__c email_template;
 
     public CMSendEmails (ApexPages.StandardController stdCtrl)
     {
@@ -42,9 +41,9 @@ public class CMSendEmails {
         picklist = new Picklist_Values__c();
         if (camp.StartDate > date.today()) picklist.etype__c = 'Reminder Emails';
         	else picklist.etype__c = 'After Campaign Emails';
-        //Get campaign members from both campaigns
+        //Get campaign members from both campaigns and show them on the VF page
         cMAdv = [SELECT id, email, Name, FirstName, LastName, Status,
-        				Email_Message__c, ContactId, Description, Activity_Days__c
+        			 ContactId, Description, Activity_Days__c
                 FROM CampaignMember WHERE CampaignId = :camp.id
                  ORDER BY Name LIMIT 30];
         system.debug('cMAdv.size() '+ cMAdv.size());
@@ -58,7 +57,7 @@ public class CMSendEmails {
         if (! no_Vol)
         {
             cMVol = [SELECT id, email, Name, FirstName, LastName, Status,
-            			Email_Message__c, Description, ContactId, Activity_Days__c
+            			Description, ContactId, Activity_Days__c
                 FROM CampaignMember WHERE CampaignId = :volCamp.id
                 ORDER BY Name LIMIT 30];
             if (cMVol.size() > 0) Make_Wrap(cMVol, 'Volunteer');
@@ -96,6 +95,7 @@ public class CMSendEmails {
     }
 
     public PageReference SendTheEmails(){
+        //This action is triggered the user clicks on the Send Emails button
         List<Messaging.SingleEmailMessage> messages = new List<Messaging.SingleEmailMessage>();
 		//add a SingleEmailMessage to each campaignmember selected
 		//+++ here get the records from the Email_Content__c one for participants
@@ -106,15 +106,18 @@ public class CMSendEmails {
                                       		Campaign_Type__c = :camp.Type];
         String pBody = '';
         String vBody = '';
-        for (Email_Content__c body : emailBody)
+        system.debug('emailBody.size() = '+emailBody.size());
+        for (Email_Content__c bd : emailBody)
         {
-            if(body.For_Participants__c) pBody = body.Body__c;
-            if(body.For_Volunteers__c) vBody = body.Body__c;
+        	system.debug('For_Participants = '+bd.For_Participants__c );
+        	system.debug('For_Participants = '+bd.For_Volunteers__c );
+            if (bd.For_Participants__c) pBody = bd.Body__c;
+            if (bd.For_Volunteers__c) vBody = bd.Body__c;
         }
         List<String> bccAddys = new List<String>();
         bccAddys.add(UserInfo.getUserId());
         String subj = '';
-        if (picklist.etype__c == 'Reminder')
+        if (picklist.etype__c == 'Reminder Emails')
             subj = 'Reminder of your upcoming '+camp.Type + ' adventure';
         else
             subj = 'We are so glad you were able to join us!';
@@ -126,33 +129,47 @@ public class CMSendEmails {
             mess.setToAddresses(addresses);
             mess.setSenderDisplayName('Daring Adventures');
             mess.setSubject(subj);
-            String body = '';
+            String theBody = '';
             if (wCM.type_member == 'Participant')
-                body = makeBody(wCM.part, camp, pbody);
+                theBody = makeBody(wCM.part, camp, pBody);
             else
-                body = makeBody(wCM.part, camp, vbody);
-        	mess.setHtmlBody(body);
+                theBody = makeBody(wCM.part, camp, vBody);
+        	mess.setHtmlBody(theBody);
             messages.add(mess);
         }
         messaging.sendEmail(messages);
+		List<Campaign> updatedCamps = new List<Campaign>();
+        updatedCamps.add(camp);
+        updatedCamps.add(volCamp);
+        update updatedCamps;
         return new PageReference('/'+camp.id);
     }
 
     private String makeBody(CampaignMember c, Campaign camp, String template)
     {
-        If (picklist.etype__c == 'Reminder') return Reminder(c, camp, template);
+        If (picklist.etype__c == 'Reminder Emails') return Reminder(c, camp, template);
         else return ThankYou(c, camp, template);
     }
 
 	private String Reminder(CampaignMember c, Campaign camp, String template)
     {
         String body = '<h3 >Hi ' + c.FirstName + ',</h3><br />';
-        body = body + camp.Email_Message__c + '<br />' + template;
-		body = body + '<p>We are looking forward to our adventure with you!</p>';
-		body = body + '<br />Your friends at Daring Adventures,<br/>';
-        body = body + UserInfo.getName() + '<br />';
-        body = body + UserInfo.getUserEmail()+'<br />';
-        body = body + '555-555-5555';
+        template.replace('adventure.type', camp.Type);
+        template.replace('adventure.startdate', camp.StartDate.format());
+        template.replace('adventure.description', camp.Description);
+        template.replace('additional.message', camp.Email_Message__c);
+        template.replace('username.name', UserInfo.getName());
+        template.replace('username.email', UserInfo.getUserEmail());
+        body = body + template;
+        //body = body + '<p>This is a confirmation/reminder of your upcoming '+ camp.Type + ' Adventure on ';
+        //body = body + camp.StartDate.format() + ' ' + camp.Description + '</p>';
+        //body = body + '<br /><p>' + camp.Email_Message__c + '</p><br />' + template;
+		//body = body + '<p>We are looking forward to our adventure with you!</p>';
+		//body = body + '<br /><br/>';
+        //body = body + UserInfo.getName() + '<br />';
+        //body = body + UserInfo.getUserEmail()+'<br />';
+        //body = body + '602-290-0214';
+
         return body;
     }
 
@@ -162,7 +179,8 @@ public class CMSendEmails {
 		body = body + '<br /><p>Congratulations! You have completed XXXXXX ';
         body = body + 'Active Days with Daring Adventures during your recent adventure. ';
         body = body + 'We were thrilled that you were able to join us.</p><br />';
-		body = body + campaign.email_message__c +'<br /><p>Do not forget to look for more adventures ';
+		body = body + campaign.email_message__c;
+        body = body + '<br /><p>Do not forget to look for more adventures ';
         body = body + 'in our calendar <a href="http://www.daring-adventures.org/">';
 		body = body + 'www.daring-adventures.org</a> and sign up for your next adventure.</p>';
 		body = body + '<p>We are looking forward to our next adventure with you!</p>';
