@@ -10,9 +10,18 @@ public class CMSendEmails {
     private List<CampaignMember> cMVol;
     public List<WrapCM> cMs {get;set;}
     public String message {get;set;}
+    private List<id> volIds;
+    private List<GW_Volunteers__Volunteer_Hours__c> volInfo;
+    private map<id,GW_Volunteers__Volunteer_Job__c> jobInfo;
+    private String theSubject;
+    private Boolean noTemplate;
+    public Boolean volAttachment {get;set;}
+    private List<String> attch = new List<String>();
 
     public CMSendEmails (ApexPages.StandardController stdCtrl)
     {
+        volAttachment = true;
+        noTemplate = False;
     	camp = [SELECT id, Name, RecordTypeId, Type, Description, StartDate,
                 Email_Message__c, Related_Campaign__c
                FROM Campaign WHERE id = :stdCtrl.getId()];
@@ -48,11 +57,7 @@ public class CMSendEmails {
                  ORDER BY Name LIMIT 30];
         system.debug('cMAdv.size() '+ cMAdv.size());
         If (cMAdv.size()>0)
-        {
-            for (CampaignMember cm1: cMAdv)
-                system.debug('cm1.status = '+cm1.status);
             Make_Wrap(cMAdv, 'Participant');
-        }
         else no_participants = true;
         if (! no_Vol)
         {
@@ -60,8 +65,16 @@ public class CMSendEmails {
             			Description, ContactId, Activity_Days__c
                 FROM CampaignMember WHERE CampaignId = :volCamp.id
                 ORDER BY Name LIMIT 30];
-            if (cMVol.size() > 0) Make_Wrap(cMVol, 'Volunteer');
-            else no_Vol = true;
+            if (cMVol.size() > 0)
+            {
+            	Make_Wrap(cMVol, 'Volunteer');
+                VolunteerInformation(True);
+            }
+            else
+            {
+                no_Vol = true;
+            	VolunteerInformation(False);
+            }
         }
 		if (no_Vol && no_participants)
             message = 'There are no participants or volunteers associated with this campaign';
@@ -94,101 +107,250 @@ public class CMSendEmails {
         system.debug('out of Make_Wrap');
     }
 
-    public PageReference SendTheEmails(){
+    private void VolunteerInformation(Boolean isVol)
+    {
+        if (isVol)  // If there are volunteers in the campaign
+        {
+            if (volAttachment)
+            { 	// Get the id of the document to be attached
+				Attachment_Setting__mdt attachments = [Select Document_Name__c
+                         FROM Attachment_Setting__mdt
+                         WHERE CampType__c = :camp.Type Limit 1];
+                Document docs = [Select id from Document
+                                Where DeveloperName = :attachments.Document_Name__c];
+                attch.add(docs.id);
+            }
+            // get the record from the Volunteer_Hours__c object for the vounteers in
+            // the campaign
+        	volInfo = [SELECT GW_Volunteers__Shift_Start_Date_Time__c,
+            	              GW_Volunteers__Total_Hours_Worked__c,
+                	          GW_Volunteers__Status__c,
+                    	      GW_Volunteers__Contact__c,
+                        	  GW_Volunteers__Volunteer_Job__c
+       	                 FROM GW_Volunteers__Volunteer_Hours__c
+        	            WHERE GW_Volunteers__Volunteer_Job__r.GW_Volunteers__Campaign__c =
+                                 :volCamp.id];
+            // get the information from the Volunteer_Job__c object for the campaign
+        	jobInfo = new map<id, GW_Volunteers__Volunteer_Job__c>
+                    	 ([Select GW_Volunteers__Location__c,
+                           		  GW_Volunteers__Location_Street__c,
+                           		  GW_Volunteers__Location_City__c,
+                                  GW_Volunteers__Location_Zip_Postal_Code__c
+                             FROM GW_Volunteers__Volunteer_Job__c
+                            WHERE GW_Volunteers__Campaign__c = :volCamp.id]);
+        }
+        else
+        {
+            //if there are no volunteers get any record from the
+            //Volunteer_Hours__c and Job it won't be used, but it needs can't be null.
+            volInfo = [SELECT GW_Volunteers__Shift_Start_Date_Time__c,
+            	              GW_Volunteers__Total_Hours_Worked__c,
+                	          GW_Volunteers__Status__c,
+                    	      GW_Volunteers__Contact__c,
+                        	  GW_Volunteers__Volunteer_Job__c
+       	                 FROM GW_Volunteers__Volunteer_Hours__c
+                         LIMIT 1];
+            jobInfo = new map<id, GW_Volunteers__Volunteer_Job__c>
+                    	 ([Select GW_Volunteers__Location__c,
+                           		  GW_Volunteers__Location_Street__c,
+                           		  GW_Volunteers__Location_City__c,
+                                  GW_Volunteers__Location_Zip_Postal_Code__c
+                             FROM GW_Volunteers__Volunteer_Job__c
+                             WHERE id = :volInfo[0].GW_Volunteers__Volunteer_Job__c
+                             LIMIT 1]);
+        }
+    }
+
+    private GW_Volunteers__Volunteer_Hours__c whatShift(id contId)
+    {
+        GW_Volunteers__Volunteer_Hours__c shft = new GW_Volunteers__Volunteer_Hours__c();
+        for (GW_Volunteers__Volunteer_Hours__c vh : volInfo)
+            if (vh.GW_Volunteers__Contact__c == contId)
+                shft = vh;
+        return shft;
+    }
+
+    public PageReference SendTheEmails()
+    {
         //This action is triggered the user clicks on the Send Emails button
         List<Messaging.SingleEmailMessage> messages = new List<Messaging.SingleEmailMessage>();
 		//add a SingleEmailMessage to each campaignmember selected
 		//+++ here get the records from the Email_Content__c one for participants
-		List<Email_Content__c> emailBody = [Select For_Participants__c, For_Volunteers__c,
-                        					Type_of_Email__c, Campaign_Type__c, Body__c
-                                            From Email_Content__c
-                                      		Where Type_of_Email__c = :picklist.etype__c AND
-                                      		Campaign_Type__c = :camp.Type];
-        String pBody = '';
-        String vBody = '';
-        system.debug('emailBody.size() = '+emailBody.size());
-        for (Email_Content__c bd : emailBody)
+		String cType = camp.Type;
+        if (picklist.etype__c == 'After Campaign Emails')
+            cType = 'Cycling';
+        List<Email_Content__c> emailBody = new List<Email_Content__c>();
+        try{
+			emailBody = [Select For_Participants__c, For_Volunteers__c,
+                       			Type_of_Email__c, Campaign_Type__c, Body__c,
+                                Subject__c
+                                From Email_Content__c
+                                Where Type_of_Email__c = :picklist.etype__c AND
+                                Campaign_Type__c = :cType];
+        }
+        catch (Exception e)
         {
-        	system.debug('For_Participants = '+bd.For_Participants__c );
-        	system.debug('For_Participants = '+bd.For_Volunteers__c );
-            if (bd.For_Participants__c) pBody = bd.Body__c;
-            if (bd.For_Volunteers__c) vBody = bd.Body__c;
+            message = 'There is no Email_Content that matches the conditions';
+            noTemplate = true;
         }
-        List<String> bccAddys = new List<String>();
-        bccAddys.add(UserInfo.getUserId());
-        String subj = '';
-        if (picklist.etype__c == 'Reminder Emails')
-            subj = 'Reminder of your upcoming '+camp.Type + ' adventure';
+        If (! noTemplate)
+        {
+            String pBody = '';
+        	String pSubject = '';
+       		String vBody = '';
+        	String vSubject = '';
+        	system.debug('emailBody.size() = '+emailBody.size());
+        	for (Email_Content__c bd : emailBody)
+        	{
+				// set the subject and body of the email depending on whether the
+				// campaign member is a Participant or a Volunteer
+            	if (bd.Body__c == null) bd.Body__c = '<span></span>';
+            	if (bd.For_Participants__c)
+            	{
+            	    pBody = bd.Body__c;
+            	    pSubject = bd.Subject__c;
+            	}
+            	if (bd.For_Volunteers__c)
+            	{
+            	    vBody = bd.Body__c;
+            	    vSubject = bd.Subject__c;
+            	}
+        	}
+			//set the bcc address to the user sending the emails
+            List<String> bccAddys = new List<String>();
+        	bccAddys.add(UserInfo.getUserId());
+            //go trhough the list of select campaign members and add a message to the
+            //list of single emails to send
+        	for (WrapCM wCM : cMs)
+            {
+                if (wCM.selected)
+                {
+        	    	Messaging.SingleEmailMessage mess = new Messaging.SingleEmailMessage();
+            		mess.setBccAddresses(bccAddys);
+            		List<String> addresses = new List<String>();
+            		addresses.add(wCM.part.email);
+            		mess.setTargetObjectId(wCM.part.ContactId);
+            		mess.setToAddresses(addresses);
+            		mess.setSenderDisplayName('Daring Adventures');
+            		String theBody = '';
+            		if (wCM.type_member == 'Participant')
+            		{
+                	    // if the campaign member is a participant
+            		    theSubject = pSubject.replace('*adventure.type*', camp.type);
+            			GW_Volunteers__Volunteer_Hours__c volShift = volInfo[0];
+            			GW_Volunteers__Volunteer_Job__c volJob =
+            		        jobInfo.get(volShift.GW_Volunteers__Volunteer_Job__c);
+            		    volJob = FillNull(volJob);
+            		    theBody = makeBody(wCM.part, camp, pBody, volShift, volJob);
+            		}
+            		else
+            		{	//if the campaign member is a volunteer
+						Integer index = 0;
+                		for (Integer i = 0; i<volInfo.size(); i++)
+                		{   //find the record from Volunteer_Hours__c that corresponds to this
+                    	    //campaign member
+                			if (volInfo[i].GW_Volunteers__Contact__c == wCM.part.ContactId)
+                			{
+                				index = i;
+                    		    i = volInfo.size();
+                    		}
+                		}
+                		theSubject = vSubject.replace('*adventure.type*', camp.type);
+                		GW_Volunteers__Volunteer_Hours__c volShift =
+                		    whatShift(wCM.part.ContactId);
+            			GW_Volunteers__Volunteer_Job__c volJob =
+                			jobInfo.get(volShift.GW_Volunteers__Volunteer_Job__c);
+                		volJob = FillNull(volJob);
+                		theBody = makeBody(wCM.part, volCamp, vBody, volShift, volJob);
+                    	//attach a file to the volunteers emails
+                		if (volAttachment && (picklist.etype__c == 'Reminder Emails'))
+                			mess.setEntityAttachments(attch);
+                	}
+            		mess.setSubject(theSubject);
+            		mess.setHtmlBody(theBody);
+            		messages.add(mess);
+                }
+        	}
+            //once all the emails have been added to the list send the emails using
+            //the messaging class
+        	messaging.sendEmail(messages);
+			List<Campaign> updatedCamps = new List<Campaign>();
+        	updatedCamps.add(camp);
+        	updatedCamps.add(volCamp);
+        	update updatedCamps;
+        	return new PageReference('/'+camp.id);
+    	}
         else
-            subj = 'We are so glad you were able to join us!';
-        for (WrapCM wCM : cMs){
-            Messaging.SingleEmailMessage mess = new Messaging.SingleEmailMessage();
-            mess.setBccAddresses(bccAddys);
-            List<String> addresses = new List<String>();
-            addresses.add(wCM.part.email);
-            mess.setToAddresses(addresses);
-            mess.setSenderDisplayName('Daring Adventures');
-            mess.setSubject(subj);
-            String theBody = '';
-            if (wCM.type_member == 'Participant')
-                theBody = makeBody(wCM.part, camp, pBody);
-            else
-                theBody = makeBody(wCM.part, camp, vBody);
-        	mess.setHtmlBody(theBody);
-            messages.add(mess);
+        {
+            return ApexPages.currentPage();
         }
-        messaging.sendEmail(messages);
-		List<Campaign> updatedCamps = new List<Campaign>();
-        updatedCamps.add(camp);
-        updatedCamps.add(volCamp);
-        update updatedCamps;
-        return new PageReference('/'+camp.id);
     }
 
-    private String makeBody(CampaignMember c, Campaign camp, String template)
+    private GW_Volunteers__Volunteer_Job__c FillNull (GW_Volunteers__Volunteer_Job__c vJ)
     {
-        If (picklist.etype__c == 'Reminder Emails') return Reminder(c, camp, template);
-        else return ThankYou(c, camp, template);
+        if (vJ.GW_Volunteers__Location__c == null)
+            vJ.GW_Volunteers__Location__c = '<span></span>';
+		if (vJ.GW_Volunteers__Location_Street__c == null)
+            vJ.GW_Volunteers__Location_Street__c = '<span></span>';
+		if (vJ.GW_Volunteers__Location_City__c == null)
+            vJ.GW_Volunteers__Location_City__c = '<span></span>';
+		if (vJ.GW_Volunteers__Location_Zip_Postal_Code__c == null)
+            vJ.GW_Volunteers__Location_Zip_Postal_Code__c = '<span></span>';
+		if (vJ.GW_Volunteers__Location_Information__c == null)
+            vJ.GW_Volunteers__Location_Information__c = '<span></span>';
+        return vJ;
     }
 
-	private String Reminder(CampaignMember c, Campaign camp, String template)
+    private String makeBody(CampaignMember c, Campaign tcamp, String template,
+                           	GW_Volunteers__Volunteer_Hours__c vHours,
+                            GW_Volunteers__Volunteer_Job__c vJob)
     {
+        If (picklist.etype__c == 'Reminder Emails') return Reminder(c, tcamp, template, vHours, vJob);
+        else return ThankYou(c, tcamp, template, vHours, vJob);
+    }
+
+	private String Reminder(CampaignMember c, Campaign tcamp, String template,
+                            GW_Volunteers__Volunteer_Hours__c vHours,
+                            GW_Volunteers__Volunteer_Job__c vJob)
+    {
+        system.debug('vHours.GW_Volunteers__Shift_Start_Date_Time__c' +
+                     vHours.GW_Volunteers__Shift_Start_Date_Time__c);
         String body = '<h3 >Hi ' + c.FirstName + ',</h3><br />';
-        template.replace('adventure.type', camp.Type);
-        template.replace('adventure.startdate', camp.StartDate.format());
-        template.replace('adventure.description', camp.Description);
-        template.replace('additional.message', camp.Email_Message__c);
-        template.replace('username.name', UserInfo.getName());
-        template.replace('username.email', UserInfo.getUserEmail());
+        template = template.replace('*adventure.type*', tcamp.Type);
+        template = template.replace('*adventure.description*', tcamp.Description);
+        template = template.replace('*adventure.startdate*', tcamp.StartDate.format());
+        template = template.replace('*additional.message*', tcamp.Email_Message__c);
+        template = template.replace('*username.name*', UserInfo.getName());
+        template = template.replace('*username.email*', UserInfo.getUserEmail());
+        if (tcamp.name.contains('Volunteer'))
+        {
+            String sTime = ''+ vHours.GW_Volunteers__Shift_Start_Date_Time__c.time();
+            template = template.replace('*shift.starttime*',sTime);
+			template = template.replace('*job.location*', vJob.GW_Volunteers__Location__c);
+			template = template.replace('*job.street*', vJob.GW_Volunteers__Location_Street__c);
+			String cityLine = vJob.GW_Volunteers__Location_City__c + ' ' +
+                			  vJob.GW_Volunteers__Location_Zip_Postal_Code__c;
+            template = template.replace('*job.city*', cityLine);
+            template = template.replace('*location.information*',vJob.GW_Volunteers__Location_Information__c);
+        }
         body = body + template;
-        //body = body + '<p>This is a confirmation/reminder of your upcoming '+ camp.Type + ' Adventure on ';
-        //body = body + camp.StartDate.format() + ' ' + camp.Description + '</p>';
-        //body = body + '<br /><p>' + camp.Email_Message__c + '</p><br />' + template;
-		//body = body + '<p>We are looking forward to our adventure with you!</p>';
-		//body = body + '<br /><br/>';
-        //body = body + UserInfo.getName() + '<br />';
-        //body = body + UserInfo.getUserEmail()+'<br />';
-        //body = body + '602-290-0214';
-
         return body;
     }
 
-    public String ThankYou(CampaignMember c, Campaign camp, String template)
+    public String ThankYou(CampaignMember c, Campaign tcamp, String template,
+                           GW_Volunteers__Volunteer_Hours__c vHours,
+                           GW_Volunteers__Volunteer_Job__c vJob)
     {
-        String body = '<h3 >Hi '+ c.FirstName + ' ,</h3>';
-		body = body + '<br /><p>Congratulations! You have completed XXXXXX ';
-        body = body + 'Active Days with Daring Adventures during your recent adventure. ';
-        body = body + 'We were thrilled that you were able to join us.</p><br />';
-		body = body + campaign.email_message__c;
-        body = body + '<br /><p>Do not forget to look for more adventures ';
-        body = body + 'in our calendar <a href="http://www.daring-adventures.org/">';
-		body = body + 'www.daring-adventures.org</a> and sign up for your next adventure.</p>';
-		body = body + '<p>We are looking forward to our next adventure with you!</p>';
-		body = body + '<br />Your friends at Daring Adventures,<br/>';
-        body = body + UserInfo.getName() + '<br />';
-        body = body + UserInfo.getUserEmail();
-        String activity_days = ''+ c.Activity_Days__c;
-        body = body.replace('XXXXXX', activity_days);
+        String body = '<h3 >Hi '+ c.FirstName + ' ,</h3><br>';
+        String activity_days = '' + c.Activity_Days__c;
+        String hours = '' + vHours.GW_Volunteers__Total_Hours_Worked__c;
+        template = template.replace('*XX*', activity_days);
+        template = template.replace('*HH*', hours);
+        template = template.replace('adventure.type', tcamp.type);
+        template = template.replace('*additional.message*', tcamp.Email_Message__c);
+        template = template.replace('*user.name*', UserInfo.getName());
+        template = template.replace('*user.email*', UserInfo.getUserEmail());
+        body = body + template;
         return body;
     }
 
