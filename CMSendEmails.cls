@@ -1,3 +1,4 @@
+
 public class CMSendEmails {
 
     private ApexPages.StandardController std;
@@ -17,6 +18,7 @@ public class CMSendEmails {
     private Boolean noTemplate;
     public Boolean volAttachment {get;set;}
     private List<String> attch = new List<String>();
+    private Boolean attExist = True;
 
     public CMSendEmails (ApexPages.StandardController stdCtrl)
     {
@@ -51,9 +53,10 @@ public class CMSendEmails {
         if (camp.StartDate > date.today()) picklist.etype__c = 'Reminder Emails';
         	else picklist.etype__c = 'After Campaign Emails';
         //Get campaign members from both campaigns and show them on the VF page
-        cMAdv = [SELECT id, email, Name, FirstName, LastName, Status,
+        //The campaign members without emails will not be visible in the page
+        cMAdv = [SELECT id, Email, Name, FirstName, LastName, Status,
         			 ContactId, Description, Activity_Days__c
-                FROM CampaignMember WHERE CampaignId = :camp.id
+                FROM CampaignMember WHERE CampaignId = :camp.id And Email != null
                  ORDER BY Name LIMIT 30];
         system.debug('cMAdv.size() '+ cMAdv.size());
         If (cMAdv.size()>0)
@@ -61,9 +64,9 @@ public class CMSendEmails {
         else no_participants = true;
         if (! no_Vol)
         {
-            cMVol = [SELECT id, email, Name, FirstName, LastName, Status,
+            cMVol = [SELECT id, Email, Name, FirstName, LastName, Status,
             			Description, ContactId, Activity_Days__c
-                FROM CampaignMember WHERE CampaignId = :volCamp.id
+                FROM CampaignMember WHERE CampaignId = :volCamp.id AND Email != null
                 ORDER BY Name LIMIT 30];
             if (cMVol.size() > 0)
             {
@@ -116,9 +119,17 @@ public class CMSendEmails {
 				Attachment_Setting__mdt attachments = [Select Document_Name__c
                          FROM Attachment_Setting__mdt
                          WHERE CampType__c = :camp.Type Limit 1];
-                Document docs = [Select id from Document
+                Try
+                {
+                	Document docs = [Select id from Document
                                 Where DeveloperName = :attachments.Document_Name__c];
-                attch.add(docs.id);
+                	attch.add(docs.id);
+                }
+                catch (Exception e)
+                {
+                    message = 'There are no documents for the Attachment';
+                    attExist = False;
+                }
             }
             // get the record from the Volunteer_Hours__c object for the vounteers in
             // the campaign
@@ -135,7 +146,8 @@ public class CMSendEmails {
                     	 ([Select GW_Volunteers__Location__c,
                            		  GW_Volunteers__Location_Street__c,
                            		  GW_Volunteers__Location_City__c,
-                                  GW_Volunteers__Location_Zip_Postal_Code__c
+                                  GW_Volunteers__Location_Zip_Postal_Code__c,
+                           	      GW_Volunteers__Location_Information__c
                              FROM GW_Volunteers__Volunteer_Job__c
                             WHERE GW_Volunteers__Campaign__c = :volCamp.id]);
         }
@@ -154,7 +166,8 @@ public class CMSendEmails {
                     	 ([Select GW_Volunteers__Location__c,
                            		  GW_Volunteers__Location_Street__c,
                            		  GW_Volunteers__Location_City__c,
-                                  GW_Volunteers__Location_Zip_Postal_Code__c
+                                  GW_Volunteers__Location_Zip_Postal_Code__c,
+                                  GW_Volunteers__Location_Information__c
                              FROM GW_Volunteers__Volunteer_Job__c
                              WHERE id = :volInfo[0].GW_Volunteers__Volunteer_Job__c
                              LIMIT 1]);
@@ -190,7 +203,12 @@ public class CMSendEmails {
         }
         catch (Exception e)
         {
-            message = 'There is no Email_Content that matches the conditions';
+            message = 'There is no Email_Content of type '+ picklist.etype__c + ' for '+ cType+' Adventure';
+            noTemplate = true;
+        }
+        if (emailBody.size() == 0)
+        {
+            message = 'There is no Email_Content of type '+ picklist.etype__c + ' for '+ cType+' Adventure';
             noTemplate = true;
         }
         If (! noTemplate)
@@ -263,7 +281,7 @@ public class CMSendEmails {
                 		volJob = FillNull(volJob);
                 		theBody = makeBody(wCM.part, volCamp, vBody, volShift, volJob);
                     	//attach a file to the volunteers emails
-                		if (volAttachment && (picklist.etype__c == 'Reminder Emails'))
+                		if (volAttachment && attExist && (picklist.etype__c == 'Reminder Emails'))
                 			mess.setEntityAttachments(attch);
                 	}
             		mess.setSubject(theSubject);
@@ -319,9 +337,12 @@ public class CMSendEmails {
         template = template.replace('*adventure.type*', tcamp.Type);
         template = template.replace('*adventure.description*', tcamp.Description);
         template = template.replace('*adventure.startdate*', tcamp.StartDate.format());
-        template = template.replace('*additional.message*', tcamp.Email_Message__c);
-        template = template.replace('*username.name*', UserInfo.getName());
-        template = template.replace('*username.email*', UserInfo.getUserEmail());
+   		String rplcment='';
+        if (tcamp.Email_Message__c == null) rplcment = '<span></span>';
+        	else rplcment = tcamp.Email_Message__c;
+        template = template.replace('*additional.message*', rplcment);
+        template = template.replace('*user.name*', UserInfo.getName());
+        template = template.replace('*user.email*', UserInfo.getUserEmail());
         if (tcamp.name.contains('Volunteer'))
         {
             String sTime = ''+ vHours.GW_Volunteers__Shift_Start_Date_Time__c.time();
@@ -347,7 +368,10 @@ public class CMSendEmails {
         template = template.replace('*XX*', activity_days);
         template = template.replace('*HH*', hours);
         template = template.replace('adventure.type', tcamp.type);
-        template = template.replace('*additional.message*', tcamp.Email_Message__c);
+   		String rplcment='';
+        if (tcamp.Email_Message__c == null) rplcment = '<span></span>';
+        	else rplcment = tcamp.Email_Message__c;
+        template = template.replace('*additional.message*', rplcment);
         template = template.replace('*user.name*', UserInfo.getName());
         template = template.replace('*user.email*', UserInfo.getUserEmail());
         body = body + template;
