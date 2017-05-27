@@ -1,9 +1,11 @@
+
 @isTest(SeeAllData=true)
 
 public class CMSendEmailsTest {
     @isTest
     private static void SndEmail()
     {
+
         //only insert campaign members for the first campaign created
         //camp[0] - Adventure, CM 0,1,2   Volunteer - CM 3,4
         //camp[1] - Adventure no CM  volunteer - CM 4,5
@@ -11,7 +13,9 @@ public class CMSendEmailsTest {
         //camp[3] - Adventure no CM  volunteer no CM
         List<Campaign> campList = new List<Campaign>
             			([Select id, Name, Related_Campaign__c, StartDate from Campaign
+
                           where Name LIKE 'testing%']);
+
 
     	//begin test now
     	//
@@ -22,12 +26,15 @@ public class CMSendEmailsTest {
         test.startTest();
         List<String> returnPages = new List<String>();
         List<PageReference> pgref = new List<PageReference>();
+
 ///------------------------
         system.debug('campList[0].Name: '+campList[0].Name);
+
         ApexPages.StandardController std1 =
             					new ApexPages.StandardController(campList[0]);
         system.debug('In first test: Cycling 2 participants selected 1 volunteer');
         CMSendEmails firstTest = new CMSendEmails(std1);
+
 		if (CampList[0].Name == 'Testing 2')
         	system.assertEquals('There are no participants or volunteers associated with this campaign', firstTest.message);
         pgref.add(firstTest.SendTheEmails());
@@ -94,6 +101,7 @@ public class CMSendEmailsTest {
             if (CampList[x].Name != 'Testing 2' && CampList[x].Name != 'Testing 5')
         		system.assertEquals(true, returnPages[x].contains(CampList[x].id));
         }
+
 
     }
 }

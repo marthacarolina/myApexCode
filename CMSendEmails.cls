@@ -1,4 +1,3 @@
-
 public class CMSendEmails {
 
     private ApexPages.StandardController std;
@@ -52,6 +51,7 @@ public class CMSendEmails {
         picklist = new Picklist_Values__c();
         if (camp.StartDate > date.today()) picklist.etype__c = 'Reminder Emails';
         	else picklist.etype__c = 'After Campaign Emails';
+
         //Get campaign members from both campaigns and show them on the VF page
         //The campaign members without emails will not be visible in the page
         cMAdv = [SELECT id, Email, Name, FirstName, LastName, Status,
@@ -78,12 +78,14 @@ public class CMSendEmails {
                 no_Vol = true;
             	VolunteerInformation(False);
             }
+
         }
 		if (no_Vol && no_participants)
             message = 'There are no participants or volunteers associated with this campaign';
     }
 
     public void Make_Wrap (List<CampaignMember> campMems, String type_Cm){
+
     	//this method makes the wrap to include the checkbox and distinguish
     	//participants from volunteers. It adds the object to a list which will
     	//be the list of recipients
