@@ -1,0 +1,35 @@
+<apex:page showHeader="false" controller="QAMonthlyController" >
+
+  <!-- Begin Default Content REMOVE THIS renderAs="pdf" -->
+  <h1>QA Report for the month of {!month}</h1>
+
+  <apex:repeat value="{!pageBrokenLines}" var="aPageOfLines" id="theList">
+
+  <div style="page-break-after:always;">
+    <apex:repeat value={!aPageOfLines} var="participant" id="onePage">
+
+          <apex:outputText value={!participant.Name} Label="Name:" />
+          <apex:outputText value={!participant.totCamp} Label="Total Adventures: " />
+          <apex:outputText value={!participant.totActDays} Label="Total Activity Days: " />
+          <apex:dataTable value="{!participant.adventures}" var="c" id="theTable" headerClass="tablehead"
+                        rowClasses="odd,even" style="font-size: 50%; "
+                        columnsWidth="100px, 50px, 50px">
+                <apex:column style="border: 1px">
+                    <apex:facet name="header">Adventure Campaign</apex:facet>
+                    <apex:outputText value="{!c.Name}"/>
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header" >Start Date</apex:facet>
+                    <apex:outputText value="{!c.sdate}"/>
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">Activity Days</apex:facet>
+                    <apex:outputText value="{!c.ActivityDays}"/>
+                </apex:column>
+          </apex:dataTable>
+    </apex:repeat>
+</apex:repeat>
+
+
+  <!-- End Default Content REMOVE THIS -->
+</apex:page>

@@ -2,11 +2,25 @@ public class QAMonthlyController {
   public List<participantInfo> participants{get;set;}
   List<participantInfo> staff{get;set;}
   List<participantInfo[]> participantsPages {get;set;}
+  List<participantInfo[]> pageBrokenLines {get;set;}
   List<participantInfo> staffPages{get;set;}
+  List<participantInfo> pageOfLines;
+
   Integer counter = 0;
 
+  public void QAMonthlyController(){
+      String month = ApexPages.currentPage().getParameters().get('m');
+      if (month.size() = 1) month = '0'+ month;
+      String year = ApexPages.currentPage().getParameters().get('y');
+      String beginRange = year+'-'+ month + '01';
+      Integer endOfMonth = daysInMonth(integer.valueOf(year), integer.valueOf(month));
+      String endRange = year + '-' + month + '-' + endOfMonth;
+      List<participantInfo[]> pageBrokenLines = new List<participantInfo[]>();
+      pageOfLines = new <participantInfo>();
+      MonthlyQA()
+  }
 
-  public PageReference MontlyQA()
+  public void MonthlyQA()
     {
         // Get the report ID
 		List <Report> reportList = [SELECT Id,DeveloperName FROM Report where
@@ -86,19 +100,17 @@ public class QAMonthlyController {
             if (advs[0].Staff) staff.add(participant);
             else participants.add(participant);
         }
-        participantsPages = prepareLinesForPrinting(participants);
+        participantsPages = prepareLinesForPrinting(participants, false);
         counter = counter + 8;
-        staffPages = prepareLinesForPrinting(staff);
+        staffPages = prepareLinesForPrinting(staff, true);
         PageReference pdfPage = new PageReference('/apex/QAMonthlyPDF_VF');
 		return null;
     }
 
     //splits the quote lines into an approximate number of rows that can be
     //displayed per page
-    private List<participantInfo[]> prepareLinesForPrinting(List<ParticipantInfo> printLines)
+    private List<participantInfo[]> prepareLinesForPrinting(List<ParticipantInfo> printLines, Boolean lastTable)
     {
-	    List<participantInfo[]> pageBrokenLines = new List<participantInfo[]>();
-	    participantInfo[] pageOfLines = new participantInfo[]{};
 	    Integer FIRST_BREAK = 20;
       Integer SUBSEQ_BREAKS = 25;
 	    boolean firstBreakFound = false;
@@ -107,7 +119,7 @@ public class QAMonthlyController {
 
 	    for(participantInfo pi: printLines)
 	    {
-           integer lines = pi.totCamp + 1;
+         integer lines = pi.totCamp + 1;
 	       if(counter + lines <= breakPoint)
 	       {
 	       		pageOfLines.add(pi);
@@ -131,8 +143,12 @@ public class QAMonthlyController {
            }
 	    }
 	    //if we have finished looping and have some quotes left let's assign them
-	    if(!pageOfLines.isEmpty())
+	    if(!pageOfLines.isEmpty() && !lastTable)
+      {
             pageBrokenLines.add(pageOfLines);
+            counter = counter + pageOfLines.size();
+            pageOfLines.clear();
+      }
        return pageBrokenLines;
     }
 
