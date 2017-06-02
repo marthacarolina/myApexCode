@@ -1,23 +1,25 @@
 public class QAMonthlyController {
   public List<participantInfo> participants{get;set;}
-  List<participantInfo> staff{get;set;}
-  List<participantInfo[]> participantsPages {get;set;}
-  List<participantInfo[]> pageBrokenLines {get;set;}
-  List<participantInfo> staffPages{get;set;}
+  Public List<participantInfo> staff{get;set;}
+  Public List<participantInfo[]> participantsPages {get;set;}
+  Public List<participantInfo[]> pageBrokenLines {get;set;}
+  Public List<participantInfo[]> staffPages{get;set;}
   List<participantInfo> pageOfLines;
+  Public String month{get;set;}
+  Public String year{get;set;}
 
   Integer counter = 0;
 
   public void QAMonthlyController(){
-      String month = ApexPages.currentPage().getParameters().get('m');
-      if (month.size() = 1) month = '0'+ month;
-      String year = ApexPages.currentPage().getParameters().get('y');
+      month = ApexPages.currentPage().getParameters().get('m');
+      if (month.length() == 1) month = '0'+ month;
+      year = ApexPages.currentPage().getParameters().get('y');
       String beginRange = year+'-'+ month + '01';
-      Integer endOfMonth = daysInMonth(integer.valueOf(year), integer.valueOf(month));
+      Integer endOfMonth = date.daysInMonth(integer.valueOf(year), integer.valueOf(month));
       String endRange = year + '-' + month + '-' + endOfMonth;
-      List<participantInfo[]> pageBrokenLines = new List<participantInfo[]>();
-      pageOfLines = new <participantInfo>();
-      MonthlyQA()
+      pageBrokenLines = new List<participantInfo[]>();
+      pageOfLines = new List<participantInfo>();
+      MonthlyQA();
   }
 
   public void MonthlyQA()
@@ -104,7 +106,6 @@ public class QAMonthlyController {
         counter = counter + 8;
         staffPages = prepareLinesForPrinting(staff, true);
         PageReference pdfPage = new PageReference('/apex/QAMonthlyPDF_VF');
-		return null;
     }
 
     //splits the quote lines into an approximate number of rows that can be
@@ -164,7 +165,7 @@ public class QAMonthlyController {
         public String Name {get;set;}
         public Integer totCamp {get;set;}
         public Integer totActDays {get;set;}
-        public List<adventure> adventures;
+        public List<adventure> adventures {get;set;}
         public participantInfo(){}
     }
 
