@@ -2,33 +2,53 @@
 
     <!-- Begin Default Content REMOVE THIS renderAs="pdf" -->
     <h1>QA Report for the month of {!month}</h1>
+    <br/>
+    <br/>
+    <h2>Total Activity Days this month: {!totalMAD}</h2>
+    <h2>Number of Participants attending more than one adventure: {!serialParticipants}</h2>
+    <br/>
+    <apex:repeat value="{!participants}" var="participant" id="theParticipants">
 
-    <apex:repeat value="{!pageBrokenLines}" var="aPageOfLines" id="theList">
+        <apex:outputText value="{!participant.Name}" Label="Name:" />
+        <apex:outputText value="{!participant.totCamp}" Label="Total Adventures: " />
+        <apex:outputText value="{!participant.totActDays}" Label="Total Activity Days: " />
+        <apex:dataTable value="{!participant.adventures}" var="c" id="theTable" headerClass="tablehead"
+                        rowClasses="odd,even" style="font-size: 50%; "
+                        columnsWidth="100px, 50px, 50px">
+            <apex:column style="border: 1px">
+                <apex:facet name="header">Adventure Campaign</apex:facet>
 
-        <div style="page-break-after:always;">
-            <apex:repeat value="{!aPageOfLines}" var="participant" id="onePage">
-
-                <apex:outputText value="{!participant.Name}" Label="Name:" />
-                <apex:outputText value="{!participant.totCamp}" Label="Total Adventures: " />
-                <apex:outputText value="{!participant.totActDays}" Label="Total Activity Days: " />
-                <apex:dataTable value="{!participant.adventures}" var="c" id="theTable" headerClass="tablehead"
-                                rowClasses="odd,even" style="font-size: 50%; "
-                                columnsWidth="100px, 50px, 50px">
-                    <apex:column style="border: 1px">
-                        <apex:facet name="header">Adventure Campaign</apex:facet>
-
-                        <apex:outputText value="{!c.Name}"/>
-                    </apex:column>
-                    <apex:column >
-                        <apex:facet name="header" >Start Date</apex:facet>
-                        <apex:outputText value="{!c.sdate}"/>
-                    </apex:column>
-                    <apex:column >
-                        <apex:facet name="header">Activity Days</apex:facet>
-                        <apex:outputText value="{!c.ActivityDays}"/>
-                    </apex:column>
-                </apex:dataTable>
-            </apex:repeat>
-        </div>
+                <apex:outputText value="{!c.Name}"/>
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header" >Start Date</apex:facet>
+                <apex:outputText value="{!c.sdate}"/>
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">Activity Days</apex:facet>
+                <apex:outputText value="{!c.ActivityDays}"/>
+            </apex:column>
+        </apex:dataTable>
     </apex:repeat>
+
+    <h2>Staff and activities they conducted</h2>
+    <br />
+    <apex:repeat value="{!staff}" var="st" id="theStaff">
+        <apex:outputText value="{!st.Name}" Label="Name:" />
+        <apex:outputText value="{!st.totCamp}" Label="Total Adventures Conducted: " />
+        <apex:dataTable value="{!st.adventures}" var="c" id="theTable" headerClass="tablehead"
+                        rowClasses="odd,even" style="font-size: 50%; "
+                        columnsWidth="100px, 50px, 50px">
+            <apex:column style="border: 1px">
+                <apex:facet name="header">Adventure Campaign</apex:facet>
+
+                <apex:outputText value="{!c.Name}"/>
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header" >Start Date</apex:facet>
+                <apex:outputText value="{!c.sdate}"/>
+            </apex:column>
+        </apex:dataTable>
+    </apex:repeat>
+
 </apex:page>
