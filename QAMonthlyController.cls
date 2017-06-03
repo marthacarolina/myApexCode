@@ -8,18 +8,24 @@ public class QAMonthlyController {
 
     public void QAMonthlyController(){
         totalMAD = 0;
-        month = ApexPages.currentPage().getParameters().get('m');
-        if (month.length() == 1) month = '0'+ month;
-        year = ApexPages.currentPage().getParameters().get('y');
-        String beginRange = year+'-'+ month + '01';
-        Integer endOfMonth = date.daysInMonth(integer.valueOf(year), integer.valueOf(month));
-        String endRange = year + '-' + month + '-' + endOfMonth;
-        MonthlyQA();
-        PageReference goBack = new PageReference('/apex/QAReportsVF');
     }
 
     public void MonthlyQA()
     {
+        List<String> theMonths = new String[]{'January', 'February', 'March', 'April', 'May', 'June',
+                  'July', 'August', 'September','October','November', 'December'};
+        totalMAD = 0;
+        //get the range for the report
+        String monthNum = ApexPages.currentPage().getParameters().get('m');
+        month = theMonths[integer.valueOf(monthNum) - 1];
+        if (monthNum.length() == 1) monthNum = '0'+ monthNum;
+        year = ApexPages.currentPage().getParameters().get('y');
+        String beginRange = year+'-'+ monthNum + '-01';
+        Integer endOfMonth = date.daysInMonth(integer.valueOf(year), integer.valueOf(monthNum));
+        system.debug('endOfMonth = ' + endOfMonth);
+        system.debug('beginRange = '+beginRange);
+        String endRange = year + '-' + monthNum + '-' + endOfMonth;
+        system.debug('endRange = ' + endRange);
         // Get the report ID
         List <Report> reportList = [SELECT Id,DeveloperName FROM Report where
                                     DeveloperName = 'Participants_and_Activity_Days'];
@@ -31,8 +37,8 @@ public class QAMonthlyController {
         //Set the filters (bypass 0, set 1 and 2 with month's first date and last date)
         Reports.ReportFilter filter1 = rm.getReportFilters()[1];
         Reports.ReportFilter filter2 = rm.getReportFilters()[2];
-        filter1.setValue('2017-05-01');
-        filter2.setValue('2017-05-31');
+        filter1.setValue(beginRange);
+        filter2.setValue(endRange);
         // Run the report - syncronously
         Reports.ReportResults results = Reports.ReportManager.runReport(reportId, rm, true);
         //System.debug('Synchronous results: ' + results);

@@ -5,7 +5,7 @@
             <apex:selectOptions value="{!items}"/>
         </apex:selectList><p/>
 
-        <apex:commandButton value="Print Monthly Report" action="{!printMonthly}" rerender="out" status="status"/>
+        <apex:commandButton value="Print Monthly Report" action="{!printMonthly}" />
     </apex:form>
 
     <apex:outputPanel id="out">

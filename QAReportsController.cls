@@ -15,7 +15,7 @@ public class QAReportsController {
     }
 
     public PageReference printMonthly() {
-        String pdfURL = '/apex/QAMonthlyPdfPF?m='+month+'&y='+year;
+        String pdfURL = '/apex/QAMonthlyPdfVF?m='+nMonth+'&y='+year;
         return new PageReference(pdfURL);
     }
 
