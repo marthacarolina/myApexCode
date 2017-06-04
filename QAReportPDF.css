@@ -1,3 +1,32 @@
+@page {
+  @top-center {
+  content: element(header);
+  }
+  @bottom-left {
+  content: element(footer);
+  }
+  margin-top: 100px;
+  margin-bottom:80px;
+}
+
+  div.header {
+  padding: 10px;
+  align: center;
+  position: running(header);
+  }
+  div.footer {
+  display: block;
+  padding: 5px;
+  position: running(footer);
+  }
+
+  .pagenumber:before {
+  content: counter(page);
+  }
+  .pagecount:before {
+  content: counter(pages);
+  }
+
 .orgbox {
   border: 1px solid #CCCCCC;
   font-size: 80%;

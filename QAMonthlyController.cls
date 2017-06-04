@@ -1,10 +1,12 @@
 public class QAMonthlyController {
     public List<participantInfo> participants{get;set;}
-    Public List<participantInfo> staff{get;set;}
     Public String month{get;set;}
     Public String year{get;set;}
     Public Integer totalMAD{get;set;}
     Public Integer serialParticipants{get;set;}
+    Public Integer totalParticipants{get;set;}
+    Public Integer totNewParticipants{get;set;}
+    Public Fee__c forDate{get;set;}
 
     public void QAMonthlyController(){
         totalMAD = 0;
@@ -12,6 +14,7 @@ public class QAMonthlyController {
 
     public void MonthlyQA()
     {
+        forDate = new Fee__c(Effective_Date__c = date.today());
         List<String> theMonths = new String[]{'January', 'February', 'March', 'April', 'May', 'June',
                   'July', 'August', 'September','October','November', 'December'};
         totalMAD = 0;
@@ -55,10 +58,11 @@ public class QAMonthlyController {
         List<Reports.GroupingValue> groupingVal = dim.getGroupings();
         List<String> factMapKeys = new List<String>();
         participants = new List<participantInfo>();
-        staff = new List<participantInfo>();
         serialParticipants = 0;
+        totNewParticipants = 0;
         for (Reports.GroupingValue gV : groupingVal)
         {
+            Boolean firstTimer = false;
             participantInfo participant = new participantInfo();
             System.debug('Key: ' + gV.getKey());
             participant.Name = gv.getLabel();
@@ -85,6 +89,7 @@ public class QAMonthlyController {
             // Get the fields value for the grouping
             List<Reports.ReportDetailRow> detailRows = factDetails.getRows();
             List<adventure> advs = new List<adventure>();
+            Boolean firstAdventure = true;
             for (Reports.ReportDetailRow dr : detailRows)
             {
                 List<Reports.ReportDataCell> dataCells = dr.getDataCells();
@@ -94,6 +99,13 @@ public class QAMonthlyController {
                 adv.ActivityDays = integer.valueOf(dataCells[2].getValue());
                 adv.Attended = boolean.valueOf(dataCells[3].getValue());
                 adv.Staff = boolean.valueOf(dataCells[4].getValue());
+                integer overallActDays = integer.valueOf(dataCells[5].getValue());
+                if (firstAdventure)
+                {
+                  participant.firstTime = participant.totActDays >= overallActDays;
+                  totNewParticipants++;
+                  firstAdventure = false;
+                }
                 advs.add(adv);
                 system.debug('adventure row: Campaign '+adv.Name+' date '+adv.sdate+' actDays '+adv.ActivityDays+
                              ' attended '+adv.Attended+ ' Staff '+adv.Staff);
@@ -102,9 +114,9 @@ public class QAMonthlyController {
             participant.adventures = advs;
             if (participant.totCamp > 1 && participant.totActDays > 0 && ! participant.adventures[0].Staff)
                 serialParticipants++;
-            if (advs[0].Staff) staff.add(participant);
-            else participants.add(participant);
+            if (!advs[0].Staff) participants.add(participant);
         }
+        totalParticipants = participants.size();
     }
 
     public class adventure{
@@ -120,6 +132,7 @@ public class QAMonthlyController {
         public Integer totCamp {get;set;}
         public Integer totActDays {get;set;}
         public List<adventure> adventures {get;set;}
+        public Boolean firstTime{get;set;}
         public participantInfo(){}
     }
 
