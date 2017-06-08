@@ -39,12 +39,14 @@ public class CMSendEmails {
                 if (volCamp.Email_Message__c == null) volCamp.Email_Message__c = camp.Email_Message__c;
             }
             else
-                if (camp.Related_Campaign__c == null)
             {
-                no_Vol = true;
-                system.debug('no_Vol = ' + no_Vol);
-                volCamp = new Campaign();
-                volCamp.id = camp.id;
+                if (camp.Related_Campaign__c == null)
+                {
+                    no_Vol = true;
+                    system.debug('no_Vol there is no volunteer campaign = ' + no_Vol);
+                    volCamp = new Campaign();
+                    volCamp.id = camp.id;
+                }
             }
         }
         cMs = new List<WrapCM>();
@@ -58,7 +60,7 @@ public class CMSendEmails {
                  ContactId, Description, Activity_Days__c
                  FROM CampaignMember WHERE CampaignId = :camp.id And Email != null
                  ORDER BY Name LIMIT 30];
-        system.debug('cMAdv.size() '+ cMAdv.size());
+        system.debug('Number of Participants '+ cMAdv.size());
         If (cMAdv.size()>0)
             Make_Wrap(cMAdv, 'Participant');
         else no_participants = true;
@@ -68,6 +70,7 @@ public class CMSendEmails {
                      Description, ContactId, Activity_Days__c
                      FROM CampaignMember WHERE CampaignId = :volCamp.id AND Email != null
                      ORDER BY Name LIMIT 30];
+            system.debug('number of volunteers ' + cMVol.size());
             if (cMVol.size() > 0)
             {
                 Make_Wrap(cMVol, 'Volunteer');
@@ -96,15 +99,19 @@ public class CMSendEmails {
         {
             system.debug('Picklist.etype__c = '+ Picklist.etype__c);
             system.debug('c.FirstName = ' + c.FirstName);
+            system.debug('c.Status = ' + c.Status);
             if (Picklist.etype__c == 'Reminder Emails')
             {
-                system.debug('c.Status = ' + c.Status);
                 if (c.Status == 'Signed Up' || c.Status == 'Confirmed') selected = true;
             }
             else
+            {
                 if (picklist.etype__c == 'After Campaign Emails')
-                if (c.Status == 'Attended' || c.Status == 'Completed')
-                selected = true;
+                {
+                    if (c.Status == 'Attended' || c.Status == 'Completed')
+                        selected = true;
+                }
+            }
             system.debug('selected = ' + selected);
             cMs.add(new WrapCM(c, selected, type_Cm));
             selected = false;
@@ -131,6 +138,7 @@ public class CMSendEmails {
                 {
                     message = 'There are no documents for the Attachment';
                     attExist = False;
+                    system.debug('attExist = ' + attExist);
                 }
             }
             // get the record from the Volunteer_Hours__c object for the vounteers in
@@ -187,123 +195,129 @@ public class CMSendEmails {
 
     public PageReference SendTheEmails()
     {
-        //This action is triggered the user clicks on the Send Emails button
-        List<Messaging.SingleEmailMessage> messages = new List<Messaging.SingleEmailMessage>();
-        //add a SingleEmailMessage to each campaignmember selected
-        //+++ here get the records from the Email_Content__c one for participants
-        String cType = camp.Type;
-        if (picklist.etype__c == 'After Campaign Emails')
-            cType = 'Cycling';
-        List<Email_Content__c> emailBody = new List<Email_Content__c>();
-        try{
-            emailBody = [Select For_Participants__c, For_Volunteers__c,
-                         Type_of_Email__c, Campaign_Type__c, Body__c,
-                         Subject__c
-                         From Email_Content__c
-                         Where Type_of_Email__c = :picklist.etype__c AND
-                         Campaign_Type__c = :cType];
-        }
-        catch (Exception e)
+        //This action is triggered when the user clicks on the Send Emails button
+        if (!no_Vol && !no_participants)
         {
-            message = 'There is no Email_Content of type '+ picklist.etype__c + ' for '+ cType+' Adventure';
-            noTemplate = true;
-        }
-        if (emailBody.size() == 0)
-        {
-            message = 'There is no Email_Content of type '+ picklist.etype__c + ' for '+ cType+' Adventure';
-            noTemplate = true;
-        }
-        If (! noTemplate)
-        {
-            String pBody = '';
-            String pSubject = '';
-            String vBody = '';
-            String vSubject = '';
-            system.debug('emailBody.size() = '+emailBody.size());
-            for (Email_Content__c bd : emailBody)
-            {
-                // set the subject and body of the email depending on whether the
-                // campaign member is a Participant or a Volunteer
-                if (bd.Body__c == null) bd.Body__c = '<span></span>';
-                if (bd.For_Participants__c)
-                {
-                    pBody = bd.Body__c;
-                    pSubject = bd.Subject__c;
-                }
-                if (bd.For_Volunteers__c)
-                {
-                    vBody = bd.Body__c;
-                    vSubject = bd.Subject__c;
-                }
+            List<Messaging.SingleEmailMessage> messages = new List<Messaging.SingleEmailMessage>();
+            //add a SingleEmailMessage to each campaignmember selected
+            //+++ here get the records from the Email_Content__c one for participants
+            String cType = camp.Type;
+            if (picklist.etype__c == 'After Campaign Emails')
+                cType = 'Cycling';
+            List<Email_Content__c> emailBody = new List<Email_Content__c>();
+            try{
+                emailBody = [Select For_Participants__c, For_Volunteers__c,
+                             Type_of_Email__c, Campaign_Type__c, Body__c,
+                             Subject__c
+                             From Email_Content__c
+                             Where Type_of_Email__c = :picklist.etype__c AND
+                             Campaign_Type__c = :cType];
             }
-            //set the bcc address to the user sending the emails
-            List<String> bccAddys = new List<String>();
-            bccAddys.add(UserInfo.getUserId());
-            //go trhough the list of select campaign members and add a message to the
-            //list of single emails to send
-            for (WrapCM wCM : cMs)
+            catch (Exception e)
             {
-                if (wCM.selected)
+                message = 'There is no Email_Content of type '+ picklist.etype__c + ' for '+ cType+' Adventure';
+                noTemplate = true;
+                system.debug('noTemplate = ' + noTemplate);
+            }
+            if (emailBody.size() == 0)
+            {
+                message = 'There is no Email_Content of type '+ picklist.etype__c + ' for '+ cType+' Adventure';
+                noTemplate = true;
+            }
+            If (! noTemplate)
+            {
+                String pBody = '';
+                String pSubject = '';
+                String vBody = '';
+                String vSubject = '';
+                system.debug('emailBody.size() = '+emailBody.size());
+                for (Email_Content__c bd : emailBody)
                 {
-                    Messaging.SingleEmailMessage mess = new Messaging.SingleEmailMessage();
-                    mess.setBccAddresses(bccAddys);
-                    List<String> addresses = new List<String>();
-                    addresses.add(wCM.part.email);
-                    mess.setTargetObjectId(wCM.part.ContactId);
-                    mess.setToAddresses(addresses);
-                    mess.setSenderDisplayName('Daring Adventures');
-                    String theBody = '';
-                    if (wCM.type_member == 'Participant')
+                    // set the subject and body of the email depending on whether the
+                    // campaign member is a Participant or a Volunteer
+                    if (bd.Body__c == null) bd.Body__c = '<span></span>';
+                    if (bd.For_Participants__c)
                     {
-                        // if the campaign member is a participant
-                        theSubject = pSubject.replace('*adventure.type*', camp.type);
-                        GW_Volunteers__Volunteer_Hours__c volShift = volInfo[0];
-                        GW_Volunteers__Volunteer_Job__c volJob =
-                            jobInfo.get(volShift.GW_Volunteers__Volunteer_Job__c);
-                        volJob = FillNull(volJob);
-                        theBody = makeBody(wCM.part, camp, pBody, volShift, volJob);
+                        pBody = bd.Body__c;
+                        pSubject = bd.Subject__c;
                     }
-                    else
-                    {//if the campaign member is a volunteer
-                        Integer index = 0;
-                        for (Integer i = 0; i<volInfo.size(); i++)
-                        {   //find the record from Volunteer_Hours__c that corresponds to this
-                            //campaign member
-                            if (volInfo[i].GW_Volunteers__Contact__c == wCM.part.ContactId)
-                            {
-                                index = i;
-                                i = volInfo.size();
-                            }
-                        }
-                        theSubject = vSubject.replace('*adventure.type*', camp.type);
-                        GW_Volunteers__Volunteer_Hours__c volShift =
-                            whatShift(wCM.part.ContactId);
-                        GW_Volunteers__Volunteer_Job__c volJob =
-                            jobInfo.get(volShift.GW_Volunteers__Volunteer_Job__c);
-                        volJob = FillNull(volJob);
-                        theBody = makeBody(wCM.part, volCamp, vBody, volShift, volJob);
-                        //attach a file to the volunteers emails
-                        if (volAttachment && attExist && (picklist.etype__c == 'Reminder Emails'))
-                            mess.setEntityAttachments(attch);
+                    if (bd.For_Volunteers__c)
+                    {
+                        vBody = bd.Body__c;
+                        vSubject = bd.Subject__c;
                     }
-                    mess.setSubject(theSubject);
-                    mess.setHtmlBody(theBody);
-                    messages.add(mess);
                 }
+                //set the bcc address to the user sending the emails
+                List<String> bccAddys = new List<String>();
+                bccAddys.add(UserInfo.getUserId());
+                //go trhough the list of select campaign members and add a message to the
+                //list of single emails to send
+                for (WrapCM wCM : cMs)
+                {
+                    if (wCM.selected)
+                    {
+                        Messaging.SingleEmailMessage mess = new Messaging.SingleEmailMessage();
+                        mess.setBccAddresses(bccAddys);
+                        List<String> addresses = new List<String>();
+                        addresses.add(wCM.part.email);
+                        mess.setTargetObjectId(wCM.part.ContactId);
+                        mess.setToAddresses(addresses);
+                        mess.setSenderDisplayName('Daring Adventures');
+                        String theBody = '';
+                        if (wCM.type_member == 'Participant')
+                        {
+                            // if the campaign member is a participant
+                            theSubject = pSubject.replace('*adventure.type*', camp.type);
+                            GW_Volunteers__Volunteer_Hours__c volShift = volInfo[0];
+                            GW_Volunteers__Volunteer_Job__c volJob =
+                                jobInfo.get(volShift.GW_Volunteers__Volunteer_Job__c);
+                            volJob = FillNull(volJob);
+                            theBody = makeBody(wCM.part, camp, pBody, volShift, volJob);
+                        }
+                        else
+                        {//if the campaign member is a volunteer
+                            Integer index = 0;
+                            for (Integer i = 0; i<volInfo.size(); i++)
+                            {   //find the record from Volunteer_Hours__c that corresponds to this
+                                //campaign member
+                                if (volInfo[i].GW_Volunteers__Contact__c == wCM.part.ContactId)
+                                {
+                                    index = i;
+                                    i = volInfo.size();
+                                }
+                            }
+                            theSubject = vSubject.replace('*adventure.type*', camp.type);
+                            GW_Volunteers__Volunteer_Hours__c volShift =
+                                whatShift(wCM.part.ContactId);
+                            GW_Volunteers__Volunteer_Job__c volJob =
+                                jobInfo.get(volShift.GW_Volunteers__Volunteer_Job__c);
+                            volJob = FillNull(volJob);
+                            theBody = makeBody(wCM.part, volCamp, vBody, volShift, volJob);
+                            //attach a file to the volunteers emails
+                            if (volAttachment && attExist && (picklist.etype__c == 'Reminder Emails'))
+                                mess.setEntityAttachments(attch);
+                        }
+                        mess.setSubject(theSubject);
+                        mess.setHtmlBody(theBody);
+                        messages.add(mess);
+                    }
+                }
+                //once all the emails have been added to the list send the emails using
+                //the messaging class
+                messaging.sendEmail(messages);
+                List<Campaign> updatedCamps = new List<Campaign>();
+                updatedCamps.add(camp);
+                updatedCamps.add(volCamp);
+                update updatedCamps;
+                return new PageReference('/'+camp.id);
             }
-            //once all the emails have been added to the list send the emails using
-            //the messaging class
-            messaging.sendEmail(messages);
-            List<Campaign> updatedCamps = new List<Campaign>();
-            updatedCamps.add(camp);
-            updatedCamps.add(volCamp);
-            update updatedCamps;
-            return new PageReference('/'+camp.id);
+            else
+            {
+                return ApexPages.currentPage();
+            }
         }
         else
-        {
             return ApexPages.currentPage();
-        }
     }
 
     private GW_Volunteers__Volunteer_Job__c FillNull (GW_Volunteers__Volunteer_Job__c vJ)
