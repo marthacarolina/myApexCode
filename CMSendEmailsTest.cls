@@ -1,4 +1,5 @@
-
+//the test that inserts all the records needed did not work. The participants
+//were being saved with Status = Sent, instead of the value given by apex.
 @isTest(SeeAllData=true)
 
 public class CMSendEmailsTest {

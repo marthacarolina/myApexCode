@@ -19,6 +19,7 @@ public class CMSendEmails {
     private List<String> attch = new List<String>();
     private Boolean attExist = True;
 
+    //initialize
     public CMSendEmails (ApexPages.StandardController stdCtrl)
     {
         volAttachment = true;
