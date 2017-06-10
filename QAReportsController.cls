@@ -1,4 +1,5 @@
 public class QAReportsController {
+    //this is the controller for the Visualforce page QAreportsVF
     Public String month{get;set;}
     Integer year;
     Integer nMonth = 0;
