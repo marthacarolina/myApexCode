@@ -1,21 +1,150 @@
 <!-- Page: -->
 <apex:page controller="QAReportsController">
-    <apex:form >
-        <apex:selectList value="{!monthSel}" multiselect="false" size="1">
-            <apex:selectOptions value="{!items}"/>
-        </apex:selectList><p/>
+<style type="text/css">
+    .box { width: 96%;
+            border: 2px solid #2492b7;
+           margin: 1%;
+           padding: 1%;
+           border-radius: 10px;}
+    .ltitle { font-size: 150%;
+           color: #2492b7;
+           font-weight: bold;
+           text-align: center;
+           background-color:#eaf7fb;
+           padding:1%;
+           border-radius: 10px;
+           }
+    table { width: 100%;}
+    tr    {width: 100%}
+    td.cell {width: 50%;
+            background-color: #f2f2f2;
+            margin: 1%;
+            padding: 2%;
+            border-radius: 10px;
+            font-size:120%;
+            font-weight: bold;}
+    .content-left {
+    			width: 50%;
+    			text-align: center;
+    			}
+    .content-right {
+                    width:50%;
+                    align: left;
+                    text-align: left;}
 
-        <apex:commandButton value="Print Monthly Report" action="{!printMonthly}" />
-    </apex:form>
+</style>
 
-    <apex:outputPanel id="out">
-        <apex:actionstatus id="status" startText="testing...">
-            <apex:facet name="stop">
-                <apex:outputPanel >
-                    <p>You have selected:</p>
-                    <apex:dataList value="{!month}" var="c">{!c}</apex:dataList>
-                </apex:outputPanel>
-            </apex:facet>
-        </apex:actionstatus>
-    </apex:outputPanel>
+<apex:form >
+    <div class="box">
+    <div class="ltitle">QA Monthly Reports for &nbsp;&nbsp;&nbsp;&nbsp;
+    <apex:selectList value="{!monthSel}" multiselect="false" size="1" style="font-size:70%;">
+        <apex:selectOptions value="{!items}"/>
+    </apex:selectList>
+    </div>
+    <br/>
+    <table>
+        <tr>
+            <td class="cell">
+                <table>
+                    <tr>
+                        <td class="content-left">
+                            <apex:outputText value="Participants"/>
+                        </td>
+                        <td class="content-right">
+                            <apex:commandButton value="Print Report" action="{!printMonthly}" style="font-size:80%;"/>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td class="cell">
+                <table>
+                    <tr>
+                        <td class="content-left">
+                            <apex:outputText value="Staff"/>
+                        </td>
+                        <td class="content-right">
+                            <apex:commandButton value="Print Report" action="{!printMonthly}" style="font-size:80%;"/>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    </div>
+    <div class="box">
+    <div class="ltitle">QA Quarterly Reports&nbsp;&nbsp;&nbsp;&nbsp;
+    <apex:selectList value="{!quarter}" multiselect="false" size="1" style="font-size:70%;">
+        <apex:selectOptions value="{!QuarterItems}"/>
+    </apex:selectList>
+    </div>
+    <br/>
+    <table>
+        <tr>
+            <td class="cell">
+                <table>
+                    <tr>
+                        <td class="content-left">
+                            <apex:outputText value="Volunteers"/>
+                        </td>
+                        <td class="content-right">
+                            <apex:commandButton value="Print Report" action="{!printMonthly}" style="font-size:80%;"/>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td class="cell">
+                <table>
+                    <tr>
+                        <td class="content-left">
+                            <apex:outputText value="Donors"/>
+                        </td>
+                        <td class="content-right">
+                            <apex:commandButton value="Print Report" action="{!printMonthly}" style="font-size:80%;"/>
+                        </td>
+                    </tr>
+                </table>
+           </td>
+        </tr>
+    </table>
+    </div>
+    <div class="box">
+    <div class="ltitle">QA Annual Reports&nbsp;&nbsp;&nbsp;&nbsp;
+    <apex:selectList value="{!year}" multiselect="false" size="1" style="font-size:70%;">
+        <apex:selectOptions value="{!YearItems}"/>
+    </apex:selectList>
+    </div>
+    <br/>
+    <table>
+        <tr>
+            <td class="cell">
+                <table>
+                    <tr>
+                        <td class="content-left">
+                            <apex:outputText value="Donations"/>
+                        </td>
+                        <td class="content-right">
+                            <apex:commandButton value="Print Report" action="{!printMonthly}" style="font-size:80%;"/>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td>
+
+            </td>
+        </tr>
+    </table>
+    </div>
+
+</apex:form>
+
+<apex:outputPanel id="out">
+    <apex:actionstatus id="status" startText="testing...">
+        <apex:facet name="stop">
+            <apex:outputPanel >
+                <p>You have selected:</p>
+                <apex:dataList value="{!month}" var="c">{!c}</apex:dataList>
+            </apex:outputPanel>
+        </apex:facet>
+    </apex:actionstatus>
+</apex:outputPanel>
 </apex:page>
