@@ -1,27 +1,49 @@
 public class QAReportsController {
-    //this is the controller for the Visualforce page QAreportsVF
     Public String month{get;set;}
-    Integer year;
     Integer nMonth = 0;
+    Public String quarter = '';
+    Integer nquarter = 0;
+    Public String year{get;set;}
+    Integer nyear;
+    Public String monthSel;
     String[] theMonths;
-    Public String MonthSel;
 
     public QAReportsController()
     {
         theMonths = new String[]{'January', 'February', 'March', 'April', 'May', 'June',
-            				'July', 'August', 'September','October','November', 'December'};
-        nMonth = date.today().month();
-        month = theMonths[nMonth-1];
-        year = date.today().year();
+            'July', 'August', 'September','October','November', 'December'};
+                integer n = date.today().month() - 1 ;
+        n = n>1? n - 1 : 12;
+        String[] theQuarters = new String[]{'1st Quarter','2nd Quarter','3rd Quarter','4th Quarter'};
+        String[] theYears = new String[]{};
+        for (Integer y=2017; y<date.today().year()+1; y++)
+            {
+                String sy = ''+y;
+                theYears.add(sy);
+            }
+        year = ''+date.today().year();
     }
 
     public PageReference printMonthly() {
-        String pdfURL = '/apex/QAMonthlyPdfVF?m='+nMonth+'&y='+year;
-        return new PageReference(pdfURL);
+      String pdfURL = '/apex/QAMonthlyPdfVF?m='+nMonth+'&y='+year;
+      return new PageReference(pdfURL);
+    }
+
+    public PageReference test() {
+        return null;
     }
 
     public String getMonthSel()
     {
+        if (month == null)
+        {
+            nMonth = date.today().month();
+            integer y = date.today().year();
+            y = nMonth < 1 ? y-1 : y;
+            year = ''+y;
+            nMonth = nMonth<1 ? 12 - nMonth : nMonth;
+            month = ''+nMonth;
+        }
         return month;
     }
 
@@ -30,7 +52,9 @@ public class QAReportsController {
         if (monthSel.contains('c-'))
         {
             nMonth = date.today().month() + integer.valueOf(monthSel.right(2));
-            year = nMonth < 1 ? year-1 : year;
+            integer y = date.today().year();
+            y = nMonth < 1 ? y-1 : y;
+            year = ''+y;
             nMonth = nMonth<1 ? 12 - nMonth : nMonth;
         }
         else nMonth = integer.valueOf(monthSel);
@@ -60,4 +84,51 @@ public class QAReportsController {
         return options;
     }
 
+    public String getQuarter()
+    {
+        if (quarter == null)
+        {
+            integer n = date.today().month();
+            integer y = date.today().year();
+            //find the current quarter
+            Decimal d = n / 3 ;
+            d = d.round(System.RoundingMode.CEILING);
+            nQuarter = integer.valueOf(d);
+            nYear = nQuarter>1 ? y : y-1;
+            nQuarter = nQuarter>1 ? nQuarter - 1: 4;
+            quarter = ''+nQuarter;
+            year = ''+nYear;
+        }
+        return quarter;
+    }
+
+    public void setQuarter(String quarter)
+    {
+        if (quarter.contains('c-'))
+            nQuarter = date.today().month()/3 + 1 + integer.valueOf(quarter.right(2));
+        else nQuarter = integer.valueOf(quarter);
+        this.quarter = quarter;
+        system.debug('quarter = '+quarter+ ' nQuarter = '+nQuarter);
+    }
+
+    public List<SelectOption> getQuarterItems ()
+    {
+        List<SelectOption> options = new List<SelectOption>();
+        options.add(new SelectOption('c-0','This Quarter'));
+        options.add(new SelectOption('c-1','Last Quarter'));
+        options.add(new SelectOption('1','1st Quarter'));
+        options.add(new SelectOption('2','2nd Quarter'));
+        options.add(new SelectOption('3','3rd Quarter'));
+        options.add(new SelectOption('4','4th Quarter'));
+        return options;
+    }
+
+    public List<SelectOption> getYearItems()
+    {
+        List<SelectOption> options = new List<SelectOption>();
+        Integer currYear = date.today().year();
+        for (Integer y = 2017; y < currYear + 1; y++ )
+            options.add(new SelectOption(''+y, ''+y));
+        return options;
+    }
 }
