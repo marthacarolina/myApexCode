@@ -1,6 +1,5 @@
 public virtual class QAReports {
-    //this is a superclass that will be extended by each report controller. This contains the common methods
-    //needed in all reports
+
     public String month{get;set;}
     public String year{get;set;}
     public String beginRange{get;set;}
@@ -11,19 +10,18 @@ public virtual class QAReports {
 
     public void QAReports(){}
 
-    public void getMonthYear()
+    public void getMonthYear(String m, String y)
     {
         //I am using the Fee__c object only to format today's date for the report footer
         forDate = new Fee__c(Effective_Date__c = date.today());
         List<String> theMonths = new String[]{'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September','October','November', 'December'};
-        String monthNum = ApexPages.currentPage().getParameters().get('m');
-        month = theMonths[integer.valueOf(monthNum) - 1];
-        if (monthNum.length() == 1) monthNum = '0'+ monthNum;
-        year = ApexPages.currentPage().getParameters().get('y');
-        beginRange = year+'-'+ monthNum + '-01';
-        Integer endOfMonth = date.daysInMonth(integer.valueOf(year), integer.valueOf(monthNum));
-        endRange = year + '-' + monthNum + '-' + endOfMonth;
+        month = theMonths[integer.valueOf(m) - 1];
+        if (m.length() == 1) m = '0'+ m;
+        year = y;
+        beginRange = year+'-'+ m + '-01';
+        Integer endOfMonth = date.daysInMonth(integer.valueOf(year), integer.valueOf(m));
+        endRange = year + '-' + m + '-' + endOfMonth;
         beginRangeDate = date.valueOf(beginRange);
     }
 

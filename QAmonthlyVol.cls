@@ -1,6 +1,7 @@
 public class QAMonthlyVol extends QAReports {
-  //this class is the controller for the VF page that prints the monthly QA report for Volunteers
     public List<volunteer> volunteers{get;set;}
+    public List<volunteer> qpVolunteers{get;set;} 
+    public List<volunteer> inactiveVolunteers{get;set;}
     public integer totNewVolunteers{get;set;}
     public integer tot_Volunteers{get;set;}
     public Decimal mTot_Vol_Hours{get;set;}
@@ -8,12 +9,19 @@ public class QAMonthlyVol extends QAReports {
     public void QAMonthlyVol(){}
 
     public void printMonthlyVol(){
-
-        getMonthYear();
+        String m = ApexPages.currentPage().getParameters().get('m');
+        String y = ApexPages.currentPage().getParameters().get('y');
+        getMonthYear(m, y);
         system.debug('extension month = ' + month);
         system.debug('extension year = ' + year);
         system.debug('extension beginRange = ' + beginRange);
         system.debug('extension endRange = ' + endRange);
+        printHours();
+        qpVolunteers = VolunteersList(true);
+        inactiveVolunteers = VolunteersList(false);
+    }
+
+    private void printHours(){
         List<Report> reportList = [SELECT Id, DeveloperName FROM Report where
                                     DeveloperName = 'Volunteer_Hours_QA'];
         String reportId = (String)reportList.get(0).get('Id');
@@ -96,6 +104,46 @@ public class QAMonthlyVol extends QAReports {
             vol.Adventures = advs;
             volunteers.add(vol);
         }
+    }
+
+    private List<volunteer> VolunteersList(Boolean active)
+    {
+        List<volunteer> volList = new List<volunteer>();
+        List<Report> reportList = [SELECT Id, DeveloperName FROM Report where
+                                    DeveloperName = 'QA_Volunteers_Certs'];
+        String reportId = (String)reportList.get(0).get('Id');
+        // Get the report metadata
+        Reports.ReportDescribeResult describe = Reports.ReportManager.describeReport(reportId);
+        Reports.ReportMetadata rm = describe.getReportMetadata();
+
+        //Set the filters 0-3 (certs exp dates & orientation) with endRange for the
+        //part of the report that lists the QUALIFIED PROGRAM VOLUNTEERS
+        //For the list of Inactive volunteers get rid of the first 4 filters,
+        //keep the fifth and add a filter for the Volunteer Status field
+        List<Reports.ReportFilter> filters = rm.getReportFilters();
+        List<Reports.ReportFilter> newFilters = new List<Reports.ReportFilter>();
+        if (active)
+        {
+            for (Integer x=0; x<4; x++)
+            {
+                filters[x].setValue(endRange);
+            }
+        }
+        else
+        {
+            //get rid of the first 4 filters 0-3. Keep the last filter and add one
+            //to filter volunteer status == false
+            newFilters.add(filters[4]);
+            Reports.ReportFilter addFilter =
+                new Reports.ReportFilter('Contact.GW_Volunteers__Volunteer_Status__c', 'equals', 'Inactive');
+            newFilters.add(addFilter);
+            rm.setReportFilters(newFilters);
+        }
+        // Run the report - syncronously
+        Reports.ReportResults results = Reports.ReportManager.runReport(reportId, rm, true);
+        //get the report key, get the rows. Iterate through the volunteers, get the grand total of
+        //records.
+        return volList;
     }
 
 }
