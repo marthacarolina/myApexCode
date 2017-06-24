@@ -15,8 +15,8 @@ public class QAReportsController {
                 integer n = date.today().month() - 1 ;
         n = n>1? n - 1 : 12;
         String[] theQuarters = new String[]{'1st Quarter','2nd Quarter','3rd Quarter','4th Quarter'};
-        String[] theYears = new String[]{};
-        for (Integer y=2017; y<date.today().year()+1; y++)
+            String[] theYears = new String[]{};
+                for (Integer y=2017; y<date.today().year()+1; y++)
             {
                 String sy = ''+y;
                 theYears.add(sy);
@@ -25,12 +25,28 @@ public class QAReportsController {
     }
 
     public PageReference printMonthly() {
-      String pdfURL = '/apex/QAMonthlyPdfVF?m='+nMonth+'&y='+year;
-      return new PageReference(pdfURL);
+        String pdfURL = '/apex/QAMonthlyPdfVF?m='+nMonth+'&y='+year;
+        return new PageReference(pdfURL);
     }
 
-    public PageReference test() {
-        return null;
+    public PageReference printMonthlyStaff() {
+        String pdfURL = '/apex/QAMonthlyStaffVF?m='+nMonth+'&y='+year;
+        return new PageReference(pdfURL);
+    }
+
+    public PageReference pMonthlyVol() {
+        String pdfURL = '/apex/QAmonthlyVolVF?m='+nMonth+'&y='+year;
+        return new PageReference(pdfURL);
+    }
+
+    public PageReference pQuarterlyDonor(){
+        String pdfURL = '/apex/QAquarterlyDonorVF?q='+nquarter+'&y='+year;
+        return new PageReference(pdfURL);
+    }
+
+    public PageReference pAnnualDonor(){
+        String pdfURL = '/apex/QAannualDonorVF?y='+year;
+        return new PageReference(pdfURL);
     }
 
     public String getMonthSel()
@@ -105,7 +121,11 @@ public class QAReportsController {
     public void setQuarter(String quarter)
     {
         if (quarter.contains('c-'))
-            nQuarter = date.today().month()/3 + 1 + integer.valueOf(quarter.right(2));
+        {
+            Decimal d = date.today().month() / 3 ;
+            d = d.round(System.RoundingMode.CEILING);
+            nQuarter = integer.valueOf(d) + integer.valueOf(quarter.right(2));
+        }
         else nQuarter = integer.valueOf(quarter);
         this.quarter = quarter;
         system.debug('quarter = '+quarter+ ' nQuarter = '+nQuarter);
