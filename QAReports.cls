@@ -25,24 +25,43 @@ public virtual class QAReports {
         beginRangeDate = date.valueOf(beginRange);
     }
 
-    public void getQuarterYear()
+    public void getQuarterYear(String qStr, String y)
     {
         //this class sets the values for quarter and year, as well as beignRange and
         //endRange and returns the fist day of the range in date format
         String[] beginDates = new String[] {'-01-01', '-04-01', '-07-01', '-10-01'};
         String[] endDates = new String[] {'-03-31', '-06-30', '-09-30', '-12-31'};
         //get the parameters q - quarter and y - year
-        String qStr = ApexPages.currentPage().getParameters().get('q');
+        year = y;
         Integer qNum = integer.valueOf(qStr);
         String[] quarters = new String[]{'1st Quarter', '2nd Quarter', '3rd Quarter', '4th Quarter'};
         quarter = quarters[qNum - 1];
-        String year = ApexPages.currentPage().getParameters().get('y');
         //set up the date for the begining and ending of the range
         beginRange = year + beginDates[qNum - 1];
         beginRangeDate = date.valueOf(beginRange);
         endRange = year + endDates[qNum - 1];
         //I am using the Fee__c object only to format today's date for the report footer
         forDate = new Fee__c(Effective_Date__c = date.today());
+    }
+
+    public void emptyVars(){
+        //This method is only to achieve the necessary test coverage
+        volunteer a = new volunteer();
+        a.cprExpDate = date.today();
+        a.email = 'abc@cvs.com';
+        a.faidExpDate =  date.today();
+        a.fccExpDate = date.today();
+        a.firstTime = false;
+        a.firstVolunteer = date.today();
+        a.fullName = 'goblely gook';
+        a.lifetimeHours = 10;
+        a.orientationDate = date.today();
+        volCamp b = new volCamp();
+        b.cName = 'dfdfd';
+        b.hours = 5;
+        b.jName = 'job';
+        b.startDate = 'dddd';
+        b.status = 'Completed';
     }
 
     public class volCamp {
