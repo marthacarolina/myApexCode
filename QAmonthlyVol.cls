@@ -1,9 +1,11 @@
 public class QAMonthlyVol extends QAReports {
     public List<volunteer> volunteers{get;set;}
-    public List<volunteer> qpVolunteers{get;set;} 
+    public List<volunteer> qpVolunteers{get;set;}
     public List<volunteer> inactiveVolunteers{get;set;}
     public integer totNewVolunteers{get;set;}
     public integer tot_Volunteers{get;set;}
+    public integer tot_qpvol{get;set;}
+    public integer tot_inactiveVols{get;set;}
     public Decimal mTot_Vol_Hours{get;set;}
 
     public void QAMonthlyVol(){}
@@ -17,8 +19,12 @@ public class QAMonthlyVol extends QAReports {
         system.debug('extension beginRange = ' + beginRange);
         system.debug('extension endRange = ' + endRange);
         printHours();
+        tot_qpvol = 0;
         qpVolunteers = VolunteersList(true);
+        tot_qpvol = qpVolunteers.size();
+        tot_inactiveVols = 0;
         inactiveVolunteers = VolunteersList(false);
+        tot_inactiveVols = inactiveVolunteers.size();
     }
 
     private void printHours(){
@@ -128,6 +134,7 @@ public class QAMonthlyVol extends QAReports {
             {
                 filters[x].setValue(endRange);
             }
+            if (filters.size()>5) filters[5].setValue('Active');
         }
         else
         {
@@ -143,6 +150,24 @@ public class QAMonthlyVol extends QAReports {
         Reports.ReportResults results = Reports.ReportManager.runReport(reportId, rm, true);
         //get the report key, get the rows. Iterate through the volunteers, get the grand total of
         //records.
+        List<String> factMapKeys = new List<String>();
+        Reports.ReportFactWithDetails fullReport =
+           (Reports.ReportFactWithDetails)results.getFactMap().get('T!T');
+        List<Reports.ReportDetailRow> detailRows = fullReport.getRows();
+        for (Reports.ReportDetailRow row : detailRows)
+        {
+            List<Reports.ReportDataCell> dataCells = row.getDataCells();
+            volunteer vol = new volunteer();
+            vol.status = dataCells[0].getLabel();
+            vol.fullName = dataCells[1].getLabel() + ' ' + dataCells[2].getLabel();
+            vol.email = dataCells[4].getLabel();
+            vol.orientationDate = (date) dataCells[4].getValue();
+            vol.cprExpDate = (date) dataCells[5].getValue();
+            vol.faidExpDate = (date) dataCells[6].getValue();
+            vol.fccExpDate = (date) dataCells[7].getValue();
+            vol.lifetimeHours = (decimal) dataCells[8].getValue();
+            volList.add(vol);
+        }
         return volList;
     }
 

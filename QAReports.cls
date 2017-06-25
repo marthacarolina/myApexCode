@@ -54,12 +54,18 @@ public virtual class QAReports {
     }
 
     public class volunteer {
+        public String status{get;set;}
         public String fullName{get;set;}
         public String email{get;set;}
         public Decimal totHours {get;set;}
         public Integer totCamp {get;set;}
         public Boolean firstTime {get;set;}
         public Date firstVolunteer {get;set;}
+        public Date orientationDate {get;set;}
+        public Date cprExpDate {get;set;}
+        public Date faidExpDate {get;set;}
+        public Date fccExpDate {get;set;}
+        public Decimal lifetimeHours {get;set;}
         public List<volCamp> Adventures {get;set;}
         public volunteer(){}
     }
