@@ -1,12 +1,13 @@
-public class QAMonthlyController {
+public class QAMonthlyController extends QAReports{
     public List<participantInfo> participants{get;set;}
-    Public String month{get;set;}
-    Public String year{get;set;}
+    public List<participantInfo> newSignUps{get;set;}
     Public Integer totalMAD{get;set;}
     Public Integer serialParticipants{get;set;}
     Public Integer totalParticipants{get;set;}
     Public Integer totNewParticipants{get;set;}
-    Public Fee__c forDate{get;set;}
+    Public Integer newSigned {get;set;}
+    PUblic Integer totAllInclusiveActDays {get;set;}
+    Public Date endRangeDate;
 
     public void QAMonthlyController(){
         totalMAD = 0;
@@ -14,29 +15,79 @@ public class QAMonthlyController {
 
     public void MonthlyQA()
     {
-        forDate = new Fee__c(Effective_Date__c = date.today());
-        List<String> theMonths = new String[]{'January', 'February', 'March', 'April', 'May', 'June',
-                  'July', 'August', 'September','October','November', 'December'};
         totalMAD = 0;
+        serialParticipants = 0;
+        totNewParticipants = 0;
         //get the range for the report
         String monthNum = ApexPages.currentPage().getParameters().get('m');
-        month = theMonths[integer.valueOf(monthNum) - 1];
-        if (monthNum.length() == 1) monthNum = '0'+ monthNum;
         year = ApexPages.currentPage().getParameters().get('y');
-        String beginRange = year+'-'+ monthNum + '-01';
-        Integer endOfMonth = date.daysInMonth(integer.valueOf(year), integer.valueOf(monthNum));
-        system.debug('endOfMonth = ' + endOfMonth);
-        system.debug('beginRange = '+beginRange);
-        String endRange = year + '-' + monthNum + '-' + endOfMonth;
-        system.debug('endRange = ' + endRange);
-        // Get the report ID
+        getMonthYear(monthNum, year);
+        newSignUps = ParticipantStats();
+        newSigned = newSignUps.size();
+        ParticipantsMonthly();
+        totAllInclusiveActDays = TotalActivityDaysforMonth();
+    }
+
+    public List<participantInfo> ParticipantStats()
+    {
+        endRangeDate = date.valueOf(endRange);
+        List<Contact> contSignups = [Select Name, Member_Since__c from Contact
+                                     Where Participant__c = true AND
+                                     Member_Since__c >= :beginRangeDate
+                                     And Member_Since__c <= :endRangeDate];
+        List<participantInfo> newPart = new List<participantInfo>();
+        for (Contact c : contSignups)
+        {
+            participantInfo nP = new participantInfo();
+            nP.Name = c.Name;
+            nP.memberSince = c.Member_Since__c;
+            newPart.add(nP);
+        }
+        return newPart;
+    }
+
+    public integer TotalActivityDaysforMonth()
+    {
+        List <Report> reportList = [SELECT Id,DeveloperName FROM Report where
+                                    DeveloperName = 'QA_Total_Activity_Days'];
+        String reportId = (String)reportList.get(0).get('Id');
+        Reports.ReportDescribeResult describe = Reports.ReportManager.describeReport(reportId);
+        Reports.ReportMetadata rm = describe.getReportMetadata();
+        Reports.ReportFilter filter1 = rm.getReportFilters()[0];
+        Reports.ReportFilter filter2 = rm.getReportFilters()[1];
+        filter1.setValue(beginRange);
+        filter2.setValue(endRange);
+        // Run the report - syncronously
+        Reports.ReportResults results = Reports.ReportManager.runReport(reportId, rm, true);
+        Reports.Dimension dim = results.getGroupingsDown();
+        List<Reports.GroupingValue> groupingVal = dim.getGroupings();
+        List<String> factMapKeys = new List<String>();
+        Integer tots = 0;
+        for (Reports.GroupingValue gV : groupingVal)
+        {
+            String campName = gv.getLabel();
+            String factMapKey = gV.getKey() + '!T';
+            Reports.ReportFactWithDetails factDetails =
+                (Reports.ReportFactWithDetails)results.getFactMap().get(factMapKey);
+            List<Reports.ReportDetailRow> detailRows = factDetails.getRows();
+            List<Reports.ReportDataCell> firstRowCells = detailRows[0].getDataCells();
+            date startCamp = date.valueOf(firstRowCells[0].getValue());
+            date endCamp = date.valueOf(firstRowCells[1].getValue());
+            Integer actDays = startCamp.daysBetween(endCamp) + 1;
+            Integer campADays = detailRows.size() * actDays;
+            tots = tots + campADays;
+        }
+        return tots;
+    }
+
+    public void ParticipantsMonthly()
+    {
         List <Report> reportList = [SELECT Id,DeveloperName FROM Report where
                                     DeveloperName = 'Participants_and_Activity_Days'];
         String reportId = (String)reportList.get(0).get('Id');
         // Get the report metadata
         Reports.ReportDescribeResult describe = Reports.ReportManager.describeReport(reportId);
         Reports.ReportMetadata rm = describe.getReportMetadata();
-
         //Set the filters (bypass 0, set 1 and 2 with month's first date and last date)
         Reports.ReportFilter filter1 = rm.getReportFilters()[1];
         Reports.ReportFilter filter2 = rm.getReportFilters()[2];
@@ -58,8 +109,7 @@ public class QAMonthlyController {
         List<Reports.GroupingValue> groupingVal = dim.getGroupings();
         List<String> factMapKeys = new List<String>();
         participants = new List<participantInfo>();
-        serialParticipants = 0;
-        totNewParticipants = 0;
+        // Iterate thorugh the members
         for (Reports.GroupingValue gV : groupingVal)
         {
             Boolean firstTimer = false;
@@ -117,23 +167,6 @@ public class QAMonthlyController {
             if (!advs[0].Staff) participants.add(participant);
         }
         totalParticipants = participants.size();
-    }
-
-    public class adventure{
-        public String Name {get;set;}
-        public String sdate {get;set;}
-        public Integer ActivityDays {get;set;}
-        public Boolean Attended {get;set;}
-        public Boolean Staff {get;set;}
-        public adventure(){}
-    }
-    public class participantInfo{
-        public String Name {get;set;}
-        public Integer totCamp {get;set;}
-        public Integer totActDays {get;set;}
-        public List<adventure> adventures {get;set;}
-        public Boolean firstTime{get;set;}
-        public participantInfo(){}
     }
 
 }

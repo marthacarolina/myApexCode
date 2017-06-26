@@ -62,6 +62,19 @@ public virtual class QAReports {
         b.jName = 'job';
         b.startDate = 'dddd';
         b.status = 'Completed';
+        participantInfo part = new participantInfo();
+        part.Name = 'something';
+        part.totCamp = 3;
+        part.totActDays = 2;
+        part.adventures = new List<adventure>();
+        adventure art = new adventure();
+        art.Name = 'adventure';
+        art.sdate = '2017-01-01';
+        art.ActivityDays = 1;
+        art.Attended = true;
+        art.Staff = false;
+        part.firstTime = false;
+        part.adventures.add(art);
     }
 
     public class volCamp {
@@ -87,5 +100,24 @@ public virtual class QAReports {
         public Decimal lifetimeHours {get;set;}
         public List<volCamp> Adventures {get;set;}
         public volunteer(){}
+    }
+
+    public class adventure{
+        public String Name {get;set;}
+        public String sdate {get;set;}
+        public Integer ActivityDays {get;set;}
+        public Boolean Attended {get;set;}
+        public Boolean Staff {get;set;}
+        public adventure(){}
+    }
+
+    public class participantInfo{
+        public String Name {get;set;}
+        public Integer totCamp {get;set;}
+        public Integer totActDays {get;set;}
+        public Date memberSince {get;set;}
+        public Boolean firstTime{get;set;}
+        public List<adventure> adventures {get;set;}
+        public participantInfo(){}
     }
 }
