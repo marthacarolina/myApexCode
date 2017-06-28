@@ -3,10 +3,17 @@ public class SendKACEmailClass {
     public SendKACEmailClass(ApexPages.StandardController stdController) {}
 
     @InvocableMethod
-    public static void sendReminderEmails(){
+        public static void sendReminderEmails(){
         Date expiresSoon = Date.Today() + 92;
         Date todayDate = Date.Today();
         Date sentRecently = Date.Today() - 30;
+        Date twoyearsago = Date.Today() - 730;
+        List<String> subjectList = new String[]{'Friendly reminder: Your CPR certification on file with Daring Adventures will expire soon',
+                                                'Friendly reminder: Your CPR certification on file with Daring Adventures has EXPIRED',
+                                                'Friendly reminder: Your FirstAid certification on file with Daring Adventures will expire soon',
+                                                'Friendly reminder: Your First Aid certification on file with Daring Adventures has EXPIRED',
+                                                'Friendly reminder: Your Fingerprint Clearance Card on file with Daring Adventures will expire soon',
+                                                'Friendly reminder: Your Fingerprint Clearance Card on file with Daring Adventures has EXPIRED'};
         List<Contact> volunteersExp = [SELECT id, FirstName, LastName, email,
                                        CPR_Certificate_Expiration_Date__c,
                                        First_Aid_Certification_Expiration_Date__c,
@@ -17,6 +24,14 @@ public class SendKACEmailClass {
                                         First_Aid_Certification_Expiration_Date__c < :expiresSoon OR
                                         Fingerprint_Clearance_Expiration_Date__c < :expiresSoon) AND
                                         Volunteer_Orientation__c != null];
+        Map<id, Contact> volMap = new Map<id, Contact>(volunteersExp);
+        List<Task> activitiesForAll = [SELECT id, Whatid, Whoid, ActivityDate, Subject, Status
+                      FROM Task
+                      WHERE WhoId IN :volMap.keySet() AND
+                      Status = 'Completed' AND
+                      Subject IN :subjectList AND
+                      ActivityDate > :twoyearsago
+                      ORDER BY WhoId];
         list<id> cprexpsoon = new List<id>();
         list<id> cprexpired = new List<id>();
         list<id> faexpsoon = new List<id>();
@@ -27,16 +42,17 @@ public class SendKACEmailClass {
         {
             //system.debug('Contact = ' + eachVol.FirstName);
             list<Task> Activities = new list<Task>();
+            for (Task actRecord : activitiesForAll)
+            {
+              if (actRecord.whoId == eachVol.id)
+              Activities.add(actRecord);
+            }
             Boolean CPRreminder = false;
             Boolean FirstAidreminder = false;
             Boolean FingerprintCCreminder = false;
             Boolean CPRexpiredNotice = false;
             Boolean FAexpiredNotice = false;
             Boolean FCCexpiredNotice = false;
-            Activities = [SELECT id, Whatid, Whoid, ActivityDate, Subject, Status
-                          FROM Task
-                          WHERE WhoId = :eachVol.id AND Status = 'Completed'
-                          ORDER BY ActivityDate DESC NULLS LAST];
             If (Activities.size() > 0)
             {
                 for (Task Act : Activities)
