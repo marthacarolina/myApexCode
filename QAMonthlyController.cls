@@ -149,11 +149,18 @@ public class QAMonthlyController extends QAReports{
                 adv.ActivityDays = integer.valueOf(dataCells[2].getValue());
                 adv.Attended = boolean.valueOf(dataCells[3].getValue());
                 adv.Staff = boolean.valueOf(dataCells[4].getValue());
-                integer overallActDays = integer.valueOf(dataCells[5].getValue());
-                if (firstAdventure && ! adv.Staff)
+                integer overallActDays = integer.valueOf(dataCells[8].getValue());
+                if (firstAdventure)
                 {
                   participant.firstTime = participant.totActDays >= overallActDays;
-                  totNewParticipants++;
+                  if (!adv.staff)
+                  {
+                      totNewParticipants++;
+                      if (boolean.valueOf(dataCells[5].getValue()))
+                          participant.typeOfMember = 'Participant';
+                      else
+                          participant.TypeOfMember = boolean.valueOf(dataCells[6].getValue()) ? 'Family/Friend' : 'Caregiver';
+                  }
                   firstAdventure = false;
                 }
                 advs.add(adv);

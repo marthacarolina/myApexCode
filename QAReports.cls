@@ -67,6 +67,7 @@ public virtual class QAReports {
         part.totCamp = 3;
         part.totActDays = 2;
         part.adventures = new List<adventure>();
+        part.typeOfMember = 'Participant';
         adventure art = new adventure();
         art.Name = 'adventure';
         art.sdate = '2017-01-01';
@@ -117,6 +118,7 @@ public virtual class QAReports {
         public Integer totActDays {get;set;}
         public Date memberSince {get;set;}
         public Boolean firstTime{get;set;}
+        public String typeOfMember {get;set;}
         public List<adventure> adventures {get;set;}
         public participantInfo(){}
     }
