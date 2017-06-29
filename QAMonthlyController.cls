@@ -150,7 +150,7 @@ public class QAMonthlyController extends QAReports{
                 adv.Attended = boolean.valueOf(dataCells[3].getValue());
                 adv.Staff = boolean.valueOf(dataCells[4].getValue());
                 integer overallActDays = integer.valueOf(dataCells[5].getValue());
-                if (firstAdventure)
+                if (firstAdventure && ! adv.Staff)
                 {
                   participant.firstTime = participant.totActDays >= overallActDays;
                   totNewParticipants++;
