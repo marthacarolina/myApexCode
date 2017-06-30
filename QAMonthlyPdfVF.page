@@ -1,6 +1,8 @@
 <apex:page controller="QAMonthlyController" renderAs="PDF" showHeader="false" action="{!MonthlyQA}">
     <apex:stylesheet value="{!URLFOR($Resource.advancedpdfresource, 'QAReportPDF.css')}"/>
-    <div class="header" align="center"><h3 style="font-color:#0f846d; font-family: Tahoma, Geneva, sans-serif;">QA Report for {!month} {!year}</h3></div>
+    <div class="header" align="center"><h3 style="font-color:#0f846d; font-family: Tahoma, Geneva, sans-serif;">QA Report for {!month} {!year}
+        <br/>Member/Participant</h3>
+    </div>
     <table width="100%">
         <tr width="100%">
             <td width="60%" align="left">
@@ -47,7 +49,7 @@
     </apex:repeat>
     <hr />
     <br />
-    <h4>New Participants Signed-Up in {!month}</h4>
+    <h4>New Members Signed-Up in {!month}</h4>
     <apex:outputText value="Total new Sign-Ups: {!newSigned}" /><br/>
     <hr />
     <apex:dataTable value="{!newSignUps}" var="c" id="newSUTable" headerClass="tablehead"

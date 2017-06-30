@@ -7,6 +7,7 @@ public class QAMonthlyVol extends QAReports {
     public integer tot_qpvol{get;set;}
     public integer tot_inactiveVols{get;set;}
     public Decimal mTot_Vol_Hours{get;set;}
+    public List<Contact> v_expiring_certs{get;set;}
 
     public void QAMonthlyVol(){}
 
@@ -25,6 +26,7 @@ public class QAMonthlyVol extends QAReports {
         tot_inactiveVols = 0;
         inactiveVolunteers = VolunteersList(false);
         tot_inactiveVols = inactiveVolunteers.size();
+        v_expiring_certs = Vol_expiring(Integer.valueOf(m));
     }
 
     private void printHours(){
@@ -169,6 +171,30 @@ public class QAMonthlyVol extends QAReports {
             volList.add(vol);
         }
         return volList;
+    }
+
+    public List<Contact> Vol_expiring(Integer nMonth)
+    {
+        integer nyear = integer.valueOf(year);
+        Date start_three_month_range = Date.newInstance(nyear,nMonth+1,1);
+        Date end_three_month_range =
+            Date.newInstance(nyear, nMonth+4,date.daysInMonth(nyear,nMonth));
+        Date soon = date.today() + 92;
+        List<Contact> volExp = [SELECT Name, CPR_Certificate_Expiration_Date__c,
+                                Fingerprint_Clearance_Expiration_Date__c,
+                                First_Aid_Certification_Expiration_Date__c
+                                FROM Contact
+                                WHERE
+                                ((CPR_Certificate_Expiration_Date__c >= :start_three_month_range AND
+                                CPR_Certificate_Expiration_Date__c <= :end_three_month_range) OR
+                                (Fingerprint_Clearance_Expiration_Date__c >= :start_three_month_range AND
+                                Fingerprint_Clearance_Expiration_Date__c <= :end_three_month_range) OR
+                                (First_Aid_Certification_Expiration_Date__c >= :start_three_month_range AND
+                                First_Aid_Certification_Expiration_Date__c <= :end_three_month_range)) AND
+                                Volunteer_Orientation__c != null
+                                ORDER BY LastName, FirstName];
+
+        return volExp;
     }
 
 }

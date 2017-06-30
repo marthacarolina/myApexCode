@@ -58,7 +58,7 @@
     <hr />
     <br />
     <h2>Volunteers - General Information</h2>
-    <apex:outputText value="Total Qualified Program Volunteers: {!tot_qpvol}" /><br/>
+    <h3><apex:outputText value="Total Qualified Program Volunteers: {!tot_qpvol}" /></h3>
     <hr />
     <apex:dataTable value="{!qpVolunteers}" var="c" id="qualifiedTable" headerClass="tablehead"
                     rowClasses="odd,even" style="font-size: 90%; "
@@ -99,10 +99,44 @@
             <apex:outputText value="{!(ROUND(c.lifetimeHours, 2))}"/>
         </apex:column>
     </apex:dataTable>
-
     <hr />
     <br />
-    <apex:outputText value="Total Inactive Volunteers: {!tot_inactiveVols}" /><br/>
+    <h3>Volunteers whose certifications will expire within 3 months:</h3>
+    <hr />
+    <apex:dataTable value="{!v_expiring_certs}" var="ve" id="expiresTable" headerClass="tablehead"
+                    rowClasses="odd,even" style="font-size: 90%; "
+                    columnClasses="col"
+                    columnsWidth="30%, 20%, 20%, 20%">
+        <apex:facet name="header"></apex:facet>
+        <apex:column >
+            <apex:facet name="header">Name</apex:facet>
+            <apex:outputText value="{!ve.Name}"/>
+        </apex:column>
+        <apex:column >
+            <apex:facet name="header">CPR Expires</apex:facet>
+            <apex:outputText value="{0,date,MM/dd/yy}">
+                <apex:param value="{!ve.CPR_Certificate_Expiration_Date__c}" />
+            </apex:outputText>
+        </apex:column>
+        <apex:column >
+            <apex:facet name="header">1stAid Expires</apex:facet>
+            <apex:outputText value="{0,date,MM/dd/yy}">
+                <apex:param value="{!ve.First_Aid_Certification_Expiration_Date__c}"/>
+            </apex:outputText>
+        </apex:column>
+        <apex:column >
+            <apex:facet name="header">&nbsp;FpCC Expires&nbsp;</apex:facet>
+            <apex:outputText value="{0,date,MM/dd/yy}">
+                <apex:param value="{!ve.Fingerprint_Clearance_Expiration_Date__c}" />
+            </apex:outputText>
+        </apex:column>
+    </apex:dataTable>
+    <hr />
+    <br />
+    <br />
+    <hr />
+    <br />
+    <h3><apex:outputText value="Total Inactive Volunteers: {!tot_inactiveVols}" /></h3>
     <hr />
     <apex:dataTable value="{!inactiveVolunteers}" var="c" id="inactiveTable" headerClass="tablehead"
                     rowClasses="odd,even" style="font-size: 90%; "
