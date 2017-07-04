@@ -13,7 +13,6 @@ public class QAMonthlyStaffController extends QAReports {
         getMonthYear(monthNum, year);
         totalCamp = 0;
         Date endRangeDate = date.valueOf(endRange);
-        system.debug('beginRangeDate = ' + beginRangeDate);
         List<String> allTypes = new String[]{'Backpacking', 'Cycling', 'Healthy Day','Hiking',
             'Kayaking','Camping','XCskiing','Sled Hockey','Fundraising',
             'Outreach','Orientation','River Trip'};
@@ -45,27 +44,19 @@ public class QAMonthlyStaffController extends QAReports {
         String newType = 'Nothing';
         cType oneType;
         List<Campaign> campsQueried = campaigns.values();
-        system.debug('number of campaigns queried = ' + campsQueried.size());
         // Iterating over the Campaigns
-        system.debug('list of campaigns:');
-        for (campaign qc : campsQueried)
-            system.debug('Name: ' + qc.Name + ' Type: '+ qc.type + ' related campaign = ' + qc.Related_Campaign__c);
         for (Campaign camp : campsQueried)
         {
-            system.debug('entering the campaign loop: camp.Name = '+ camp.Name + '  * Type = ' + camp.Type);
             if (camp.Type != newType)
             {
-                system.debug('++++++  This is a new TYPE   ++++++');
                 if (oneType != null)
                 {
                     List<campaignEvent> campOfOneType = theCampaigns.values();
                     campOfOneType.sort();
-                    system.debug('campOfOneType.size = ' + campOfOneType.size());
                     totalCamp = totalCamp + campOfOneType.size();
                     oneType.campaigns = campOfOneType;
                     oneType.tot_ce = oneType.campaigns.size();
                     allCampaignsByType.add(oneType);
-                    system.debug('allCampaignsByType.size = '+allCampaignsByType.size());
                 }
                 oneType = new cType(camp.Type);
                 theCampaigns = new Map<id, campaignEvent>();
@@ -74,26 +65,21 @@ public class QAMonthlyStaffController extends QAReports {
             String campRecType = recTypes.get(camp.RecordTypeId).Name;
             campaignEvent campE = new campaignEvent(camp.id, camp.Name, campRecType, string.valueOf(camp.StartDate), string.valueOf(camp.EndDate));
             List<cMember> mems = getTheMembers(camp, campRecType);
-            system.debug('mems.size() = ' + mems.size()+'     camp.Name = '+camp.Name + '   recordType = ' + campRecType);
             // if the campaign is not a Volunteer campaign
-            if (mems.size() > 0)if (campRecType == 'Volunteer Campaign')
+            if (mems.size() > 0)
+                if (campRecType == 'Volunteer Campaign')
             {
-                system.debug('campRecType = ' + campRecType);
                 //get the list of campaign members from the volunteer campaign
                 if (campRecType == 'Volunteer Campaign')
                 {
                     campaignEvent temp_camp = theCampaigns.get(camp.Related_Campaign__c);
                     if (temp_camp != null)
                     {
-                        showRelCamps(theCampaigns.values(), camp.type);
-                        system.debug('temp_camp Campaign Name: ' + temp_camp.Name + '    temp_camp rec.type = '+temp_camp.cRecordType);
-                        system.debug('temp_camp.Members.size() = '+temp_camp.Members.size());
                         temp_camp.Members.addAll(mems);
                         theCampaigns.put(camp.Related_Campaign__c, temp_camp);
                     }
                     else
                     {
-                        system.debug('volunteer campaign with no related campaign');
                         theCampaigns = addMembers(theCampaigns, campE, mems);
                     }
                 }
@@ -110,7 +96,6 @@ public class QAMonthlyStaffController extends QAReports {
         if (theCampaigns.values().size() > 0)
         {
             List<campaignEvent> campOfOneType = theCampaigns.values();
-            system.debug('out of loop - campOfOneType.size() = '+ campOfOneType.size() );
             campOfOneType.sort();
             totalCamp = totalCamp + campOfOneType.size();
             oneType.campaigns = campOfOneType;
@@ -128,13 +113,6 @@ public class QAMonthlyStaffController extends QAReports {
         theCampaign.Members.addAll(memberList);
         campMap.put(theCampaign.cId, theCampaign);
         return campMap;
-    }
-
-    public void showRelCamps(List<campaignEvent> customCamp, string tp)
-    {
-        system.debug('campaigns of this type '+ tp + ' so far:');
-        for (campaignEvent ce : customCamp)
-            system.debug('Name: ' + ce.Name + ' ce cid = '+ ce.cId+' record type = ' + ce.cRecordType);
     }
 
     public List<cMember> getTheMembers (Campaign camp, String campRecType)
