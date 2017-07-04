@@ -1,0 +1,87 @@
+<apex:page controller="QAMonthlyStaffController" renderAs="PDF" showHeader="false" action="{!printPDFReport}" >
+ <apex:stylesheet value="{!URLFOR($Resource.advancedpdfresource, 'QAReportPDF.css')}"/>
+    <div class="header" align="center"><h3 style="font-color:#0f846d; font-family: Tahoma, Geneva, sans-serif;">QA Report for {!month} {!year}
+        <br/>Activities/Events</h3>
+    </div>
+    <table width="100%">
+        <tr width="100%">
+            <td width="60%" align="left">
+                <h4>Total Activities: {!totalCamp}</h4>
+            </td>
+            <td width="40%" align="right">
+                <apex:image value="{!URLFOR($Resource.advancedpdfresource, 'logo.png')}"/>
+            </td>
+        </tr>
+    </table>
+    <hr />
+    <apex:repeat value="{!allCampaignsByType}" var="campType" id="theTypes">
+        <hr class="list" />
+        <table width="100%">
+            <tr width="100%" class="member">
+                <td width ="40%" >
+                    <h4><apex:outputText value="{!campType.type}" /></h4>
+                </td>
+                <td width = "40%">
+                    <apex:outputText value="Total Activities: {!campType.tot_ce}" />
+                </td>
+            </tr>
+        </table>
+        <hr class="list" />
+        <apex:repeat value="{!campType.campaigns}" var="c" id="theCampaigns">
+            <table width="100%">
+                <tr width="100%">
+                    <td width ="54%" >
+                        <apex:outputText value="{!c.Name}"/>
+                    </td>
+                    <td width = "23%" style="font-size: 90%;">
+                        <apex:outputText value="Start Date: {!c.StartDate}"/>
+                    </td>
+                    <td width="23%" style="font-size: 90%;">
+                        <apex:outputText value="End Date: {!c.EndDate}"/>
+                    </td>
+                </tr>
+            </table>
+
+            <apex:dataTable value="{!c.Members}" var="cm" id="Members" headerClass="tablehead"
+                    rowClasses="odd,even" style="font-size: 90%; "
+                    width="100%"
+                    columnClasses="col"
+                    columnsWidth="20%, 20%, 20%"
+                    rules="all">
+                <apex:facet name="header"></apex:facet>
+                <apex:column >
+                    <apex:facet name="header">Name</apex:facet>
+                    <apex:outputText value="{!cm.Name}"/>
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">Type</apex:facet>
+                    <apex:outputText value="{!cm.Type}" />
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">Status</apex:facet>
+                    <apex:outputText value="{!cm.Status}" />
+                </apex:column>
+            </apex:dataTable>
+            <hr />
+        </apex:repeat>
+    </apex:repeat>
+    <hr />
+
+
+    <div class="footer" style="font-size:60%;">
+        <table width="100%">
+            <tr width = "100%">
+                <td width="33%">
+                    <apex:outputText value="Prepared by: {!$User.FirstName} {!$User.LastName}" />
+                </td>
+                <td width="33%" align="center">
+                    <span>Page </span><span class="pagenumber"></span><span>of </span>
+                    <span class="pagecount"></span>
+                </td>
+                <td width="33%" align="right">
+                    <apex:outputField value="{!forDate.Effective_Date__c}"/>
+                </td>
+            </tr>
+        </table>
+    </div>
+</apex:page>
