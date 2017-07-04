@@ -8,12 +8,12 @@ public class SendKACEmailClass {
         Date todayDate = Date.Today();
         Date sentRecently = Date.Today() - 30;
         Date twoyearsago = Date.Today() - 730;
-        List<String> subjectList = new String[]{'Friendly reminder: Your CPR certification on file with Daring Adventures will expire soon',
-                                                'Friendly reminder: Your CPR certification on file with Daring Adventures has EXPIRED',
-                                                'Friendly reminder: Your FirstAid certification on file with Daring Adventures will expire soon',
-                                                'Friendly reminder: Your First Aid certification on file with Daring Adventures has EXPIRED',
-                                                'Friendly reminder: Your Fingerprint Clearance Card on file with Daring Adventures will expire soon',
-                                                'Friendly reminder: Your Fingerprint Clearance Card on file with Daring Adventures has EXPIRED'};
+        List<String> subjectList = new String[]{'Email: Friendly reminder: Your CPR certification on file with Daring Adventures will expire soon',
+                                                'Email: Friendly reminder: Your CPR certification on file with Daring Adventures has EXPIRED',
+                                                'Email: Friendly reminder: Your FirstAid certification on file with Daring Adventures will expire soon',
+                                                'Email: Friendly reminder: Your First Aid certification on file with Daring Adventures has EXPIRED',
+                                                'Email: Friendly reminder: Your Fingerprint Clearance Card on file with Daring Adventures will expire soon',
+                                                'Email: Friendly reminder: Your Fingerprint Clearance Card on file with Daring Adventures has EXPIRED'};
         List<Contact> volunteersExp = [SELECT id, FirstName, LastName, email,
                                        CPR_Certificate_Expiration_Date__c,
                                        First_Aid_Certification_Expiration_Date__c,

@@ -63,33 +63,33 @@ public class TestSendEmailClass {
                                     Priority = 'Normal',
                                     Status = 'Completed',
                                     Subject =
-                                    'Friendly reminder: Your FirstAid certification on file with Daring Adventures will expire soon',
+                                    'Email: Friendly reminder: Your FirstAid certification on file with Daring Adventures will expire soon',
                                     WhoId = srList[0].getid());
             myAlerts.add(oneTask);
         }
         myAlerts[0].Subject =
-            'Friendly reminder: Your CPR certification on file with Daring Adventures will expire soon';
+            'Email: Friendly reminder: Your CPR certification on file with Daring Adventures will expire soon';
         myAlerts[0].WhoId = srList[4].getId();
         myAlerts[1].WhoId = srList[5].getId();
         myAlerts[2].Subject =
-            'Friendly reminder: Your Fingerprint Clearance Card on file with Daring Adventures will expire soon';
+            'Email: Friendly reminder: Your Fingerprint Clearance Card on file with Daring Adventures will expire soon';
         myAlerts[2].WhoId = srList[6].getId();
         myAlerts[3].Subject =
-            'Friendly reminder: Your First Aid certification on file with Daring Adventures has EXPIRED';
+            'Email: Friendly reminder: Your First Aid certification on file with Daring Adventures has EXPIRED';
         myAlerts[3].WhoId = srList[7].getId();
         myAlerts[4].Subject =
-            'Friendly reminder: Your Fingerprint Clearance Card on file with Daring Adventures has EXPIRED';
+            'Email: Friendly reminder: Your Fingerprint Clearance Card on file with Daring Adventures has EXPIRED';
         myAlerts[4].WhoId = srList[7].getId();
         myAlerts[4].ActivityDate = Date.newInstance(2015, 1, 16);
         myAlerts[5].Subject =
-            'Friendly reminder: Your Fingerprint Clearance Card on file with Daring Adventures has EXPIRED';
+            'Email: Friendly reminder: Your Fingerprint Clearance Card on file with Daring Adventures has EXPIRED';
         myAlerts[5].WhoId = srList[8].getId();
         myAlerts[6].Subject =
-            'Friendly reminder: Your CPR certification on file with Daring Adventures has EXPIRED';
+            'Email: Friendly reminder: Your CPR certification on file with Daring Adventures has EXPIRED';
         myAlerts[6].WhoId = srList[9].getId();
         myAlerts[6].ActivityDate = Date.newInstance(2015, 1, 16);
         myAlerts[7].Subject =
-            'Friendly reminder: Your First Aid certification on file with Daring Adventures has EXPIRED';
+            'Email: Friendly reminder: Your First Aid certification on file with Daring Adventures has EXPIRED';
         myAlerts[7].WhoId = srList[9].getId();
         myAlerts[7].ActivityDate = Date.today()-35;
 
