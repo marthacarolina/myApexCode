@@ -61,7 +61,6 @@ private class TestCampaignTrigger {
 
         //Now begin the test inserting the list of campaign records
         Database.SaveResult[] srList = Database.insert(myCampaigns, false);
-
         List<Campaign> volrecsinserted = [SELECT id FROM Campaign WHERE Type = 'Cycling' and
                           EndDate = Today and
                            RecordTypeId = :recTypeIds.get('Volunteers_Campaign')];
@@ -89,9 +88,25 @@ private class TestCampaignTrigger {
             }
         }
         insert theCMs;
+        List<Campaign> updateCamps = new List<Campaign>();
         myCampaigns[9].Related_Campaign__c = null;
-        update myCampaigns[9];
-
+        myCampaigns[9].StartDate = date.today() + 20;
+        myCampaigns[9].EndDate = date.today() + 20;
+        updateCamps.add(myCampaigns[9]);
+        //this part tests the after update trigger
+        Campaign originCamp = [select id, Name, StartDate, EndDate, Related_Campaign__c
+                               from Campaign
+                              where id = :myCampaigns[0].id];
+        originCamp.StartDate = date.today() + 30;
+        originCamp.EndDate = date.today() + 31;
+        system.debug('originCamp.name = ' + originCamp.Name);
+        system.debug('originCamp.Related_Campaign__c = ' + originCamp.Related_Campaign__c);
+        updateCamps.add(originCamp);
+        update updateCamps;
+        Campaign volCamp = [select id, StartDate, EndDate from Campaign
+                           where id = :originCamp.Related_Campaign__c];
+        system.assertEquals(originCamp.StartDate, volCamp.StartDate);
+        // this part tests the before delete trigger.
         try
         {
             delete myCampaigns;

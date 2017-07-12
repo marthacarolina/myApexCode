@@ -14,6 +14,10 @@ public class CampaignTriggerHandler extends TriggerHandler{
         PrepareForDeletion();
     }
 
+    protected override void afterUpdate() {
+        ChangeVolCampDates();
+    }
+
     public void AddAdventureCampaign()
     {
         list<Campaign> aList = new List<Campaign>();
@@ -142,7 +146,7 @@ public class CampaignTriggerHandler extends TriggerHandler{
 
     private void PrepareForDeletion()
     {
-        List<Campaign> delCampaign = trigger.old;
+        List<Campaign> delCampaign = (List<Campaign>) trigger.old;
         for (Campaign eachCampaign : delCampaign)
         {
             //If the campaign is Adventure type check to see if there are campaign members
@@ -172,6 +176,39 @@ public class CampaignTriggerHandler extends TriggerHandler{
                     }
                 }
             }
+        }
+    }
+
+    private void ChangeVolCampDates()
+    {
+        List<Campaign> oldRec = (List<Campaign>) trigger.old;
+        Map<id, Campaign> MapOldRec = new Map<id, Campaign>(oldRec);
+        List<Campaign> newRec = (List<Campaign>) trigger.new;
+        Map<id, Campaign> MapNewRec = new Map<id, Campaign>(newRec);
+        //first, check to see if need to retreive the volunteer campaigns
+        Map<id, Campaign> changedCamps = new Map<id, Campaign> ();
+        for (integer x = 0; x < newRec.size(); x++)
+        {
+            if ((newRec[x].StartDate != oldRec[x].StartDate ||
+                 newRec[x].EndDate != newRec[x].EndDate)
+                && newRec[x].RecordTypeId == campRecType.get('Adventure')
+                && newRec[x].Related_Campaign__c != null)
+                changedCamps.put(newRec[x].Related_Campaign__c, newRec[x]);
+        }
+        if (changedCamps.size() > 0)
+        {
+            Map<id, Campaign> MapVolCamp =
+                new Map<id, Campaign>([Select id, StartDate, EndDate from Campaign
+                                       where id IN :changedCamps.keySet()]);
+            List<Campaign> changedVolCamps = new List<Campaign>();
+            for (Campaign c : changedCamps.values())
+            {
+                Campaign volCamp = MapVolCamp.get(c.Related_Campaign__c);
+                volCamp.StartDate = c.StartDate;
+                volCamp.EndDate = c.EndDate;
+                changedVolCamps.add(volCamp);
+            }
+            update changedVolCamps;
         }
     }
 }
