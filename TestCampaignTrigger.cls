@@ -1,6 +1,6 @@
 @isTest
 private class TestCampaignTrigger {
-    //This test is for the NewVolCampaign trigger
+    //This test is for the CampaignTriggerHandler 
     @isTest static void TestInsertVolCampaignAlloc() {
         //find the id for the id for the RecordType 'Volunteers_Campaign' in object Campaign
         // create records to test
@@ -97,10 +97,23 @@ private class TestCampaignTrigger {
         Campaign originCamp = [select id, Name, StartDate, EndDate, Related_Campaign__c
                                from Campaign
                               where id = :myCampaigns[0].id];
+        GW_Volunteers__Volunteer_Job__c job = new GW_Volunteers__Volunteer_Job__c(
+                GW_Volunteers__Campaign__c = originCamp.Related_Campaign__c,
+                GW_Volunteers__Description__c = 'description for campaign',
+                GW_Volunteers__Location_City__c = 'PHoenix',
+                GW_Volunteers__Location_Information__c = 'info',
+                GW_Volunteers__Location__c = 'location',
+                GW_Volunteers__Location_Street__c = 'street');
+        insert job;
+        time sTime = time.newInstance(8, 30, 0, 0);
+        GW_Volunteers__Volunteer_Shift__c shift = new GW_Volunteers__Volunteer_Shift__c(
+                GW_Volunteers__Desired_Number_of_Volunteers__c = 4,
+                GW_Volunteers__Duration__c = 3,
+                GW_Volunteers__Start_Date_Time__c = DateTime.newInstance(date.today(), sTime),
+                GW_Volunteers__Volunteer_Job__c = job.id);
+        insert shift;
         originCamp.StartDate = date.today() + 30;
         originCamp.EndDate = date.today() + 31;
-        system.debug('originCamp.name = ' + originCamp.Name);
-        system.debug('originCamp.Related_Campaign__c = ' + originCamp.Related_Campaign__c);
         updateCamps.add(originCamp);
         update updateCamps;
         Campaign volCamp = [select id, StartDate, EndDate from Campaign

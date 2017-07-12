@@ -197,18 +197,45 @@ public class CampaignTriggerHandler extends TriggerHandler{
         }
         if (changedCamps.size() > 0)
         {
-            Map<id, Campaign> MapVolCamp =
-                new Map<id, Campaign>([Select id, StartDate, EndDate from Campaign
-                                       where id IN :changedCamps.keySet()]);
-            List<Campaign> changedVolCamps = new List<Campaign>();
-            for (Campaign c : changedCamps.values())
-            {
-                Campaign volCamp = MapVolCamp.get(c.Related_Campaign__c);
-                volCamp.StartDate = c.StartDate;
-                volCamp.EndDate = c.EndDate;
-                changedVolCamps.add(volCamp);
-            }
-            update changedVolCamps;
+             changeVolShiftDates(changedCamps);
         }
+    }
+
+    private void changeVolShiftDates(Map<id, Campaign> changedCamps)
+    {
+        Map<id, Campaign> MapVolCamp =
+            new Map<id, Campaign>([Select id, StartDate, EndDate from Campaign
+                                   where id IN :changedCamps.keySet()]);
+        List<Campaign> changedVolCamps = new List<Campaign>();
+        for (Campaign c : changedCamps.values())
+        {
+            Campaign volCamp = MapVolCamp.get(c.Related_Campaign__c);
+            volCamp.StartDate = c.StartDate;
+            volCamp.EndDate = c.EndDate;
+            changedVolCamps.add(volCamp);
+        }
+        update changedVolCamps;
+        //find the jobs and shifts for the campaign and change the shift start date
+        Map<id, GW_Volunteers__Volunteer_Job__c> jobsMap =
+            new Map<id, GW_Volunteers__Volunteer_Job__c>([select id, GW_Volunteers__Campaign__c
+                                                          from GW_Volunteers__Volunteer_Job__c
+                                                          where GW_Volunteers__Campaign__c IN :changedCamps.keySet()]);
+        Map<id, GW_Volunteers__Volunteer_Shift__c> shiftsMap =
+            new Map<id, GW_Volunteers__Volunteer_Shift__c>([select id, name,
+                                                            GW_Volunteers__Start_Date_Time__c,
+                                                            GW_Volunteers__Volunteer_Job__c
+                                                            from GW_Volunteers__Volunteer_Shift__c
+                                                            where
+                                                            GW_Volunteers__Volunteer_Job__c IN
+                                                            :jobsMap.keySet()]);
+        for (GW_Volunteers__Volunteer_Shift__c shift : shiftsMap.values())
+        {
+            GW_Volunteers__Volunteer_Job__c job =
+                jobsMap.get(shift.GW_Volunteers__Volunteer_Job__c);
+            Campaign vCamp = MapVolCamp.get(job.GW_Volunteers__Campaign__c);
+            time shiftTime = shift.GW_Volunteers__Start_Date_Time__c.time();
+            shift.GW_Volunteers__Start_Date_Time__c = DateTime.newInstance(vCamp.StartDate, shiftTime);
+        }
+        update shiftsMap.values();
     }
 }
