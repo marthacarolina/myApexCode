@@ -1,15 +1,16 @@
 <apex:page controller="QAMonthlyController" renderAs="PDF" showHeader="false" action="{!MonthlyQA}">
     <apex:stylesheet value="{!URLFOR($Resource.advancedpdfresource, 'QAReportPDF.css')}"/>
     <div class="header" align="center"><h3 style="font-color:#0f846d; font-family: Tahoma, Geneva, sans-serif;">QA Report for {!month} {!year}
-        <br/>Member/Participant</h3>
+        <br/>Participants</h3>
     </div>
     <table width="100%">
         <tr width="100%">
             <td width="60%" align="left">
-                <h4>Total Members Participating in Adventures: {!totalParticipants}</h4>
+                <h4>Total Participans in Adventures: {!totalParticipants}</h4>
                 <h4>Total Activity Days this Month: {!totAllInclusiveActDays}</h4>
-                <h4>Total Members Experiencing their 1st Adventure: {!totNewParticipants}</h4>
-                <h4>Members attending more than one adventure {!serialParticipants}</h4>
+                <h4>Total Participants Experiencing their 1st Adventure: {!totNewParticipants}</h4>
+                <h4>Participants attending more than one Adventure: {!serialParticipants}</h4>
+                <span style="font-size:70%;">Participants: all people attending an Adventure. Members: our target population.</span>
             </td>
             <td width="40%" align="right">
                 <apex:image value="{!URLFOR($Resource.advancedpdfresource, 'logo.png')}"/>
@@ -74,7 +75,7 @@
         <table width="100%">
             <tr width = "100%">
                 <td width="33%">
-                    <apex:outputText value="Prepared by: {!$User.FirstName} {!$User.LastName}" />
+                    <apex:outputText value="Prepared by: {!$User.FirstName} {!$User.LastName}       Ver.1.0" />
                 </td>
                 <td width="33%" align="center">
                     <span>Page </span><span class="pagenumber"></span><span>of </span>

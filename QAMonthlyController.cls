@@ -157,7 +157,7 @@ public class QAMonthlyController extends QAReports{
                   {
                       totNewParticipants++;
                       if (boolean.valueOf(dataCells[5].getValue()))
-                          participant.typeOfMember = 'Participant';
+                          participant.typeOfMember = 'Member';
                       else
                           participant.TypeOfMember = boolean.valueOf(dataCells[6].getValue()) ? 'Family/Friend' : 'Caregiver';
                   }

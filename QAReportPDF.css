@@ -1,0 +1,105 @@
+@page {
+  @top-center {
+  content: element(header);
+  }
+  @bottom-left {
+  content: element(footer);
+  }
+  margin-top: 100px;
+  margin-bottom:80px;
+}
+
+  div.header {
+  padding: 10px;
+  align: center;
+  position: running(header);
+  }
+  div.footer {
+  display: block;
+  padding: 5px;
+  position: running(footer);
+  }
+
+  .pagenumber:before {
+  content: counter(page);
+  }
+  .pagecount:before {
+  content: counter(pages);
+  }
+
+.orgbox {
+  border: 1px solid #CCCCCC;
+  font-size: 80%;
+}
+
+.reportinfo {
+  border: 2px groove #000000;
+  font-size: 80%;
+  text-align: left;
+  margin: 0px;
+}
+
+hr {
+    display: block;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    margin-left: auto;
+    margin-right: auto;
+    border-style: inset;
+    border-width: 1px;
+    border-color: #CCCCCC;
+}
+
+hr.list{
+   margin-top: 0;
+   margin-bottom: 0;
+   border-style: solid;
+}
+
+.member {
+    border-bottom: 1px solid #999999 !important;
+    border-top: 1px solid #222222 !important;
+    background-color: #EEEEEE;
+    font-size:90%;
+}
+
+.tablehead {
+    align: center;
+    background-color: #fefefe;
+    font-weight: bold;
+    font-size: 95%;
+    font-color: blue;
+}
+
+.col {
+    margin-left: 2%;
+    margin-right: 3%;
+}
+
+.totals {
+    background-color: #0099FF;
+    font-weight: bold;
+}
+
+.infohead {
+  font-size: 70%;
+  font-weight: bold;
+}
+
+.odd {
+ border-bottom: 1px solid #000;
+ background-color: #FFFFFF;
+ padding: 4px 4px 4px 4px;
+ font-size: 80%;
+}
+
+.even {
+   border-bottom: 1px solid #000;
+   background-color: #FFFFFF;
+   padding: 4px 4px 4px 4px;
+   font-size: 80%;
+}
+
+.highlightcol {
+	background-color: #FBB917;
+}
