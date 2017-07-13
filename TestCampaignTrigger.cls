@@ -1,125 +1,58 @@
 @isTest
 private class TestCampaignTrigger {
-    //This test is for the CampaignTriggerHandler 
+    //This test is for the CampaignTriggerHandler trigger
     @isTest static void TestInsertVolCampaignAlloc() {
-        //find the id for the id for the RecordType 'Volunteers_Campaign' in object Campaign
-        // create records to test
-        // bulk validation
-        Map<String, id> recTypeIds = new Map<String, id>();
-        List<RecordType> recs = [select id, Name, DeveloperName from RecordType
-                                where sObjectType = 'Campaign'];
-        for (RecordType rt : recs)
-            recTypeIds.put(rt.DeveloperName, rt.id);
-        Fee__c fee = new Fee__c (Activity_Type__c = 'Cycling',
-                                Amount__c = 10);
-        insert fee;
+        //find the id for the RecordType 'Volunteers_Campaign' in object Campaign
+        TestDataFactory.CreateGAU ('Activity Fees');
+        id feeId = TestDataFactory.CreateFee('Cycling', 10);
+        TestDataFactory.CreateCMStatusDefault('Cycling');
+        TestDataFactory.CreateCampaigns('Test ' ,'Adventure', 'Cycling', 5, Date.TODAY(), Date.TODAY(), feeId);
+        TestDataFactory.CreateCampaigns('Test ','Fundraising', 'Cycling', 3, Date.TODAY(), Date.TODAY(), feeId);
+        //make a Mailchimp campaign (the trigger will change the RecordType to Fundraising)
+        TestDataFactory.CreateCampaigns('MailChimp ','Adventure', 'Cycling', 1, Date.TODAY(), Date.TODAY(), feeId);
+        //make a volunteer campaign with a diferent endDate to diferentiate it from the ones created by the trigger
+        TestDataFactory.CreateCampaigns('Test ','Volunteers_Campaign', 'Cycling', 1, Date.TODAY()+2, Date.TODAY()+2, feeId);
+        List<Campaign> myCampaigns = [SELECT id, Name, Type, RecordTypeId,
+                                     StartDate, EndDate, Related_Campaign__c
+                                     from Campaign
+                                     Where RecordType.Name = 'Adventure'];
+        List<Contact> conts1 = TestDataFactory.CreateContacts(3,0);
+        List<Contact> conts = TestDataFactory.CreateContacts(9,3);
 
-        npsp__General_Accounting_Unit__c genAcUnit =
-            new npsp__General_Accounting_Unit__c (Name = 'Activity Fees',
-                                                 npsp__Active__c = true);
-        insert genAcUnit;
-                AAKCS__Campaign_Status_Default__c statDef =
-            new AAKCS__Campaign_Status_Default__c (Name = 'Cycling',
-                                                  AAKCS__Action__c = 'Replace All',
-                                                  AAKCS__Active__c = true);
-        insert statDef;
-
-        List<String> defNames = new List<String>{'Attended', 'Signed Up'};
-        List<AAKCS__Campaign_Status_Default_Value__c> sdValues =
-            new List<AAKCS__Campaign_Status_Default_Value__c> ();
-        for (integer x = 0; x < 2; x++)
-        {
-            AAKCS__Campaign_Status_Default_Value__c sdValue =
-            new AAKCS__Campaign_Status_Default_Value__c(Name = defNames[x],
-                                                        AAKCS__Default__c = false,
-                                                        AAKCS__Responded__c = false,
-                                                        AAKCS__Campaign_Status_Default__c = statDef.id);
-            sdValues.add(sdValue);
-        }
-        insert sdValues;
-
-        List<Campaign> myCampaigns = new List<Campaign>();
-        for (Integer i=0; i<10; i++){
-            Campaign aCampaign = new Campaign(RecordTypeId = recTypeIds.get('Adventure'),
-                                             Name = 'Campaign'+ i,
-                                             IsActive = True,
-                                             Type = 'Cycling',
-                                             Fee_for_Activity__c = fee.id,
-                                             Status = 'Planned',
-                                             EndDate = Date.TODAY(),
-                                             StartDate = Date.TODAY());
-            myCampaigns.add(aCampaign);
-        }
-        myCampaigns[2].Name = 'MailChimp';
-        //change some of the record types to be fundraising record types
-        myCampaigns[3].RecordTypeId = recTypeIds.get('Fundraising');
-        myCampaigns[5].RecordTypeId = recTypeIds.get('Fundraising');
-        myCampaigns[8].RecordTypeId = recTypeIds.get('Fundraising');
-        //this next record type is volunteer record type
-        myCampaigns[1].RecordTypeId = recTypeIds.get('Volunteers_Campaign');
-        myCampaigns[1].EndDate = myCampaigns[1].EndDate.addDays(2);
-
-        //Now begin the test inserting the list of campaign records
-        Database.SaveResult[] srList = Database.insert(myCampaigns, false);
+        List<Campaign> campSignedUp = new List<Campaign>();
+        campSignedUp.add(myCampaigns[0]);
+        myCampaigns.remove(0);
+        List<Campaign> campsWCM = new List<Campaign>{myCampaigns[1],myCampaigns[2], myCampaigns[3]};
+        List<String> statai1 = new List<String>{'Signed Up'};
+        List<String> statai2 = new List<String>{'Attended'};
+        TestDataFactory.CreateCampaignMembers(campSignedUp, conts1,3, statai1);
+        TestDataFactory.CreateCampaignMembers(campsWCM, conts,3, statai2);
+        //retrieve tha volunteer records inserted by the trigger
+        // when the Adventure campaigns were inserted
         List<Campaign> volrecsinserted = [SELECT id FROM Campaign WHERE Type = 'Cycling' and
                           EndDate = Today and
-                           RecordTypeId = :recTypeIds.get('Volunteers_Campaign')];
+                           RecordType.DeveloperName ='Volunteers_Campaign'];
         System.assertEquals(5, volrecsinserted.size());
 
-        List<Contact> conts = new List<Contact>();
-        for (Integer x=0; x<5; x++){
-            Contact cont1 = new Contact(FirstName = 'contact ' + x,
-                                        LastName = 'Iam '+ x);
-            conts.add(cont1);
-        }
-        insert conts;
-        List<CampaignMember> theCMs = new List<CampaignMember>();
-        List<id> campIds = new List<id>{myCampaigns[0].id, myCampaigns[4].id, myCampaigns[6].id};
-        for(integer y=0; y < 3; y++)
-        {
-            for (Integer x=0; x<3; x++)
-            {
-                String stat = 'Signed Up';
-                if (y > 0 && x > 0) stat = 'Attended';
-                CampaignMember aCamMember = new CampaignMember(CampaignId = campIds[y],
-                                                               ContactId = conts[x].id,
-                                                               Status = stat);
-                theCMs.add(aCamMember);
-            }
-        }
-        insert theCMs;
         List<Campaign> updateCamps = new List<Campaign>();
-        myCampaigns[9].Related_Campaign__c = null;
-        myCampaigns[9].StartDate = date.today() + 20;
-        myCampaigns[9].EndDate = date.today() + 20;
-        updateCamps.add(myCampaigns[9]);
+        myCampaigns[4].Related_Campaign__c = null;
+        myCampaigns[4].StartDate = date.today() + 20;
+        myCampaigns[4].EndDate = date.today() + 20;
+        updateCamps.add(myCampaigns[4]);
         //this part tests the after update trigger
-        Campaign originCamp = [select id, Name, StartDate, EndDate, Related_Campaign__c
-                               from Campaign
-                              where id = :myCampaigns[0].id];
-        GW_Volunteers__Volunteer_Job__c job = new GW_Volunteers__Volunteer_Job__c(
-                GW_Volunteers__Campaign__c = originCamp.Related_Campaign__c,
-                GW_Volunteers__Description__c = 'description for campaign',
-                GW_Volunteers__Location_City__c = 'PHoenix',
-                GW_Volunteers__Location_Information__c = 'info',
-                GW_Volunteers__Location__c = 'location',
-                GW_Volunteers__Location_Street__c = 'street');
-        insert job;
-        time sTime = time.newInstance(8, 30, 0, 0);
-        GW_Volunteers__Volunteer_Shift__c shift = new GW_Volunteers__Volunteer_Shift__c(
-                GW_Volunteers__Desired_Number_of_Volunteers__c = 4,
-                GW_Volunteers__Duration__c = 3,
-                GW_Volunteers__Start_Date_Time__c = DateTime.newInstance(date.today(), sTime),
-                GW_Volunteers__Volunteer_Job__c = job.id);
-        insert shift;
+        Campaign originCamp = campSignedUp[0];
+        TestDataFactory.CreateJobShift(campSignedUp);
         originCamp.StartDate = date.today() + 30;
         originCamp.EndDate = date.today() + 31;
         updateCamps.add(originCamp);
         update updateCamps;
+        system.debug('finished updating campaings - testCampaingTrigger');
         Campaign volCamp = [select id, StartDate, EndDate from Campaign
-                           where id = :originCamp.Related_Campaign__c];
+                           where id = :originCamp.Related_Campaign__c limit 1];
         system.assertEquals(originCamp.StartDate, volCamp.StartDate);
         // this part tests the before delete trigger.
+        myCampaigns.clear();
+        myCampaigns = [select id, StartDate, EndDate from Campaign];
         try
         {
             delete myCampaigns;
