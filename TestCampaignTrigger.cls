@@ -6,12 +6,12 @@ private class TestCampaignTrigger {
         TestDataFactory.CreateGAU ('Activity Fees');
         id feeId = TestDataFactory.CreateFee('Cycling', 10);
         TestDataFactory.CreateCMStatusDefault('Cycling');
-        TestDataFactory.CreateCampaigns('Test ' ,'Adventure', 'Cycling', 5, Date.TODAY(), Date.TODAY(), feeId);
-        TestDataFactory.CreateCampaigns('Test ','Fundraising', 'Cycling', 3, Date.TODAY(), Date.TODAY(), feeId);
+        TestDataFactory.CreateCampaigns('Test ' ,'Adventure', 'Cycling', 5, 0, Date.TODAY(), Date.TODAY(), feeId);
+        TestDataFactory.CreateCampaigns('Test ','Fundraising', 'Cycling', 3, 5, Date.TODAY(), Date.TODAY(), feeId);
         //make a Mailchimp campaign (the trigger will change the RecordType to Fundraising)
-        TestDataFactory.CreateCampaigns('MailChimp ','Adventure', 'Cycling', 1, Date.TODAY(), Date.TODAY(), feeId);
+        TestDataFactory.CreateCampaigns('MailChimp ','Adventure', 'Cycling', 1, 8, Date.TODAY(), Date.TODAY(), feeId);
         //make a volunteer campaign with a diferent endDate to diferentiate it from the ones created by the trigger
-        TestDataFactory.CreateCampaigns('Test ','Volunteers_Campaign', 'Cycling', 1, Date.TODAY()+2, Date.TODAY()+2, feeId);
+        TestDataFactory.CreateCampaigns('Test ','Volunteers_Campaign', 'Cycling', 1, 9, Date.TODAY()+2, Date.TODAY()+2, feeId);
         List<Campaign> myCampaigns = [SELECT id, Name, Type, RecordTypeId,
                                      StartDate, EndDate, Related_Campaign__c
                                      from Campaign
@@ -46,7 +46,6 @@ private class TestCampaignTrigger {
         originCamp.EndDate = date.today() + 31;
         updateCamps.add(originCamp);
         update updateCamps;
-        system.debug('finished updating campaings - testCampaingTrigger');
         Campaign volCamp = [select id, StartDate, EndDate from Campaign
                            where id = :originCamp.Related_Campaign__c limit 1];
         system.assertEquals(originCamp.StartDate, volCamp.StartDate);

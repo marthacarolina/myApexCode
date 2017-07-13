@@ -55,7 +55,7 @@ public class TestDataFactory {
         insert sdValues;
     }
 
-    public static void CreateCampaigns(String cName, String recType, String ctype, integer totCamp, Date sDate, Date eDate, Id fee)
+    public static void CreateCampaigns(String cName, String recType, String ctype, integer totCamp, integer startIndex, Date sDate, Date eDate, Id fee)
     {
         //get record type ids
         Map<String, id> recTypeIds = new Map<String, id>();
@@ -65,9 +65,9 @@ public class TestDataFactory {
             recTypeIds.put(rt.DeveloperName, rt.id);
         // insert campaigns
         List<Campaign> myCampaigns = new List<Campaign>();
-        for (Integer i=0; i< totCamp; i++){
+        for (Integer i=startIndex; i< totCamp + startIndex; i++){
             Campaign aCampaign = new Campaign(RecordTypeId = recTypeIds.get(recType),
-                                             Name = cName + 'Campaign'+ i,
+                                             Name = cName + i,
                                              IsActive = True,
                                              Type = ctype,
                                              Fee_for_Activity__c = fee,
@@ -75,7 +75,9 @@ public class TestDataFactory {
                                              EndDate = eDate,
                                              StartDate = sDate);
             myCampaigns.add(aCampaign);
-            system.debug('will insert campaign: '+ aCampaign);
+            system.debug('Creating campaign:');
+            system.debug('Name : ' + aCampaign.Name + '  RecType = ' + recType);
+            system.debug(aCampaign);
         }
         insert myCampaigns;
     }
@@ -84,24 +86,24 @@ public class TestDataFactory {
     {
         List<CampaignMember> theCMs = new List<CampaignMember>();
         if (contacts.size() < stats.size())
-            system.debug('Insuficient contacts for inserting campaign members');
+            system.debug('Not enough contacts, or too many statuses');
         else
         {
             Integer z = 0;
             for(Campaign c : campaigns)
             {
+                system.debug('*******   creating CMs for Campaign: ' + c.Name);
                 Integer startIndex = z;
-                system.debug('****  starting campaign loop - z = '+ z + '  startIndex = ' + startIndex + '  contsInCamp = ' + contsInCamp);
+                Integer statusIndex = 0;
                 for (Integer x=z; x < startIndex + contsInCamp; x ++)
                 {
-                    Integer y = x < stats.size() ? x : 0;
+                    Integer y = statusIndex < stats.size() ? statusIndex : stats.size() - 1;
                     system.debug('x = '+ x+ '  y = ' + y + '  z = '+ z +'  startIndex = '+ startIndex);
                     CampaignMember aCamMember = new CampaignMember(CampaignId = c.id,
                                                                    ContactId = contacts[x].id,
                                                                    Status = stats[y]);
                     theCMs.add(aCamMember);
-                    system.debug('will insert campaign member: ' + aCamMember);
-                    z++;
+                    z++; statusIndex++;
                 }
             }
             insert theCMs;
@@ -124,7 +126,6 @@ public class TestDataFactory {
                 GW_Volunteers__Location_Street__c = 'street');
             jobs.add(job);
             cDates.put(c.Related_Campaign__c, c.StartDate);
-            system.debug('will insert job: '+ job);
         }
         insert jobs;
         List<GW_Volunteers__Volunteer_Shift__c> shifts = new List<GW_Volunteers__Volunteer_Shift__c>();
@@ -138,7 +139,6 @@ public class TestDataFactory {
                 GW_Volunteers__Start_Date_Time__c = DateTime.newInstance(sDate, sTime),
                 GW_Volunteers__Volunteer_Job__c = job.id);
             shifts.add(shift);
-            system.debug('will inset shift: '+ shift);
         }
         insert shifts;
     }
