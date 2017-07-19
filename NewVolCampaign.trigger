@@ -1,3 +1,5 @@
+// this class is no longer in use and has been replaced by CampaignTriggerHandler & Campaign Trigger
+
 // This trigger opperates when a new Campaign is created
 // if it is an Adventure Campaign, it adds a Volunteer Campaign record and it
 // saves the id of the Adventure Campaign in the Related Campaign field of the Volunteer
