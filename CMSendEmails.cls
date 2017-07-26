@@ -1,5 +1,11 @@
 public class CMSendEmails {
 
+    //This class sends emails to members of a campaign, using a template in the
+    //object Email_Content.
+    //It attaches Policies and procedures according to the Campaign type.
+    //It uses the Custom Type Settings: Attachment_Setting__mdt
+    //Martha Vance 2017
+
     private ApexPages.StandardController std;
     public Campaign camp {get;set;}
     public Campaign volCamp {get;set;}
@@ -43,7 +49,6 @@ public class CMSendEmails {
                 if (camp.Related_Campaign__c == null)
                 {
                     no_Vol = true;
-                    system.debug('no_Vol there is no volunteer campaign = ' + no_Vol);
                     volCamp = new Campaign();
                     volCamp.id = camp.id;
                 }
@@ -60,7 +65,6 @@ public class CMSendEmails {
                  ContactId, Description, Activity_Days__c
                  FROM CampaignMember WHERE CampaignId = :camp.id And Email != null
                  ORDER BY Name LIMIT 30];
-        system.debug('Number of Participants '+ cMAdv.size());
         If (cMAdv.size()>0)
             Make_Wrap(cMAdv, 'Participant');
         else no_participants = true;
@@ -70,7 +74,7 @@ public class CMSendEmails {
                      Description, ContactId, Activity_Days__c
                      FROM CampaignMember WHERE CampaignId = :volCamp.id AND Email != null
                      ORDER BY Name LIMIT 30];
-            system.debug('number of volunteers ' + cMVol.size());
+            system.debug('Number of Volunteers in Campaign ' + cMVol.size());
             if (cMVol.size() > 0)
             {
                 Make_Wrap(cMVol, 'Volunteer');
@@ -81,7 +85,6 @@ public class CMSendEmails {
                 no_Vol = true;
                 VolunteerInformation(False);
             }
-
         }
         if (no_Vol && no_participants)
             message = 'There are no participants or volunteers associated with this campaign';
@@ -93,13 +96,8 @@ public class CMSendEmails {
         //participants from volunteers. It adds the object to a list which will
         //be the list of recipients
         boolean selected = false;
-        system.debug('in Make_Wrap type_Cm = '+ type_Cm);
-        system.debug('campMems.size() = '+ campMems.size());
         For (CampaignMember c : campMems)
         {
-            system.debug('Picklist.etype__c = '+ Picklist.etype__c);
-            system.debug('c.FirstName = ' + c.FirstName);
-            system.debug('c.Status = ' + c.Status);
             if (Picklist.etype__c == 'Reminder Emails')
             {
                 if (c.Status == 'Signed Up' || c.Status == 'Confirmed') selected = true;
@@ -112,11 +110,9 @@ public class CMSendEmails {
                         selected = true;
                 }
             }
-            system.debug('selected = ' + selected);
             cMs.add(new WrapCM(c, selected, type_Cm));
             selected = false;
         }
-        system.debug('out of Make_Wrap');
     }
 
     private void VolunteerInformation(Boolean isVol)
@@ -138,7 +134,6 @@ public class CMSendEmails {
                 {
                     message = 'There are no documents for the Attachment';
                     attExist = False;
-                    system.debug('attExist = ' + attExist);
                 }
             }
             // get the record from the Volunteer_Hours__c object for the vounteers in
@@ -196,7 +191,7 @@ public class CMSendEmails {
     public PageReference SendTheEmails()
     {
         //This action is triggered when the user clicks on the Send Emails button
-        if (!no_Vol && !no_participants)
+        if (!no_Vol || !no_participants)
         {
             List<Messaging.SingleEmailMessage> messages = new List<Messaging.SingleEmailMessage>();
             //add a SingleEmailMessage to each campaignmember selected
@@ -217,7 +212,6 @@ public class CMSendEmails {
             {
                 message = 'There is no Email_Content of type '+ picklist.etype__c + ' for '+ cType+' Adventure';
                 noTemplate = true;
-                system.debug('noTemplate = ' + noTemplate);
             }
             if (emailBody.size() == 0)
             {
@@ -230,7 +224,6 @@ public class CMSendEmails {
                 String pSubject = '';
                 String vBody = '';
                 String vSubject = '';
-                system.debug('emailBody.size() = '+emailBody.size());
                 for (Email_Content__c bd : emailBody)
                 {
                     // set the subject and body of the email depending on whether the
@@ -254,6 +247,7 @@ public class CMSendEmails {
                 //list of single emails to send
                 for (WrapCM wCM : cMs)
                 {
+                    // if the campaign member has been selected in the UI
                     if (wCM.selected)
                     {
                         Messaging.SingleEmailMessage mess = new Messaging.SingleEmailMessage();
@@ -339,6 +333,8 @@ public class CMSendEmails {
                             GW_Volunteers__Volunteer_Hours__c vHours,
                             GW_Volunteers__Volunteer_Job__c vJob)
     {
+        // This method calls the Reminder method or the ThankYou method. Both metohds
+        // return the body of the email.
         If (picklist.etype__c == 'Reminder Emails') return Reminder(c, tcamp, template, vHours, vJob);
         else return ThankYou(c, tcamp, template, vHours, vJob);
     }
@@ -347,12 +343,14 @@ public class CMSendEmails {
                             GW_Volunteers__Volunteer_Hours__c vHours,
                             GW_Volunteers__Volunteer_Job__c vJob)
     {
-        system.debug('vHours.GW_Volunteers__Shift_Start_Date_Time__c' +
-                     vHours.GW_Volunteers__Shift_Start_Date_Time__c);
         String body = '';
         template = template.replace('*Name*',c.FirstName);
         template = template.replace('*adventure.type*', tcamp.Type);
-        template = template.replace('*adventure.description*', tcamp.Description);
+        if (tcamp.Description != null)
+            template = template.replace('*adventure.description*', tcamp.Description);
+        else
+            template = template.replace('*adventure.description*', ' ');
+
         template = template.replace('*adventure.startdate*', tcamp.StartDate.format());
         String rplcment='';
         if (tcamp.Email_Message__c == null) rplcment = '<span></span>';
@@ -394,9 +392,6 @@ public class CMSendEmails {
         template = template.replace('*user.email*', UserInfo.getUserEmail());
         body = body + template;
         return body;
-
-
-
     }
 
     public class WrapCM {

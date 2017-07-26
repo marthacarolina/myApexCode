@@ -1,197 +1,138 @@
-//this test insert its own testing records. But for some reason the Sataus for the Participants
-//is being saved as Sent, regardless of the value given in the code.
+//This is the test for CMSendEmails class
+//
+//Martha Vance 2017
 @isTest
 
 public class CMSendEmailsTest {
     @isTest
     private static void SndEmail()
     {
-        //insert Contacts
-        List<contact> contacts = new List<Contact>();
-        for (Integer x = 1; x < 9; x++)
+        Map<String, id> recTypeIds = new Map<String, id>();
+        List<RecordType> recs = [select id, Name, DeveloperName from RecordType
+                                 where sObjectType = 'Campaign'];
+        //Document document = new Document();
+        //document.Body = Blob.valueOf('Some Text');
+        //document.ContentType = 'application/pdf';
+        //document.DeveloperName = 'P204Camping';
+        //document.IsPublic = true;
+        //document.Name = 'Camping';
+        //document.FolderId = [select id from folder
+        //                     where name = 'DA Programs Policies and Procedures'].id;
+        //insert document;
+
+        for (RecordType rt : recs)
+            recTypeIds.put(rt.DeveloperName, rt.id);
+        id fee = TestDataFactory.CreateFee('Cycling', 15);
+        TestDataFactory.CreateGAU('Activity Fees');
+        TestDataFactory.CreateCMStatusDefault('Cycling');
+        TestDataFactory.CreateCMStatusDefault('Kayaking');
+        TestDataFactory.CreateCMStatusDefault('Backpacking');
+        TestDataFactory.CreateCMStatusDefault('Hiking');
+        //TestDataFactory.CreateCMStatusDefault('Camping');
+        //
+        TestDataFactory.CreateCampaigns('Testing ', 'Adventure', 'Cycling', 1, 1, date.today() - 10, date.today() - 10, fee);
+        TestDataFactory.CreateCampaigns('Testing ', 'Adventure', 'Backpacking', 1, 2, date.today() + 10, date.today() + 10, fee);
+        TestDataFactory.CreateCampaigns('Testing ', 'Adventure', 'Hiking', 1, 3, date.today() - 5, date.today() - 5, fee);
+        TestDataFactory.CreateCampaigns('Testing ', 'Adventure', 'Kayaking', 1, 4, date.today() - 10, date.today() - 10, fee);
+        TestDataFactory.CreateCampaigns('Testing ', 'Adventure', 'Camping', 1, 5, date.today() + 20, date.today() + 20, fee);
+        TestDataFactory.CreateCampaigns('Testing ', 'Adventure', 'Camping', 1, 6, date.today() + 20, date.today() + 20, fee);
+        TestDataFactory.CreateCampaigns('Testing ', 'Adventure', 'Backpacking', 1, 7, date.today() + 10, date.today() + 10, fee);
+        TestDataFactory.CreateContacts(12, 1);
+
+        List<Contact> contacts = [SELECT id, FirstName, LastName, email
+                                 FROM Contact ORDER BY LastName];
+        contacts[6].email = '';
+        update contacts[6];
+        CreateEmailContent('Cycling');
+        CreateEmailContent('Backpacking');
+        CreateEmailContent('Kayaking');
+        CreateEmailContent('Hiking');
+
+
+        //only insert campaign members for the first campaign created
+        //camp[0] - Adventure, CM 0,1,2   Volunteer - CM 3,4
+        //camp[1] - Adventure no CM  volunteer - CM 4,5
+        //camp[2] - Adventure CM 0,1,2,3 Volunteer No CM
+        //camp[3] - Adventure no CM  volunteer no CM
+
+        //make a campaign without volunteer campaign
+        Campaign camp6 = [select id, Name, Related_Campaign__c
+                          from Campaign
+                          where Name = 'Testing 6' limit 1];
+        Campaign volCamp6 = [select id from Campaign
+                            where id = :camp6.Related_Campaign__c];
+        delete volCamp6;
+        camp6.Related_Campaign__c = null;
+        update camp6;
+        //Retrieve the campaigns that were just created
+        List<Campaign> campList = new List<Campaign>
+            ([Select id, Name, Related_Campaign__c, StartDate,
+              EndDate, RecordTypeId
+              from Campaign
+              ORDER BY RecordType.Name, Name]);
+        Map<id, Campaign> mapCamps = new Map<id, Campaign>(campList);
+        //make a map of the campaign Id's where the Key is the campaign Name
+        Map<String, id> campsByName = new Map<String, Id>();
+        List<Campaign> camps = new List<Campaign>();
+        for (Campaign c : campList)
         {
-            Contact cont = new Contact(FirstName = 'test'+x,
-                                       LastName = 'test ' + x,
-                                       email = 'marthacv@gmail.com');
-            if (x==8) cont.email = '';
-            contacts.add(cont);
+           campsByName.put(c.Name, c.id);
         }
-        insert contacts;
 
-        //insert Fee
-        Fee__c fee = new Fee__c(Activity_Type__c = 'Cycling',
-                               Amount__c = 5);
-        insert fee;
-        // prepare fields for campaigns
-        List<String> campaignTypes = new List<String>{'Cycling','Hiking','Kayaking','Backpacking','Camping'};
-        List<Date> campaignDates = new List<Date>();
-        campaignDates.add(date.today()+5);
-        campaignDates.add(date.today()+5);
-        campaignDates.add(date.today()-5);
-        campaignDates.add(date.today()-5);
-        campaignDates.add(date.today()+5);
+        //Create campaign members
+        //campaign members for the campaign with name Testing 1
+        camps.add(mapCamps.get(campsByName.get('Testing 1')));
+        List<String> statai = new List<String>{'Signed Up', 'Cancelled'};
+        TestDataFactory.CreateCampaignMembers(camps, contacts, 2, statai);
+        contacts.remove(1); // test 2  rec 1
+        contacts.remove(0);  //test 1  rec 0
+        camps.clear();
+        statai.clear();
+        Campaign tempCamp = mapCamps.get(campsByName.get('Testing 3'));
+        camps.add(tempCamp); //send the Adventure campaign to TestDataFactory it will insert job in related campaign
+        TestDataFactory.CreateJobShift(camps);
+        statai.add('Canceled');
+        statai.add('Confirmed');
+        tempCamp = mapCamps.get(tempCamp.Related_Campaign__c);
+        CreateVolHours(tempCamp, contacts, 2, statai);
+        contacts.remove(1);   // test 4   rec 3
+        contacts.remove(0);   // test 3   rec 2
+        camps.clear();
+        statai.clear();
+        camps.add(mapCamps.get(campsByName.get('Testing 4')));
+        statai = new List<String>{'Attended','Attended','No-Show'};
+        TestDataFactory.CreateCampaignMembers(camps, contacts, 3, statai);
 
-        List<Campaign> campaigns = new List<Campaign>();
-        for (integer x = 0; x<5; x++)
-        {
-            Campaign camp = new Campaign(Name = 'Campaign ' + x,
-                                         Type = campaignTypes[x],
-                                         StartDate = campaignDates[x],
-                                         EndDate = campaignDates[x],
-                                         Description = 'testing emails',
-                                         RecordTypeId = '012o0000000xwhO',
-                                         Fee_for_Activity__c = fee.id);
-            campaigns.add(camp);
-        }
-        insert campaigns;
-        campaigns.clear();
-        //Retrieve campaigns to obtain the complete record (with the volunteer campaign)
-        campaigns = [SELECT id, Name, Type, StartDate, EndDate, Description,
-                     RecordTypeId, Related_Campaign__c
-                     FROM Campaign ORDER BY Name];
-        system.debug('inserted Campaigns, and retrieved campaigns');
-        //insesert job, shifts and hours for campaigns
-        List<GW_Volunteers__Volunteer_Job__c> jobs = new List<GW_Volunteers__Volunteer_Job__c>();
-        for (integer x = 0; x<5; x++)
-        {
-            GW_Volunteers__Volunteer_Job__c job = new GW_Volunteers__Volunteer_Job__c(
-                GW_Volunteers__Campaign__c = campaigns[x].Related_Campaign__c,
-                GW_Volunteers__Description__c = 'description for campaign',
-                GW_Volunteers__Location_City__c = 'PHoenix',
-                GW_Volunteers__Location_Information__c = 'info',
-                GW_Volunteers__Location__c = 'location',
-                GW_Volunteers__Location_Street__c = 'street');
-            jobs.add(job);
-        }
-        insert jobs;
-        //insert shifts
-        List<GW_Volunteers__Volunteer_Shift__c> shifts = new List<GW_Volunteers__Volunteer_Shift__c>();
-        for (integer x = 0; x<5; x++)
-        {
-            GW_Volunteers__Volunteer_Shift__c shift = new GW_Volunteers__Volunteer_Shift__c(
-                GW_Volunteers__Desired_Number_of_Volunteers__c = 4,
-                GW_Volunteers__Duration__c = 3,
-                GW_Volunteers__Start_Date_Time__c = datetime.now(),
-                GW_Volunteers__Volunteer_Job__c = jobs[x].id);
-            shifts.add(shift);
-        }
-        insert shifts;
-        //insert volunteers --trhough the Hours object
-        List<GW_Volunteers__Volunteer_Hours__c> listHours = new List<GW_Volunteers__Volunteer_Hours__c>();
-
-        GW_Volunteers__Volunteer_Hours__c hours = new GW_Volunteers__Volunteer_Hours__c(
-            GW_Volunteers__Contact__c = contacts[2].id,
-            GW_Volunteers__Start_Date__c = campaigns[0].StartDate,
-            GW_Volunteers__Hours_Worked__c = 3,
-            GW_Volunteers__Planned_Start_Date_Time__c = datetime.now(),
-            GW_Volunteers__Status__c = 'Confirmed',
-            GW_Volunteers__Volunteer_Job__c = jobs[0].id,
-            GW_Volunteers__Volunteer_Shift__c = shifts[0].id);
-        listHours.add(hours);
-        hours = new GW_Volunteers__Volunteer_Hours__c(
-            GW_Volunteers__Contact__c = contacts[7].id,
-            GW_Volunteers__Hours_Worked__c = 3,
-            GW_Volunteers__Start_Date__c = campaigns[0].StartDate,
-            GW_Volunteers__Planned_Start_Date_Time__c = datetime.now(),
-            GW_Volunteers__Status__c = 'Confirmed',
-            GW_Volunteers__Volunteer_Job__c = jobs[0].id,
-            GW_Volunteers__Volunteer_Shift__c = shifts[0].id);
-        listHours.add(hours);
-        hours = new GW_Volunteers__Volunteer_Hours__c(
-            GW_Volunteers__Contact__c = contacts[4].id,
-            GW_Volunteers__Hours_Worked__c = 3,
-            GW_Volunteers__Start_Date__c = campaigns[2].StartDate,
-            GW_Volunteers__Planned_Start_Date_Time__c = datetime.now(),
-            GW_Volunteers__Status__c = 'Completed',
-            GW_Volunteers__Volunteer_Job__c = jobs[2].id,
-            GW_Volunteers__Volunteer_Shift__c = shifts[2].id);
-        listHours.add(hours);
-        hours = new GW_Volunteers__Volunteer_Hours__c(
-            GW_Volunteers__Contact__c = contacts[5].id,
-            GW_Volunteers__Hours_Worked__c = 3,
-            GW_Volunteers__Start_Date__c = campaigns[2].StartDate,
-            GW_Volunteers__Planned_Start_Date_Time__c = datetime.now(),
-            GW_Volunteers__Status__c = 'Canceled',
-            GW_Volunteers__Volunteer_Job__c = jobs[2].id,
-            GW_Volunteers__Volunteer_Shift__c = shifts[2].id);
-        listHours.add(hours);
-        hours = new GW_Volunteers__Volunteer_Hours__c(
-            GW_Volunteers__Contact__c = contacts[1].id,
-            GW_Volunteers__Start_Date__c = campaigns[4].StartDate,
-            GW_Volunteers__Hours_Worked__c = 3,
-            GW_Volunteers__Planned_Start_Date_Time__c = datetime.now(),
-            GW_Volunteers__Status__c = 'Confirmed',
-            GW_Volunteers__Volunteer_Job__c = jobs[4].id,
-            GW_Volunteers__Volunteer_Shift__c = shifts[4].id);
-        listHours.add(hours);
-        insert hours;
-        system.debug('inserted all the volunteers (hours)');
-        //insert participants
-        List<CampaignMember> participants = new List<CampaignMember>();
-        CampaignMember participant = new CampaignMember(ContactId = contacts[0].id,
-                                                        Status = 'Signed Up',
-                                                        CampaignId = campaigns[0].id);
-        participants.add(participant);
-        participant = new CampaignMember(ContactId = contacts[1].id,
-                                         Status = 'Cancelled',
-                                         CampaignId = campaigns[0].id);
-        participants.add(participant);
-        participant = new CampaignMember(ContactId = contacts[3].id,
-                                         Status = 'Attended',
-                                         CampaignId = campaigns[2].id);
-        participants.add(participant);
-        participant = new CampaignMember(ContactId = contacts[6].id,
-                                         Status = 'No Show',
-                                         CampaignId = campaigns[2].id);
-        participants.add(participant);
-        participant = new CampaignMember(ContactId = contacts[7].id,
-                                         Status = 'Attended',
-                                         CampaignId = campaigns[2].id);
-        participants.add(participant);
-        participant = new CampaignMember(ContactId = contacts[0].id,
-                                         Status = 'Signed Up',
-                                         CampaignId = campaigns[4].id);
-        participants.add(participant);
-        insert participants;
-        system.debug('the participants have been inserted');
-        //Insert documents for attachment
-//Even though I am running this test without the See All Data setting, it seems to see
-//the documents already in the system.
-
-
-//        List<String> docs = new List<String>{'P209HIking','P202Backpacking','P200Cycling','P206Kayaking'};
-//        List <Document> haveDoc = [SELECT id, Name from Document where
-//                                       DeveloperName in :docs];
-//        system.debug('haveDoc.size = ' + haveDoc.size());
-//        if(haveDoc.size()<4)
-//        {
-//            List<Integer> notHave = new List<Integer>();
-//            for(Integer x = 0; x<4 ; x++)
-//            {
-//                Boolean foundIt = false;
-//                for (Document d : haveDoc)
-//                {
-//                    if (d.DeveloperName == docs[x])
-//                        foundIt = true;
-//                }
-//                if (!foundIt)
-//                    notHave.add(x);
-//            }
-
-//            List<Document> documents = new List<Document>();
-//            for (integer x=0; x < notHave.size(); x++)
-//            {
-//                Document document = new Document();
-//                document.Body = Blob.valueOf('Some Text');
-//                document.ContentType = 'application/pdf';
-//                document.DeveloperName = docs[x];
-//                document.IsPublic = true;
-//                document.Name = docs[notHave[x]] + ' Policies and Procedures';
-//                document.FolderId = [select id from folder where name = 'DA Programs Policies and Procedures'].id;
-//                documents.add(document);
-//            }
-//            insert documents;
-//        }
+        contacts.remove(2);   // test 7   rec 6
+        contacts.remove(1);   // test 6   rec 5
+        contacts.remove(0);   // test 5   rec 4
+        camps.clear();
+        statai.clear(); statai.add('Signed Up');
+        camps.add(mapCamps.get(campsByName.get('Testing 5')));
+        TestDataFactory.CreateCampaignMembers(camps, contacts, 1, statai);
+        contacts.remove(0);  // test 8   rec 7
+        camps.clear();
+        tempCamp = mapCamps.get(campsByName.get('Testing 5'));
+        camps.add(tempCamp);
+        TestDataFactory.CreateJobShift(camps);
+        statai.clear();
+        statai.add('Confirmed');
+        tempCamp = mapCamps.get(tempCamp.Related_Campaign__c); //this is the volunteer campaign
+        CreateVolHours(tempCamp, contacts, 1, statai);
+        contacts.remove(0);
+        camps.clear();
+        tempCamp = mapCamps.get(campsByName.get('Testing 7'));
+        camps.add(tempCamp);
+        statai.clear();
+        statai.add('Signed Up');
+        TestDataFactory.CreateCampaignMembers(camps, contacts, 1, statai);
+        contacts.remove(0);
+        //create volunteers for Testing 7
+        TestDataFactory.CreateJobShift(camps);
+        statai.clear();
+        statai.add('Confirmed');
+        tempCamp = mapCamps.get(tempCamp.Related_Campaign__c);
+        CreateVolHours(tempCamp, contacts, 1, statai);
 
         //begin test now
         //
@@ -204,59 +145,115 @@ public class CMSendEmailsTest {
         List<PageReference> pgref = new List<PageReference>();
 
         ///------------------------
-        system.debug('camp = '+campaigns[0].Name);
 
         ApexPages.StandardController std1 =
-            new ApexPages.StandardController(campaigns[0]);
-        system.debug('In first test');
+            new ApexPages.StandardController(campList[0]);
         CMSendEmails firstTest = new CMSendEmails(std1);
         pgref.add(firstTest.SendTheEmails());
         returnPages.add(pgref[0].getUrl());
-        system.debug('returnPages[0] = '+returnPages[0]);
+
         //--------------------
-        system.debug('campaigns[1].Name: ' + campaigns[1].Name);
-        std1 = new ApexPages.StandardController(campaigns[1]);
-        system.debug('going to second test: 1 volunteer selected');
+        //Campaign 2 has no participants and no volunteers
+        std1 = new ApexPages.StandardController(campList[1]);
         CMSendEmails secondTest = new CMSendEmails(std1);
         system.assertEquals('There are no participants or volunteers associated with this campaign', secondTest.message);
         pgref.add(secondTest.SendTheEmails());
         returnPages.add(pgref[1].getUrl());
-        system.debug('returnPages[1] = '+returnPages[1]);
 
         //-------------------
-        system.debug('campaigns[2].Name: ' + campaigns[2].Name);
-        std1 = new ApexPages.StandardController(campaigns[2]);
+        std1 = new ApexPages.StandardController(campList[2]);
         CMSendEmails thirdTest = new CMSendEmails(std1);
         pgref.add(thirdTest.SendTheEmails());
         returnPages.add(pgref[2].getUrl());
-        system.debug('returnPages[2] = '+returnPages[2]);
 
         //--------------------
-        system.debug('campaigns[3].Name: ' + campaigns[3].Name);
-        std1 = new ApexPages.StandardController(campaigns[3]);
+        std1 = new ApexPages.StandardController(campList[3]);
         CMSendEmails fourthTest = new CMSendEmails(std1);
         pgref.add(fourthTest.SendTheEmails());
         returnPages.add(pgref[3].getUrl());
-        system.debug('returnPages[3] = '+returnPages[3]);
 
         //---------
-        system.debug('campList[4].Name: ' + campaigns[4].Name);
-        std1 = new ApexPages.StandardController(campaigns[4]);
+        //There is no email templates for this campaign
+        std1 = new ApexPages.StandardController(campList[4]);
         CMSendEmails fifthTest = new CMSendEmails(std1);
+        system.assertEquals('There are no documents for the Attachment', fifthTest.message);
         pgref.add(fifthTest.SendTheEmails());
-        system.assertEquals('There is no Email_Content of type Reminder Emails for Camping Adventure', fifthTest.message);
         returnPages.add(pgref[4].getUrl());
-        system.debug('returnPages[4] = '+returnPages[4]);
+
+        std1 = new ApexPages.StandardController(campList[5]);
+        CMSendEmails sixthTest = new CMSendEmails(std1);
+        pgref.add(sixthTest.SendTheEmails());
+        returnPages.add(pgref[5].getUrl());
+
+        std1 = new ApexPages.StandardController(campList[6]);
+        CMSendEmails seventhTest = new CMSendEmails(std1);
+        pgref.add(seventhTest.SendTheEmails());
+        returnPages.add(pgref[6].getUrl());
 
         test.stopTest();
 
-        Integer tasksInserted = [select count() from Task];
-        system.assertEquals(5, tasksInserted);
-        for (integer x=0; x<returnPages.size(); x++)
-        {
-            if (x != 1 && x != 4)
-                system.assertEquals(true, returnPages[x].contains(Campaigns[x].id));
-        }
+        //Integer tasksInserted = [select count() from Task where ];
+        //system.assertEquals(5, tasksInserted);
+        system.debug('returnPages.size()' + returnPages.size());
+//        for (integer x=0; x<returnPages.size(); x++)
+//        {
+//            if (CampList[x].Name != 'Testing 2' && CampList[x].Name != 'Testing 5')
+//                system.assertEquals(true, returnPages[x].contains(CampList[x].id));
+//        }
+    }
 
+    public static void CreateVolHours (Campaign camp, List<Contact> conts, Integer numVol, List<String> stats)
+    {
+        GW_Volunteers__Volunteer_Job__c job = [SELECT id, Name, GW_Volunteers__Campaign__c
+                                              FROM GW_Volunteers__Volunteer_Job__c
+                                              WHERE GW_Volunteers__Campaign__c = :camp.id Limit 1];
+        GW_Volunteers__Volunteer_Shift__c shift = [Select id, GW_Volunteers__Volunteer_Job__c,
+                                                   GW_Volunteers__Start_Date_Time__c
+                                                  from GW_Volunteers__Volunteer_Shift__c
+                                                  where GW_Volunteers__Volunteer_Job__c = :job.id Limit 1];
+        List<GW_Volunteers__Volunteer_Hours__c> hours =
+            new List<GW_Volunteers__Volunteer_Hours__c>();
+        if (conts.size() < stats.size())
+            system.debug('Not enough contacts, or too many statuses');
+        else
+        {
+            Integer statusIndex = 0;
+            for (Integer x=0; x < numVol; x++)
+            {
+                Integer y = statusIndex < stats.size() ? statusIndex : stats.size() - 1;
+                GW_Volunteers__Volunteer_Hours__c volHour =
+                    new GW_Volunteers__Volunteer_Hours__c(GW_Volunteers__Contact__c = conts[x].id,
+                                                      GW_Volunteers__End_Date__c = camp.EndDate,
+                                                      GW_Volunteers__Hours_Worked__c = 3,
+                                                      GW_Volunteers__Number_of_Volunteers__c = 1,
+                                                      GW_Volunteers__Planned_Start_Date_Time__c =
+                                                        shift.GW_Volunteers__Start_Date_Time__c,
+                                                      GW_Volunteers__Start_Date__c = camp.StartDate,
+                                                      GW_Volunteers__Status__c = stats[y],
+                                                      GW_Volunteers__Volunteer_Job__c = job.id,
+                                                      GW_Volunteers__Volunteer_Shift__c = shift.id);
+                hours.add(volHour);
+            }
+            insert hours;
+        }
+    }
+
+    private static void CreateEmailContent (String cType)
+    {
+        List<String> typeEmail = new List<String>{'Reminder Emails', 'After Campaign Emails'};
+        List<Email_Content__c> eContents = new List<Email_Content__c>();
+        for (Integer x = 0; x < 2; x++)
+        {
+            Email_Content__c eContent =
+                new Email_Content__c (Name = cType + ' content email',
+                                      Body__c = 'this is the body',
+                                      Campaign_Type__c = cType,
+                                      For_Participants__c = true,
+                                      For_Volunteers__c = true,
+                                      Subject__c = 'This is your email',
+                                      Type_of_Email__c = typeEmail[x]);
+            eContents.add(eContent);
+        }
+        insert eContents;
     }
 }
