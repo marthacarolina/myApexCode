@@ -1,7 +1,3 @@
-//This is the test for CMSendEmails class
-//
-//Martha Vance 2017
-@isTest
 
 public class CMSendEmailsTest {
     @isTest
