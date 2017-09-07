@@ -1,0 +1,198 @@
+<apex:page controller="QAMonthlyVol" renderAs="PDF" showHeader="false" action="{!printMonthlyVol}" >
+    <!--monthly QA report for Volunteers... in PDF format -->
+    <apex:stylesheet value="{!URLFOR($Resource.advancedpdfresource, 'QAReportPDF.css')}"/>
+    <div class="header" align="center">
+        <h3 style="font-color:#0f846d; font-family: Tahoma, Geneva, sans-serif;">QA Report for {!month} {!year}<br/>
+            Volunteers</h3></div>
+    <table width="100%">
+        <tr width="100%">
+            <td width="50%" align="left">
+                <!-- put here the totals for the report -->
+                <h2>Volunteer Stats for {!month}</h2>
+                <apex:outputText value="Total Volunteers working during {!month}: {!tot_Volunteers}" /><br/>
+                <apex:outputText value="New Volunteers working during {!month}: {!totNewVolunteers}" /><br/>
+                <apex:outputText value="Total Volunteer Hours for {!month}: {!(ROUND(mTot_Vol_Hours,2))}" />  <br/>
+            </td>
+            <td width="50%" align="right">
+                <apex:image value="{!URLFOR($Resource.advancedpdfresource, 'logo.png')}"/>
+            </td>
+        </tr>
+    </table>
+    <hr />
+    <apex:repeat value="{!volunteers}" var="volunteer" id="theVolunteers">
+        <hr class="list" />
+        <table width="100%">
+            <tr width="100%" class="member">
+                <td width ="40%" >
+                    <apex:outputText value="Volunteer: {!volunteer.fullName}" /><apex:outputText value="{!IF(volunteer.firstTime,"   * NEW *","")}" style="font-color:green; align:right;" />
+                </td>
+                <td width = "30%">
+                    <apex:outputText value="Total Campaigns: {!volunteer.totCamp}" />
+                </td>
+                <td width = "30%">
+                    <apex:outputText value="Total Hours: {!(ROUND(volunteer.totHours, 2))}" />
+                </td>
+            </tr>
+        </table>
+        <hr class="list" />
+        <apex:dataTable value="{!volunteer.adventures}" var="c" id="theTable" headerClass="tablehead"
+                        rowClasses="odd,even" style="font-size: 90%; "
+                        columnsWidth="40%, 30%, 10%, 10%, 10%">
+            <apex:column >
+                <apex:outputText value="Campaign: {!c.cName}"/>
+            </apex:column>
+            <apex:column >
+                <apex:outputText value="Job: {!c.jName}"/>
+            </apex:column>
+            <apex:column >
+                <apex:outputText value="Status: {!c.status}"/>
+            </apex:column>
+            <apex:column >
+                <apex:outputText value="Date: {!c.startDate}"/>
+            </apex:column>
+            <apex:column >
+                <apex:outputText value="Hours: {!(ROUND(c.hours, 2))}"/>
+            </apex:column>
+        </apex:dataTable>
+    </apex:repeat>
+    <hr />
+    <br />
+    <h2>Volunteers - General Information</h2>
+    <h3><apex:outputText value="Total Qualified Program Volunteers: {!tot_qpvol}" /></h3>
+    <hr />
+    <apex:dataTable value="{!qpVolunteers}" var="c" id="qualifiedTable" headerClass="tablehead"
+                    rowClasses="odd,even" style="font-size: 90%; "
+                    columnClasses="col"
+                    columnsWidth="20%, 14%, 14%, 14%, 14%, 14%">
+        <apex:facet name="header"></apex:facet>
+
+        <apex:column >
+            <apex:facet name="header">Name</apex:facet>
+            <apex:outputText value="{!c.fullName}"/>
+        </apex:column>
+        <apex:column >
+            <apex:facet name="header">CPR Expires</apex:facet>
+            <apex:outputText value="{0,date,MM/dd/yy}">
+                <apex:param value="{!c.cprExpDate}" />
+            </apex:outputText>
+        </apex:column>
+        <apex:column >
+            <apex:facet name="header">1stAid Expires</apex:facet>
+            <apex:outputText value="{0,date,MM/dd/yy}">
+                <apex:param value="{!c.faidExpDate}"/>
+            </apex:outputText>
+        </apex:column>
+        <apex:column >
+            <apex:facet name="header">&nbsp;FpCC Expires&nbsp;</apex:facet>
+            <apex:outputText value="{0,date,MM/dd/yy}">
+                <apex:param value="{!c.fccExpDate}" />
+            </apex:outputText>
+        </apex:column>
+        <apex:column >
+            <apex:facet name="header">Orientation</apex:facet>
+            <apex:outputText value="{0,date,MM/dd/yy}">
+                <apex:param value="{!c.orientationDate}"/>
+            </apex:outputText>
+        </apex:column>
+        <apex:column >
+            <apex:facet name="header">Overall Hours</apex:facet>
+            <apex:outputText value="{!(ROUND(c.lifetimeHours, 2))}"/>
+        </apex:column>
+    </apex:dataTable>
+    <hr />
+    <br />
+    <h3>Volunteers whose certifications will expire within 3 months:</h3>
+    <hr />
+    <apex:dataTable value="{!v_expiring_certs}" var="ve" id="expiresTable" headerClass="tablehead"
+                    rowClasses="odd,even" style="font-size: 90%; "
+                    columnClasses="col"
+                    columnsWidth="30%, 20%, 20%, 20%">
+        <apex:facet name="header"></apex:facet>
+        <apex:column >
+            <apex:facet name="header">Name</apex:facet>
+            <apex:outputText value="{!ve.Name}"/>
+        </apex:column>
+        <apex:column >
+            <apex:facet name="header">CPR Expires</apex:facet>
+            <apex:outputText value="{0,date,MM/dd/yy}">
+                <apex:param value="{!ve.CPR_Certificate_Expiration_Date__c}" />
+            </apex:outputText>
+        </apex:column>
+        <apex:column >
+            <apex:facet name="header">1stAid Expires</apex:facet>
+            <apex:outputText value="{0,date,MM/dd/yy}">
+                <apex:param value="{!ve.First_Aid_Certification_Expiration_Date__c}"/>
+            </apex:outputText>
+        </apex:column>
+        <apex:column >
+            <apex:facet name="header">&nbsp;FpCC Expires&nbsp;</apex:facet>
+            <apex:outputText value="{0,date,MM/dd/yy}">
+                <apex:param value="{!ve.Fingerprint_Clearance_Expiration_Date__c}" />
+            </apex:outputText>
+        </apex:column>
+    </apex:dataTable>
+    <hr />
+    <br />
+    <br />
+    <hr />
+    <br />
+    <h3><apex:outputText value="Total Inactive Volunteers: {!tot_inactiveVols}" /></h3>
+    <hr />
+    <apex:dataTable value="{!inactiveVolunteers}" var="c" id="inactiveTable" headerClass="tablehead"
+                    rowClasses="odd,even" style="font-size: 90%; "
+                    columnClasses="col"
+                    columnsWidth="20%, 14%, 14%, 14%, 14%, 14%">
+        <apex:facet name="header"></apex:facet>
+
+        <apex:column >
+            <apex:facet name="header">Name</apex:facet>
+            <apex:outputText value="{!c.fullName}"/>
+        </apex:column>
+        <apex:column >
+            <apex:facet name="header">CPR Expires</apex:facet>
+            <apex:outputText value="{0,date,MM/dd/yy}">
+                <apex:param value="{!c.cprExpDate}" />
+            </apex:outputText>
+        </apex:column>
+        <apex:column >
+            <apex:facet name="header">1stAid Expires</apex:facet>
+            <apex:outputText value="{0,date,MM/dd/yy}">
+                <apex:param value="{!c.faidExpDate}"/>
+            </apex:outputText>
+        </apex:column>
+        <apex:column >
+            <apex:facet name="header">&nbsp;FpCC Expires&nbsp;</apex:facet>
+            <apex:outputText value="{0,date,MM/dd/yy}">
+                <apex:param value="{!c.fccExpDate}" />
+            </apex:outputText>
+        </apex:column>
+        <apex:column >
+            <apex:facet name="header">Orientation</apex:facet>
+            <apex:outputText value="{0,date,MM/dd/yy}">
+                <apex:param value="{!c.orientationDate}"/>
+            </apex:outputText>
+        </apex:column>
+        <apex:column >
+            <apex:facet name="header">Overall Hours</apex:facet>
+            <apex:outputText value="{!(ROUND(c.lifetimeHours, 2))}"/>
+        </apex:column>
+    </apex:dataTable>
+    <hr />
+
+    <div class="footer" style="font-size:60%;">
+        <table width="100%">
+            <tr width = "100%">
+                <td width="33%">
+                    <apex:outputText value="Prepared by: {!$User.FirstName} {!$User.LastName}" />
+                </td>
+                <td width="33%" align="center">
+                    <span>Page </span><span class="pagenumber"></span><span>of </span>
+                    <span class="pagecount"></span>
+                </td>
+                <td width="33%" align="right">
+                    <apex:outputField value="{!forDate.Effective_Date__c}"/>
+                </td>
+            </tr>
+        </table>
+    </div>
+</apex:page>
