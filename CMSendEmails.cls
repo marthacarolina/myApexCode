@@ -22,6 +22,7 @@ public class CMSendEmails {
     private String theSubject;
     private Boolean noTemplate;
     public Boolean volAttachment {get;set;}
+    public Boolean sansTemplate {get;set;}
     private List<String> attch = new List<String>();
     private Boolean attExist = True;
 
@@ -29,6 +30,7 @@ public class CMSendEmails {
     {
         volAttachment = true;
         noTemplate = False;
+        sansTemplate = False;
         camp = [SELECT id, Name, RecordTypeId, Type, Description, StartDate,
                 Email_Message__c, Related_Campaign__c
                 FROM Campaign WHERE id = :stdCtrl.getId()];
@@ -117,6 +119,8 @@ public class CMSendEmails {
 
     private void VolunteerInformation(Boolean isVol)
     {
+        // this method retrieves the Volunteer's campaign records and attachments
+        //
         if (isVol)  // If there are volunteers in the campaign
         {
             if (volAttachment)
@@ -181,6 +185,7 @@ public class CMSendEmails {
 
     private GW_Volunteers__Volunteer_Hours__c whatShift(id contId)
     {
+        //this method retrieves the shift record for the volunteer campaign
         GW_Volunteers__Volunteer_Hours__c shft = new GW_Volunteers__Volunteer_Hours__c();
         for (GW_Volunteers__Volunteer_Hours__c vh : volInfo)
             if (vh.GW_Volunteers__Contact__c == contId)
@@ -200,30 +205,42 @@ public class CMSendEmails {
             if (picklist.etype__c == 'After Campaign Emails')
                 cType = 'Cycling';
             List<Email_Content__c> emailBody = new List<Email_Content__c>();
-            try{
-                emailBody = [Select For_Participants__c, For_Volunteers__c,
-                             Type_of_Email__c, Campaign_Type__c, Body__c,
-                             Subject__c
-                             From Email_Content__c
-                             Where Type_of_Email__c = :picklist.etype__c AND
-                             Campaign_Type__c = :cType];
-            }
-            catch (Exception e)
+            // initialize template variables
+            String pBody = '';
+            String pSubject = '';
+            String vBody = '';
+            String vSubject = '';
+            if (!sansTemplate)  //if using templates
             {
-                message = 'There is no Email_Content of type '+ picklist.etype__c + ' for '+ cType+' Adventure';
-                noTemplate = true;
+                //retrieve the templates from Email_Content__c (for participants & vols)
+                try{
+                    emailBody = [Select For_Participants__c, For_Volunteers__c,
+                                 Type_of_Email__c, Campaign_Type__c, Body__c,
+                                 Subject__c
+                                 From Email_Content__c
+                                 Where Type_of_Email__c = :picklist.etype__c AND
+                                 Campaign_Type__c = :cType];
+                }
+                catch (Exception e)
+                {
+                    message = 'There is no Email_Content of type '+ picklist.etype__c + ' for '+ cType+' Adventure';
+                    noTemplate = true;
+                }
+                if (emailBody.size() == 0) //if there were no records found for the campaign type
+                {
+                    message = 'There is no Email_Content of type '+ picklist.etype__c + ' for '+ cType+' Adventure';
+                    noTemplate = true;
+                }
             }
-            if (emailBody.size() == 0)
+            else  //if the user doesn't want to include a template asign values to template variables
             {
-                message = 'There is no Email_Content of type '+ picklist.etype__c + ' for '+ cType+' Adventure';
-                noTemplate = true;
+                pBody = '<span></span>';
+                pSubject = 'A message from Daring Adventures';
+                vBody = '<span></span>';
+                vSubject = 'A message from Daring Adventures';
             }
-            If (! noTemplate)
+            If (! noTemplate && ! sansTemplate)  //if a template was found and we are using a template
             {
-                String pBody = '';
-                String pSubject = '';
-                String vBody = '';
-                String vSubject = '';
                 for (Email_Content__c bd : emailBody)
                 {
                     // set the subject and body of the email depending on whether the
@@ -240,6 +257,9 @@ public class CMSendEmails {
                         vSubject = bd.Subject__c;
                     }
                 }
+            }
+            if (! noTemplate)  // if there was a template found or we are not using a template
+            {
                 //set the bcc address to the user sending the emails
                 List<String> bccAddys = new List<String>();
                 bccAddys.add(UserInfo.getUserId());
