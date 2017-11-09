@@ -3,18 +3,26 @@ public class CampaignTriggerHandler extends TriggerHandler{
 
     public CampaignTriggerHandler()
     {
+      //get a map of the record types for Campaign
         campRecType = getRecTypeId();
     }
 
     protected override void afterInsert() {
+      //If the campaign inserted is an Adventure Campaign add the adventure campaign
+        //as well as the Volunteer campaign related to it.
         AddAdventureCampaign();
     }
 
     protected override void beforeDelete() {
+      //prepare the campaign record to be deleted. I will not allow the user to delete
+        //a campaign that has a related Volunteer campaign, or
+        //an adventure campaign that has members with Attended status
         PrepareForDeletion();
     }
 
     protected override void afterUpdate() {
+      //if the dates of the Volunteer campaign has changed then change the
+        //dates for the volunteer jobs and shifts associated to the campaign
         ChangeVolCampDates();
     }
 
@@ -143,12 +151,20 @@ public class CampaignTriggerHandler extends TriggerHandler{
           advCampIds.add(advc.id);
         }
         //Retrieve all the possible Status for Adventure campaigns from the Custom Metadata Type CM_Status_Setting
+        //and delete those status from CampaignMemberStatus
         List <CM_Status_Setting__mdt> allStatus = [select DeveloperName, MasterLabel, Default__c,
                                                     Responded__c, Order__c FROM CM_Status_Setting__mdt];
         List <CampaignMemberStatus> DefStatuses = [SELECT id, CampaignID, HasResponded, IsDefault, Label, SortOrder
-                                                                                    FROM CampaignMemberStatus
-                                                                                    WHERE CampaignID IN advCampIds];
-        Delete DefStatuses;
+                                                   FROM CampaignMemberStatus
+                                                   WHERE CampaignID IN :advCampIds];
+        //if IsDefault is turned on the record can't be deleted so it needs to be
+        //turned off
+        for (CampaignMemberStatus cms : DefStatuses){
+            if (cms.IsDefault) cms.IsDefault = false;}
+        //Before updating the default statuses set need to add new defaults
+
+
+        //create a list of new status to be inserted per campaign included in the trigger
         List <CampaignMemberStatus> newStatuses = new List<CampaignMemberStatus>();
         for (id campId : advCampIds){
           for (CM_Status_Setting__mdt cmStat : allStatus)
@@ -157,11 +173,13 @@ public class CampaignTriggerHandler extends TriggerHandler{
                                                 HasResponded = cmStat.Responded__c,
                                                 IsDefault = cmStat.Default__c,
                                                 Label = cmStat.MasterLabel,
-                                                SortOrder = cmStat.Order__c);
+                                                SortOrder = Integer.ValueOf(cmStat.Order__c));
             newStatuses.add(campMemStat);
           }
         }
         insert newStatuses;
+        Update DefStatuses;
+        Delete DefStatuses;
     }
 
     private Map<String, id> getRecTypeId ()
@@ -211,6 +229,7 @@ public class CampaignTriggerHandler extends TriggerHandler{
 
     private void ChangeVolCampDates()
     {
+      //if the campaign dates have changed then change the dates on the volunteer campaign, job & shift
         List<Campaign> oldRec = (List<Campaign>) trigger.old;
         Map<id, Campaign> MapOldRec = new Map<id, Campaign>(oldRec);
         List<Campaign> newRec = (List<Campaign>) trigger.new;
@@ -233,6 +252,7 @@ public class CampaignTriggerHandler extends TriggerHandler{
 
     private void changeVolShiftDates(Map<id, Campaign> changedCamps)
     {
+      // this method changes the dates on the volunteer campaigns, jobs and shifts
         Map<id, Campaign> MapVolCamp =
             new Map<id, Campaign>([Select id, StartDate, EndDate from Campaign
                                    where id IN :changedCamps.keySet()]);
