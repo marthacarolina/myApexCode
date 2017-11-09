@@ -5,7 +5,8 @@ public class TestDataFactory {
         List<Contact> conts = new List<Contact>();
         for (Integer x=startIndex; x<totContacts + startIndex; x++){
             Contact cont1 = new Contact(FirstName = 'Contact' + x,
-                                        LastName = 'Test'+ x);
+                                        LastName = 'Test'+ x,
+                                       email = 'contactTest'+x+'@testing.com');
             conts.add(cont1);
         }
         insert conts;
@@ -32,27 +33,27 @@ public class TestDataFactory {
 
     public static void CreateCMStatusDefault(String ctype)
     {
-        AAKCS__Campaign_Status_Default__c statDef =
-            new AAKCS__Campaign_Status_Default__c (Name = ctype,
-                                                   AAKCS__Action__c = 'Replace All',
-                                                   AAKCS__Active__c = true);
-        insert statDef;
+        //AAKCS__Campaign_Status_Default__c statDef =
+        //    new AAKCS__Campaign_Status_Default__c (Name = ctype,
+        //                                           AAKCS__Action__c = 'Replace All',
+        //                                           AAKCS__Active__c = true);
+        //insert statDef;
         //insert the Status defaults for the Campaign Members for this type of campaign
-        List<String> defNames = new List<String>{'Attended', 'Signed Up', 'Cancelled', 'No-Show', 'Staff', 'Waiting list'};
-        List<Boolean> stDef = new List<Boolean>{false, true, false, false, false, false};
-        List<Boolean> stResp = new List<Boolean>{true, true, false, false, false, false};
-        List<AAKCS__Campaign_Status_Default_Value__c> sdValues =
-            new List<AAKCS__Campaign_Status_Default_Value__c> ();
-        for (integer x = 0; x < defNames.size(); x++)
-        {
-            AAKCS__Campaign_Status_Default_Value__c sdValue =
-            new AAKCS__Campaign_Status_Default_Value__c(Name = defNames[x],
-                                                        AAKCS__Default__c = stDef[x],
-                                                        AAKCS__Responded__c = stResp[x],
-                                                        AAKCS__Campaign_Status_Default__c = statDef.id);
-            sdValues.add(sdValue);
-        }
-        insert sdValues;
+        //List<String> defNames = new List<String>{'Attended', 'Signed Up', 'Cancelled', 'No-Show', 'Staff', 'Waiting list'};
+        //List<Boolean> stDef = new List<Boolean>{false, true, false, false, false, false};
+        //List<Boolean> stResp = new List<Boolean>{true, true, false, false, false, false};
+        //List<AAKCS__Campaign_Status_Default_Value__c> sdValues =
+        //    new List<AAKCS__Campaign_Status_Default_Value__c> ();
+        //for (integer x = 0; x < defNames.size(); x++)
+        //{
+        //    AAKCS__Campaign_Status_Default_Value__c sdValue =
+        //    new AAKCS__Campaign_Status_Default_Value__c(Name = defNames[x],
+        //                                                AAKCS__Default__c = stDef[x],
+        //                                                AAKCS__Responded__c = stResp[x],
+        //                                                AAKCS__Campaign_Status_Default__c = statDef.id);
+        //    sdValues.add(sdValue);
+        //}
+        //insert sdValues;
     }
 
     public static void CreateCampaigns(String cName, String recType, String ctype, integer totCamp, integer startIndex, Date sDate, Date eDate, Id fee)
@@ -75,9 +76,6 @@ public class TestDataFactory {
                                              EndDate = eDate,
                                              StartDate = sDate);
             myCampaigns.add(aCampaign);
-            system.debug('Creating campaign:');
-            system.debug('Name : ' + aCampaign.Name + '  RecType = ' + recType);
-            system.debug(aCampaign);
         }
         insert myCampaigns;
     }
@@ -92,13 +90,11 @@ public class TestDataFactory {
             Integer z = 0;
             for(Campaign c : campaigns)
             {
-                system.debug('*******   creating CMs for Campaign: ' + c.Name);
                 Integer startIndex = z;
                 Integer statusIndex = 0;
                 for (Integer x=z; x < startIndex + contsInCamp; x ++)
                 {
                     Integer y = statusIndex < stats.size() ? statusIndex : stats.size() - 1;
-                    system.debug('x = '+ x+ '  y = ' + y + '  z = '+ z +'  startIndex = '+ startIndex);
                     CampaignMember aCamMember = new CampaignMember(CampaignId = c.id,
                                                                    ContactId = contacts[x].id,
                                                                    Status = stats[y]);

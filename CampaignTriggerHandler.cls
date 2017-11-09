@@ -75,6 +75,8 @@ public class CampaignTriggerHandler extends TriggerHandler{
                 }
             }
         }
+        // Add the CampaignMember Status for all the new Adventure Campaigns
+        insertCampaignMembersStats(adventCampaign);
         if (aList.size() > 0)
         {
             //Insert the new Volunteer Campaign records
@@ -132,6 +134,34 @@ public class CampaignTriggerHandler extends TriggerHandler{
                 System.debug('An unexpected error has occurred: ' + e.getMessage());
             }
         }
+    }
+
+    private void insertCampaignMembersStats(List<Campaign> adventCampaign){
+        //make a set with all the new campaign ids
+        List <id> advCampIds = new List <id> ();
+        for (Campaign advc : adventCampaign){
+          advCampIds.add(advc.id);
+        }
+        //Retrieve all the possible Status for Adventure campaigns from the Custom Metadata Type CM_Status_Setting
+        List <CM_Status_Setting__mdt> allStatus = [select DeveloperName, MasterLabel, Default__c,
+                                                    Responded__c, Order__c FROM CM_Status_Setting__mdt];
+        List <CampaignMemberStatus> DefStatuses = [SELECT id, CampaignID, HasResponded, IsDefault, Label, SortOrder
+                                                                                    FROM CampaignMemberStatus
+                                                                                    WHERE CampaignID IN advCampIds];
+        Delete DefStatuses;
+        List <CampaignMemberStatus> newStatuses = new List<CampaignMemberStatus>();
+        for (id campId : advCampIds){
+          for (CM_Status_Setting__mdt cmStat : allStatus)
+          {
+            CampaignMemberStatus campMemStat = new CampaignMemberStatus(CampaignID = campId,
+                                                HasResponded = cmStat.Responded__c,
+                                                IsDefault = cmStat.Default__c,
+                                                Label = cmStat.MasterLabel,
+                                                SortOrder = cmStat.Order__c);
+            newStatuses.add(campMemStat);
+          }
+        }
+        insert newStatuses;
     }
 
     private Map<String, id> getRecTypeId ()
