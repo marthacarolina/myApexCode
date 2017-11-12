@@ -5,9 +5,11 @@ private class TestCampaignTrigger {
         //find the id for the RecordType 'Volunteers_Campaign' in object Campaign
         TestDataFactory.CreateGAU ('Activity Fees');
         id feeId = TestDataFactory.CreateFee('Cycling', 10);
-        TestDataFactory.CreateCMStatusDefault('Cycling');
         TestDataFactory.CreateCampaigns('Test ' ,'Adventure', 'Cycling', 5, 0, Date.TODAY(), Date.TODAY(), feeId);
         TestDataFactory.CreateCampaigns('Test ','Fundraising', 'Cycling', 3, 5, Date.TODAY(), Date.TODAY(), feeId);
+        //test trigger with a fundraising campaign that have CMstatus of Sent Responded
+        TestDataFactory.CreateCampaigns('Test fundraising','Fundraising', 'Benevon', 3, 5, Date.TODAY(), Date.TODAY(), feeId);
+
         //make a Mailchimp campaign (the trigger will change the RecordType to Fundraising)
         TestDataFactory.CreateCampaigns('MailChimp ','Adventure', 'Cycling', 1, 8, Date.TODAY(), Date.TODAY(), feeId);
         //make a volunteer campaign with a diferent endDate to diferentiate it from the ones created by the trigger
