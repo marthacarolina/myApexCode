@@ -1,5 +1,5 @@
 //Martha Vance
-//Rev. Nov 11, 2017
+//Rev. Nov 12, 2017
 
 public class CampaignTriggerHandler extends TriggerHandler{
     public Map<String, id> campRecType;
@@ -71,7 +71,8 @@ public class CampaignTriggerHandler extends TriggerHandler{
                 else
                 {
                     //Add the volunteer campaign
-                    Campaign anAdvCamp = new Campaign(id = each.id);
+                    Campaign anAdvCamp = new Campaign(id = each.id,
+                                                      Type = each.Type);
                     Campaign volunteerCampaign = new Campaign();
                     // Add the word volunteer to the begining of the Campaign Name
                     // to differentiate from Adventure Campaign
@@ -209,9 +210,15 @@ public class CampaignTriggerHandler extends TriggerHandler{
                 }
             }
         }
-        insert newStatuses;
-        Update DefStatuses;
-        Delete DefStatuses;
+        if (newStatuses.size() > 0)
+        {
+            insert newStatuses;
+            If (DefStatuses.size() > 0)
+            {
+                Update DefStatuses;
+                Delete DefStatuses;
+            }
+        }
     }
 
     private Map<String, id> getRecTypeId ()
