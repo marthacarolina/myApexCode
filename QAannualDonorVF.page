@@ -1,21 +1,69 @@
 <apex:page controller="QAAnnualController" renderAs="PDF" showHeader="false" action="{!AnnualQA}">
-    <apex:repeat value="{!donors}" var="donor" id="theDonors">
-        <hr class="list" />
+    <!--this page renders a PDF file of the Annual Donor Report. /-->
+    <!--The page is called by the class/controller QAReportsController the year is passed on in the URL. /-->
+
+    <apex:stylesheet value="{!URLFOR($Resource.advancedpdfresource, 'QAReportPDF.css')}"/>
+    <div class="header" align="center"><h3 style="font-color:#0f846d; font-family: Tahoma, Geneva, sans-serif;">QA Report for {!year}
+        <br/>Donors</h3>
+    </div>
+    <table width="100%">
+        <tr width="100%">
+            <td width="60%" align="left">
+                <h4>Total Donations for the year: {!totalPerAnnum}</h4>
+                <h4>New donors this year: {!totalFirsts}</h4>
+            </td>
+            <td width="40%" align="right">
+                <apex:image value="{!URLFOR($Resource.advancedpdfresource, 'logo.png')}"/>
+            </td>
+        </tr>
+    </table>
+    <hr />
+
+    <apex:dataTable value="{!donors}" var="donor" id="theDonors" headerClass="tablehead"
+                    style="font-size: 90%; "
+                    width="100%"
+                    rowClasses="odd,even"
+                    columnClasses="col"
+                    columnsWidth="20%, 10%, 30%, 15%, 15%"
+                    rules="all">
+        <apex:facet name="header"></apex:facet>
+        <apex:column >
+            <apex:facet name="header">Donor</apex:facet>
+            <apex:outputText value="{!donor.name}"/>
+        </apex:column>
+        <apex:column >
+            <apex:facet name="header">Amount</apex:facet>
+            <apex:outputText value="{!donor.totalDonation}" />
+        </apex:column>
+        <apex:column >
+            <apex:facet name="header">Address</apex:facet>
+            <apex:outputText value="{!donor.street}, {!donor.city} {!donor.state} {!donor.zipcode}" />
+        </apex:column>
+        <apex:column >
+            <apex:facet name="header">Phone</apex:facet>
+            <apex:outputText value="{!donor.phone}" />
+        </apex:column>
+        <apex:column >
+            <apex:facet name="header">Email</apex:facet>
+            <apex:outputText value="{!donor.email}" />
+        </apex:column>
+    </apex:dataTable>
+
+    <div class="footer" style="font-size:60%;">
         <table width="100%">
-            <tr width="100%" class="member">
-                <td><apex:outputText value="{!donor.name}" /></td>
-                <td><apex:outputText value="{!donor.totalDonation}" /></td>
-                <td><apex:outputText value="{!donor.street}" /></td>
-                <td><apex:outputText value="{!donor.city}" /></td>
-                <td><apex:outputText value="{!donor.state}" /></td>
-                <td><apex:outputText value="{!donor.zipcode}" /></td>
-                <td><apex:outputText value="{!donor.phone}" /></td>
-                <td><apex:outputText value="{!donor.email}" /></td>
+            <tr width = "100%">
+                <td width="33%">
+                    <apex:outputText value="Prepared by: {!$User.FirstName} {!$User.LastName}" />
+                </td>
+                <td width="33%" align="center">
+                    <span>Page </span><span class="pagenumber"></span><span>of </span>
+                    <span class="pagecount"></span>
+                </td>
+                <td width="33%" align="right">
+                    <apex:outputField value="{!forDate.Effective_Date__c}"/>
+                </td>
             </tr>
         </table>
-    </apex:repeat>
-    <apex:outputText value="{!totalPerAnnum}"></apex:outputText>
-    Total new donors this year:&nbsp;
-    <apex:outputText value="{!totalFirsts}"></apex:outputText>
+    </div>
 
 </apex:page>
