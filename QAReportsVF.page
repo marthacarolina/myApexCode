@@ -16,17 +16,15 @@
            }
     table { width: 100%;}
     tr    {width: 100%}
-    td.cell {width: 50%;
+    td.cell {width: 33%;
             background-color: #f2f2f2;
             margin: 1%;
             padding: 2%;
             border-radius: 10px;
             font-size:120%;
             font-weight: bold;}
-    .content-left {
-    			width: 50%;
-    			text-align: center;
-    			}
+    .content-left {width: 50%;
+    			text-align: center;}
     .content-right {
                     width:50%;
                     align: left;
@@ -60,10 +58,22 @@
                 <table>
                     <tr>
                         <td class="content-left">
-                            <apex:outputText value="Staff"/>
+                            <apex:outputText value="Staff Involvement"/>
                         </td>
                         <td class="content-right">
-                            <apex:commandButton value="Print Report" action="{!printMonthly}" style="font-size:80%;"/>
+                            <apex:commandButton value="Print Report" action="{!printMonthlyStaff}" style="font-size:80%;"/>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td class="cell">
+                <table>
+                    <tr>
+                        <td class="content-left">
+                            <apex:outputText value="Volunteers"/>
+                        </td>
+                        <td class="content-right">
+                            <apex:commandButton value="Print Report" action="{!pMonthlyVol}" style="font-size:80%;"/>
                         </td>
                     </tr>
                 </table>
@@ -87,7 +97,7 @@
                             <apex:outputText value="Volunteers"/>
                         </td>
                         <td class="content-right">
-                            <apex:commandButton value="Print Report" action="{!printMonthly}" style="font-size:80%;"/>
+                            <apex:commandButton value="Print Report" action="{!pMonthlyVol}" style="font-size:80%;"/>
                         </td>
                     </tr>
                 </table>
@@ -99,7 +109,7 @@
                             <apex:outputText value="Donors"/>
                         </td>
                         <td class="content-right">
-                            <apex:commandButton value="Print Report" action="{!printMonthly}" style="font-size:80%;"/>
+                            <apex:commandButton value="Print Report" action="{!pQuarterlyDonor}" style="font-size:80%;"/>
                         </td>
                     </tr>
                 </table>
@@ -123,7 +133,8 @@
                             <apex:outputText value="Donations"/>
                         </td>
                         <td class="content-right">
-                            <apex:commandButton value="Print Report" action="{!printMonthly}" style="font-size:80%;"/>
+                            <apex:commandButton value="Print Report" action="{!pAnnualDonor}" style="font-size:80%;"/>
+                            <apex:commandButton value="Export Report" action="{!exelAnnualDonor}" style="font-size:80%;"/>
                         </td>
                     </tr>
                 </table>
@@ -137,14 +148,4 @@
 
 </apex:form>
 
-<apex:outputPanel id="out">
-    <apex:actionstatus id="status" startText="testing...">
-        <apex:facet name="stop">
-            <apex:outputPanel >
-                <p>You have selected:</p>
-                <apex:dataList value="{!month}" var="c">{!c}</apex:dataList>
-            </apex:outputPanel>
-        </apex:facet>
-    </apex:actionstatus>
-</apex:outputPanel>
 </apex:page>

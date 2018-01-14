@@ -1,0 +1,21 @@
+<apex:page controller="QAAnnualController" renderAs="PDF" showHeader="false" action="{!AnnualQA}">
+    <apex:repeat value="{!donors}" var="donor" id="theDonors">
+        <hr class="list" />
+        <table width="100%">
+            <tr width="100%" class="member">
+                <td><apex:outputText value="{!donor.name}" /></td>
+                <td><apex:outputText value="{!donor.totalDonation}" /></td>
+                <td><apex:outputText value="{!donor.street}" /></td>
+                <td><apex:outputText value="{!donor.city}" /></td>
+                <td><apex:outputText value="{!donor.state}" /></td>
+                <td><apex:outputText value="{!donor.zipcode}" /></td>
+                <td><apex:outputText value="{!donor.phone}" /></td>
+                <td><apex:outputText value="{!donor.email}" /></td>
+            </tr>
+        </table>
+    </apex:repeat>
+    <apex:outputText value="{!totalPerAnnum}"></apex:outputText>
+    Total new donors this year:&nbsp;
+    <apex:outputText value="{!totalFirsts}"></apex:outputText>
+
+</apex:page>

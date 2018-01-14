@@ -1,0 +1,6 @@
+<apex:page controller="QAAnnualController" action="{!AnnualQA}" contentType="text/csv#AnnualDonorReport.csv">
+    Name,Street,City,State,ZipCode,Total Donation,Phone,Email
+    <apex:repeat value="{!donors}" var="donor">
+        {!donor.name},{!donor.street},{!donor.city},{!donor.state},{!donor.zipcode},{!donor.totalDonation},{!donor.phone},{!donor.email}
+    </apex:repeat>
+</apex:page>

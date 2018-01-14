@@ -1,27 +1,19 @@
 public class QAReportsController {
     Public String month{get;set;}
-    Integer nMonth = 0;
-    Public String quarter = '';
-    Integer nquarter = 0;
+    @TestVisible Integer nMonth = 0;
+    Public String quarter;
+    @TestVisible Integer nquarter = 0;
     Public String year{get;set;}
-    Integer nyear;
+    @TestVisible Integer nyear;
     Public String monthSel;
-    String[] theMonths;
+    @TestVisible String[] theMonths;
 
     public QAReportsController()
     {
         theMonths = new String[]{'January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September','October','November', 'December'};
-                integer n = date.today().month() - 1 ;
-        n = n>1? n - 1 : 12;
-        String[] theQuarters = new String[]{'1st Quarter','2nd Quarter','3rd Quarter','4th Quarter'};
-            String[] theYears = new String[]{};
-                for (Integer y=2017; y<date.today().year()+1; y++)
-            {
-                String sy = ''+y;
-                theYears.add(sy);
-            }
-        year = ''+date.today().year();
+            'July', 'August', 'September', 'October', 'November', 'December'};
+        String a = getMonthSel();   // initializes the month and year
+        quarter = currentQuarter(); // initializes the value for quarter
     }
 
     public PageReference printMonthly() {
@@ -40,13 +32,25 @@ public class QAReportsController {
     }
 
     public PageReference pQuarterlyDonor(){
-        String pdfURL = '/apex/QAquarterlyDonorVF?q='+nquarter+'&y='+year;
-        return new PageReference(pdfURL);
+        //String pdfURL = '/apex/QAquarterlyDonorVF?q='+nquarter+'&y='+year;
+        return null; //new PageReference(pdfURL);
     }
 
     public PageReference pAnnualDonor(){
-        String pdfURL = '/apex/QAannualDonorVF?y='+year;
+        String pdfURL = '/apex/QAannualDonorVF?y='+year+'&f=false';
         return new PageReference(pdfURL);
+    }
+
+    public PageReference exelAnnualDonor(){
+        String pdfURL = '/apex/QAannualDonorExel?y='+year+'&f=true';
+        return new PageReference(pdfURL);
+    }
+
+    public String currentQuarter(){
+        Decimal d = date.today().month() / 3 ;
+        d = d.round(System.RoundingMode.CEILING);
+        Integer i = integer.valueOf(d);
+        return string.valueOf(i);
     }
 
     public String getMonthSel()
@@ -102,20 +106,7 @@ public class QAReportsController {
 
     public String getQuarter()
     {
-        if (quarter == null)
-        {
-            integer n = date.today().month();
-            integer y = date.today().year();
-            //find the current quarter
-            Decimal d = n / 3 ;
-            d = d.round(System.RoundingMode.CEILING);
-            nQuarter = integer.valueOf(d);
-            nYear = nQuarter>1 ? y : y-1;
-            nQuarter = nQuarter>1 ? nQuarter - 1: 4;
-            quarter = ''+nQuarter;
-            year = ''+nYear;
-        }
-        return quarter;
+      return quarter;
     }
 
     public void setQuarter(String quarter)
