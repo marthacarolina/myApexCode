@@ -5,12 +5,19 @@ public class QAAnnualController extends QAReports {
     public integer totalFirsts {get; set;}
     public integer totalDonors {get; set;}
     public string IsCsv {get; set;}
+    public List<PageDonor> pageBrokenDonorLines {get; set;}
+    //controls how many quote line items are displayed on page 1
+    private Integer first_break = 40;
+    //controls how many quote line items are displayed on subsequent pages
+    private Integer subseq_breaks = 60;
+
 
     public void QAAnnualController(){}
 
     public void AnnualQA(){
         totalFirsts = 0;
         donors = AnnualDonations();
+        prepareDonorLinesForPrinting();
     }
 
     public List<donor> AnnualDonations(){
@@ -74,6 +81,60 @@ public class QAAnnualController extends QAReports {
         List<Reports.SummaryValue> totVal = totals.getAggregates();
         totalPerAnnum = (string) totVal[0].getLabel();
         return allDonors;
+    }
+
+    //splits the quote lines into an approximate number of rows that can be
+    //displayed per page
+    private void prepareDonorLinesForPrinting()
+    {
+        //controls how many quote line items are displayed on page 1
+        Integer first_break = 45;
+        //controls how many quote line items are displayed on subsequent pages
+        Integer subseq_breaks = 60;
+        pageBrokenDonorLines = new List<PageDonor>();
+
+        PageDonor pageOfDonors = new PageDonor();
+        Integer counter = 0;
+
+        boolean firstBreakFound = false;
+        boolean setSubSeqBreak = false;
+        Integer breakPoint = first_break;
+
+        for(donor d : donors)
+        {
+            if(counter <= breakPoint)
+            {
+                pageOfDonors.ListOfDonors.add(d);
+
+                counter++;
+            }
+            if(counter == breakPoint)
+            {
+                if (!firstBreakFound)
+                {
+                    firstBreakFound = true;
+                    setSubSeqBreak  = true;
+                }
+                counter = 0;
+                pageBrokenDonorLines.add(pageOfDonors);
+                pageOfDonors = new PageDonor();
+            }
+            if(setSubSeqBreak)
+            {
+                breakPoint = subseq_breaks;
+                setSubSeqBreak = false;
+            }
+        }
+        //if we have finished looping and have some quotes left let's assign them
+        if(!pageOfDonors.ListOfDonors	.isEmpty())
+            pageBrokenDonorLines.add(pageOfDonors);
+    }
+
+    public class PageDonor{
+        public List<donor> listOfDonors {get; set;}
+        public PageDonor() {
+            this.listOfDonors = new List<donor>();
+        }
     }
 
     public class donor {
