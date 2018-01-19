@@ -7,9 +7,9 @@ public class QAAnnualController extends QAReports {
     public string IsCsv {get; set;}
     public List<PageDonor> pageBrokenDonorLines {get; set;}
     //controls how many quote line items are displayed on page 1
-    private Integer first_break = 40;
+    private Integer first_break;
     //controls how many quote line items are displayed on subsequent pages
-    private Integer subseq_breaks = 60;
+    private Integer subseq_breaks;
 
 
     public void QAAnnualController(){}
@@ -90,7 +90,7 @@ public class QAAnnualController extends QAReports {
         //controls how many quote line items are displayed on page 1
         Integer first_break = 45;
         //controls how many quote line items are displayed on subsequent pages
-        Integer subseq_breaks = 60;
+        Integer subseq_breaks = 50;
         pageBrokenDonorLines = new List<PageDonor>();
 
         PageDonor pageOfDonors = new PageDonor();

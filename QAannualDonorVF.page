@@ -18,7 +18,6 @@
             </td>
         </tr>
     </table>
-    <hr />
 
     <!--The variable cnt is used for pagination. Without the variable and the logic there would
     be always a page-break at the begining or at the end of the document -->
@@ -26,6 +25,7 @@
     <apex:repeat value="{!pageBrokenDonorLines}" var="aPageOfDonors" id="theList">
         <div style="{!if(cnt < 1, 'page-break-before:avoid;','page-break-before:always;')}">
             <apex:variable var="cnt" value="{!cnt+1}"/>
+            <hr />
 
             <apex:dataTable value="{!aPageOfDonors.ListOfDonors}" var="donor" id="theDonors" headerClass="tablehead"
                             style="font-size: 90%; "
