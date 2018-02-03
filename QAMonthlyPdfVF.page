@@ -5,7 +5,7 @@
     </div>
     <table width="100%">
         <tr width="100%">
-            <td width="60%" align="left">
+            <td width="60%" align="left">               
                 <h4>Total Participans in Adventures: {!totalParticipants}</h4>
                 <h4>Total Activity Days this Month: {!totAllInclusiveActDays}</h4>
                 <h4>Total Participants Experiencing their 1st Adventure: {!totNewParticipants}</h4>
@@ -78,11 +78,11 @@
                     <apex:outputText value="Prepared by: {!$User.FirstName} {!$User.LastName}       Ver.1.0" />
                 </td>
                 <td width="33%" align="center">
-                    <span>Page </span><span class="pagenumber"></span><span>of </span>
+                    <span>Page </span><span class="pagenumber"></span><span> of </span>
                     <span class="pagecount"></span>
                 </td>
                 <td width="33%" align="right">
-                    <apex:outputField value="{!forDate.Effective_Date__c}"/>
+                    <apex:outputText value="{!forDate}  {!forTime}"/>
                 </td>
             </tr>
         </table>

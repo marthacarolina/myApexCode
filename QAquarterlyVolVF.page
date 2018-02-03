@@ -7,7 +7,7 @@
                 <!-- put here the totals for the report -->
                 <apex:outputText value="Total Volunteers: {!tot_Volunteers}" /><br/>
                 <apex:outputText value="New Volunteers: {!totNewVolunteers}" /><br/>
-                <apex:outputText value="Total Volunteer Hours for the Quarter: {!(ROUND(qTot_Vol_Hours,2))}" />  <br/>
+                <apex:outputText value="Total Volunteer Hours for the Quarter: {!(ROUND(qTot_Vol_Hours,2))}" />  <br/>              
             </td>
             <td width="50%" align="right">
                 <apex:image value="{!URLFOR($Resource.advancedpdfresource, 'logo.png')}"/>
@@ -60,11 +60,11 @@
                     <apex:outputText value="Prepared by: {!$User.FirstName} {!$User.LastName}" />
                 </td>
                 <td width="33%" align="center">
-                    <span>Page </span><span class="pagenumber"></span><span>of </span>
+                    <span>Page </span><span class="pagenumber"></span><span> of </span>
                     <span class="pagecount"></span>
                 </td>
                 <td width="33%" align="right">
-                    <apex:outputField value="{!forDate.Effective_Date__c}"/>
+                    <apex:outputText value="{!forDate}  {!forTime}"/>
                 </td>
             </tr>
         </table>

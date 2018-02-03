@@ -1,17 +1,17 @@
-<apex:page controller="QAAnnualController" renderAs="PDF" showHeader="false" action="{!AnnualQA}">
+<apex:page controller="QAAnnualController" renderAs="PDF" showHeader="false" action="{!QuarterlyDonors}">
     <!--this page renders a PDF file of the Annual Donor Report. /-->
     <!--The page is called by the class/controller QAReportsController the year is passed on in the URL. /-->
 
     <apex:stylesheet value="{!URLFOR($Resource.advancedpdfresource, 'QAReportPDF.css')}"/>
-    <div class="header" align="center"><h3 style="font-color:#0f846d; font-family: Tahoma, Geneva, sans-serif;">QA Report for {!year}
-        <br/>Donors</h3>
+    <div class="header" align="center"><h3 style="font-color:#0f846d; font-family: Tahoma, Geneva, sans-serif;">QA Report for the {!quarter} of {!year}
+        <br/></h3><h2>Donors</h2>
     </div>
     <table width="100%">
         <tr width="100%">
             <td width="60%" align="left">
-                <h4>Total Donations for the year: {!totalPerAnnum}</h4>
-                <h4>Total Donors this year: {!totalDonors}</h4>
-                <h4>New donors this year: {!totalFirsts}</h4>
+                <h4>Total Donations for the quarter: {!totalPerAnnum}</h4>
+                <h4>Total Donors this quarter: {!totalDonors}</h4>
+                <h4>Total Donations this quarter: {!totalDonations}</h4>
             </td>
             <td width="40%" align="right">
                 <apex:image value="{!URLFOR($Resource.advancedpdfresource, 'logo.png')}"/>
@@ -21,6 +21,8 @@
 
     <!--The variable cnt is used for pagination. Without the variable and the logic there would
     be always a page-break at the begining or at the end of the document -->
+
+    <div><h4>New Donors this Quarter: {!totalFirsts}</h4></div>
     <apex:variable var="cnt" value="{!0}" />
     <apex:repeat value="{!pageBrokenDonorLines}" var="aPageOfDonors" id="theList">
         <div style="{!if(cnt < 1, 'page-break-before:avoid;','page-break-before:always;')}">
@@ -32,17 +34,17 @@
                             width="100%"
                             rowClasses="odd,even"
                             columnClasses="col"
-                            columnsWidth="20%, 10%, 30%, 15%, 15%"
+                            columnsWidth="30%, 30%, 20%, 20%"
                             rules="all">
                 <apex:facet name="header"></apex:facet>
                 <apex:column >
                     <apex:facet name="header">Donor</apex:facet>
                     <apex:outputText value="{!donor.name}"/>
                 </apex:column>
-                <apex:column >
+                <!--apex:column >
                     <apex:facet name="header">Amount</apex:facet>
                     <apex:outputText value="{!donor.totalDonation}" />
-                </apex:column>
+                </apex:column -->
                 <apex:column >
                     <apex:facet name="header">Address</apex:facet>
                     <apex:outputText value="{!donor.street}, {!donor.city} {!donor.state} {!donor.zipcode}" />
@@ -68,7 +70,7 @@
                             <span class="pagecount"></span>
                         </td>
                         <td width="33%" align="right">
-                            <apex:outputText value="{!forDate}  {!forTime}"/>
+                            <apex:outputText value="{!forDate} {!forTime}"/>
                         </td>
                     </tr>
                 </table>

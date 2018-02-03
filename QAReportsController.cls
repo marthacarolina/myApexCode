@@ -1,8 +1,10 @@
 public class QAReportsController {
     Public String month{get;set;}
     @TestVisible Integer nMonth = 0;
+    Public String yearMonth {get;set;}
     Public String quarter;
     @TestVisible Integer nquarter = 0;
+    Public String yearQuarter {get;set;}
     Public String year{get;set;}
     @TestVisible Integer nyear;
     Public String monthSel;
@@ -14,26 +16,33 @@ public class QAReportsController {
             'July', 'August', 'September', 'October', 'November', 'December'};
         String a = getMonthSel();   // initializes the month and year
         quarter = currentQuarter(); // initializes the value for quarter
+        year = string.valueOf(date.today().year());
     }
 
     public PageReference printMonthly() {
-        String pdfURL = '/apex/QAMonthlyPdfVF?m='+nMonth+'&y='+year;
+        String pdfURL = '/apex/QAMonthlyPdfVF?m='+nMonth+'&y='+yearMonth;
         return new PageReference(pdfURL);
     }
 
     public PageReference printMonthlyStaff() {
-        String pdfURL = '/apex/QAMonthlyStaffVF?m='+nMonth+'&y='+year;
+        String pdfURL = '/apex/QAMonthlyStaffVF?m='+nMonth+'&y='+yearMonth;
         return new PageReference(pdfURL);
     }
 
     public PageReference pMonthlyVol() {
-        String pdfURL = '/apex/QAmonthlyVolVF?m='+nMonth+'&y='+year;
+        String pdfURL = '/apex/QAmonthlyVolVF?m='+nMonth+'&y='+yearMonth;
+        return new PageReference(pdfURL);
+    }
+    
+    public PageReference pQuarterlyVol()
+    {
+        String pdfURL = '/apex/QAquarterlyVolVF?q='+nquarter+'&y='+yearQuarter;
         return new PageReference(pdfURL);
     }
 
     public PageReference pQuarterlyDonor(){
-        //String pdfURL = '/apex/QAquarterlyDonorVF?q='+nquarter+'&y='+year;
-        return null; //new PageReference(pdfURL);
+        String pdfURL = '/apex/QAquarterlyDonorVF?q='+nquarter+'&y='+yearQuarter;
+        return new PageReference(pdfURL);
     }
 
     public PageReference pAnnualDonor(){
@@ -50,6 +59,7 @@ public class QAReportsController {
         Decimal d = date.today().month() / 3 ;
         d = d.round(System.RoundingMode.CEILING);
         Integer i = integer.valueOf(d);
+        yearQuarter = string.valueOf(date.today().year());
         return string.valueOf(i);
     }
 
@@ -60,7 +70,7 @@ public class QAReportsController {
             nMonth = date.today().month();
             integer y = date.today().year();
             y = nMonth < 1 ? y-1 : y;
-            year = ''+y;
+            yearMonth = ''+y;
             nMonth = nMonth<1 ? 12 - nMonth : nMonth;
             month = ''+nMonth;
         }
@@ -74,14 +84,13 @@ public class QAReportsController {
             nMonth = date.today().month() + integer.valueOf(monthSel.right(2));
             integer y = date.today().year();
             y = nMonth < 1 ? y-1 : y;
-            year = ''+y;
+            yearMonth = ''+y;
             nMonth = nMonth<1 ? 12 - nMonth : nMonth;
         }
         else nMonth = integer.valueOf(monthSel);
         this.month = theMonths[nMonth-1];
-        system.debug('month = '+month+ ' nMonth = '+nMonth);
     }
-
+    
     public List<SelectOption> getItems ()
     {
         List<SelectOption> options = new List<SelectOption>();
@@ -116,8 +125,17 @@ public class QAReportsController {
             Decimal d = date.today().month() / 3 ;
             d = d.round(System.RoundingMode.CEILING);
             nQuarter = integer.valueOf(d) + integer.valueOf(quarter.right(2));
+            if (nQuarter < 0)
+            {
+                nQuarter = 3;
+                integer nYear = date.today().year() - 1;
+                yearQuarter = '' + string.valueOf(nYear);
+            }
         }
-        else nQuarter = integer.valueOf(quarter);
+        else 
+        {
+            nQuarter = integer.valueOf(quarter) - 1;
+        }
         this.quarter = quarter;
         system.debug('quarter = '+quarter+ ' nQuarter = '+nQuarter);
     }

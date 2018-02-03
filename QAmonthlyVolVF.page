@@ -72,25 +72,25 @@
         </apex:column>
         <apex:column >
             <apex:facet name="header">CPR Expires</apex:facet>
-            <apex:outputText value="{0,date,MM/dd/yy}">
+            <apex:outputText value="{0,date,MM/dd/yy}"> 
                 <apex:param value="{!c.cprExpDate}" />
             </apex:outputText>
         </apex:column>
         <apex:column >
             <apex:facet name="header">1stAid Expires</apex:facet>
-            <apex:outputText value="{0,date,MM/dd/yy}">
+            <apex:outputText value="{0,date,MM/dd/yy}"> 
                 <apex:param value="{!c.faidExpDate}"/>
             </apex:outputText>
         </apex:column>
         <apex:column >
             <apex:facet name="header">&nbsp;FpCC Expires&nbsp;</apex:facet>
-            <apex:outputText value="{0,date,MM/dd/yy}">
+            <apex:outputText value="{0,date,MM/dd/yy}"> 
                 <apex:param value="{!c.fccExpDate}" />
             </apex:outputText>
         </apex:column>
         <apex:column >
             <apex:facet name="header">Orientation</apex:facet>
-            <apex:outputText value="{0,date,MM/dd/yy}">
+            <apex:outputText value="{0,date,MM/dd/yy}"> 
                 <apex:param value="{!c.orientationDate}"/>
             </apex:outputText>
         </apex:column>
@@ -114,22 +114,22 @@
         </apex:column>
         <apex:column >
             <apex:facet name="header">CPR Expires</apex:facet>
-            <apex:outputText value="{0,date,MM/dd/yy}">
+            <apex:outputText value="{0,date,MM/dd/yy}"> 
                 <apex:param value="{!ve.CPR_Certificate_Expiration_Date__c}" />
             </apex:outputText>
         </apex:column>
         <apex:column >
             <apex:facet name="header">1stAid Expires</apex:facet>
-            <apex:outputText value="{0,date,MM/dd/yy}">
+            <apex:outputText value="{0,date,MM/dd/yy}"> 
                 <apex:param value="{!ve.First_Aid_Certification_Expiration_Date__c}"/>
             </apex:outputText>
         </apex:column>
         <apex:column >
             <apex:facet name="header">&nbsp;FpCC Expires&nbsp;</apex:facet>
-            <apex:outputText value="{0,date,MM/dd/yy}">
+            <apex:outputText value="{0,date,MM/dd/yy}"> 
                 <apex:param value="{!ve.Fingerprint_Clearance_Expiration_Date__c}" />
             </apex:outputText>
-        </apex:column>
+        </apex:column>        
     </apex:dataTable>
     <hr />
     <br />
@@ -150,25 +150,25 @@
         </apex:column>
         <apex:column >
             <apex:facet name="header">CPR Expires</apex:facet>
-            <apex:outputText value="{0,date,MM/dd/yy}">
+            <apex:outputText value="{0,date,MM/dd/yy}"> 
                 <apex:param value="{!c.cprExpDate}" />
             </apex:outputText>
         </apex:column>
         <apex:column >
             <apex:facet name="header">1stAid Expires</apex:facet>
-            <apex:outputText value="{0,date,MM/dd/yy}">
+            <apex:outputText value="{0,date,MM/dd/yy}"> 
                 <apex:param value="{!c.faidExpDate}"/>
             </apex:outputText>
         </apex:column>
         <apex:column >
             <apex:facet name="header">&nbsp;FpCC Expires&nbsp;</apex:facet>
-            <apex:outputText value="{0,date,MM/dd/yy}">
+            <apex:outputText value="{0,date,MM/dd/yy}"> 
                 <apex:param value="{!c.fccExpDate}" />
             </apex:outputText>
         </apex:column>
         <apex:column >
             <apex:facet name="header">Orientation</apex:facet>
-            <apex:outputText value="{0,date,MM/dd/yy}">
+            <apex:outputText value="{0,date,MM/dd/yy}"> 
                 <apex:param value="{!c.orientationDate}"/>
             </apex:outputText>
         </apex:column>
@@ -186,11 +186,11 @@
                     <apex:outputText value="Prepared by: {!$User.FirstName} {!$User.LastName}" />
                 </td>
                 <td width="33%" align="center">
-                    <span>Page </span><span class="pagenumber"></span><span>of </span>
+                    <span>Page </span><span class="pagenumber"></span><span> of </span>
                     <span class="pagecount"></span>
                 </td>
                 <td width="33%" align="right">
-                    <apex:outputField value="{!forDate.Effective_Date__c}"/>
+                    <apex:outputText value="{!forDate}   {!forTime}"/>
                 </td>
             </tr>
         </table>

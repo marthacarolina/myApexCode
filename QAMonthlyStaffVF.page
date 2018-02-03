@@ -90,14 +90,12 @@ be always a page-break at the begining or at the end of the document -->
                                 <span class="pagecount"></span>
                             </td>
                             <td width="33%" align="right">
-                                <apex:outputField value="{!forDate.Effective_Date__c}"/>
+                                <apex:outputText value="{!forDate} {!forTime}"/>
                             </td>
                         </tr>
                     </table>
                 </div>
             </apex:repeat>
-        </div>
-        
-    </apex:repeat>
-    
+        </div>        
+    </apex:repeat>    
 </apex:page>
