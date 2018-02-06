@@ -18,74 +18,90 @@
         </tr>
     </table>
     <hr />
-    <apex:repeat value="{!participants}" var="participant" id="theParticipants">
-        <hr class="list" />
-        <table width="100%">
-            <tr width="100%" class="member">
-                <td width ="40%" >
-                    <apex:outputText value="{!participant.typeOfMember}: {!participant.Name}" /><apex:outputText value="{!IF(Participant.firstTime,"   ** NEW **","")}" style="font-color:green; align:right;" />
-                </td>
-                <td width = "30%">
-                    <apex:outputText value="Total Adventures: {!participant.totCamp}" />
-                </td>
-                <td width = "30%">
-                    <apex:outputText value="Total Activity Days: {!participant.totActDays}" />
-                </td>
-            </tr>
-        </table>
-        <hr class="list" />
-        <apex:dataTable value="{!participant.adventures}" var="c" id="theTable" headerClass="tablehead"
-                        rowClasses="odd,even" style="font-size: 100%; "
-                        columnsWidth="300px, 100px, 100px">
-            <apex:column >
-                <apex:outputText value="Adventure: {!c.Name}"/>
-            </apex:column>
-            <apex:column >
-                <apex:outputText value="Date: {!c.sdate}"/>
-            </apex:column>
-            <apex:column >
-                <apex:outputText value="Activity Days: {!c.ActivityDays}"/>
-            </apex:column>
-        </apex:dataTable>
+    <apex:variable var="cnt" value="{!0}" />
+    <apex:repeat value="{!allPages}" var="partPage" id="theList">
+
+        <div style="{!if(cnt < 1, 'page-break-before:avoid;','page-break-before:always;')}">
+            <apex:variable var="cnt" value="{!cnt+1}"/>    
+            
+            <apex:repeat value="{!partPage.allParticipants}" var="participant" id="theParticipants">
+                <hr class="list" />
+                <table width="100%">
+                    <tr width="100%" class="member">
+                        <td width ="40%" >
+                            <apex:outputText value="{!participant.typeOfMember}: {!participant.Name}" /><apex:outputText value="{!IF(Participant.firstTime,"   ** NEW **","")}" style="font-color:green; align:right;" />
+                        </td>
+                        <td width = "30%">
+                            <apex:outputText value="Total Adventures: {!participant.totCamp}" />
+                        </td>
+                        <td width = "30%">
+                            <apex:outputText value="Total Activity Days: {!participant.totActDays}" />
+                        </td>
+                    </tr>
+                </table>
+                <hr class="list" />
+                <apex:dataTable value="{!participant.adventures}" var="c" id="theTable" headerClass="tablehead"
+                                rowClasses="odd,even" style="font-size: 100%; "
+                                columnsWidth="300px, 100px, 100px">
+                    <apex:column >
+                        <apex:outputText value="Adventure: {!c.Name}"/>
+                    </apex:column>
+                    <apex:column >
+                        <apex:outputText value="Date: {!c.sdate}"/>
+                    </apex:column>
+                    <apex:column >
+                        <apex:outputText value="Activity Days: {!c.ActivityDays}"/>
+                    </apex:column>
+                </apex:dataTable>
+            </apex:repeat>
+        </div>
+        <div class="footer" style="font-size:60%;">
+            <table width="100%">
+                <tr width = "100%">
+                    <td width="33%">
+                        <apex:outputText value="Prepared by: {!$User.FirstName} {!$User.LastName}" />
+                    </td>
+                    <td width="33%" align="center">
+                        <span>Page </span><span class="pagenumber"></span><span> of </span>
+                        <span class="pagecount"></span>
+                    </td>
+                    <td width="33%" align="right">
+                        <apex:outputText value="{!forDate}  {!forTime}"/>
+                    </td>
+                </tr>
+            </table>
+        </div>
     </apex:repeat>
     <hr />
     <br />
-    <h4>New Members Signed-Up in {!month}</h4>
+    <div style="{!if (newPage,'page-break-before:avoid;','page-break-before:always;')}">
+        <h4>New Members Signed-Up in {!month} {!year}</h4>
+    </div>
     <apex:outputText value="Total new Sign-Ups: {!newSigned}" /><br/>
     <hr />
-    <apex:dataTable value="{!newSignUps}" var="c" id="newSUTable" headerClass="tablehead"
-                    rowClasses="odd,even" style="font-size: 90%; "
-                    columnClasses="col"
-                    columnsWidth="30%, 20%">
-        <apex:facet name="header"></apex:facet>
-        <apex:column >
-            <apex:facet name="header">Name</apex:facet>
-            <apex:outputText value="{!c.Name}"/>
-        </apex:column>
-        <apex:column >
-            <apex:facet name="header">Member Since</apex:facet>
-            <apex:outputText value="{0,date,MM/dd/yy}">
-                <apex:param value="{!c.memberSince}" />
-            </apex:outputText>
-        </apex:column>
-    </apex:dataTable>
-    <hr />
-
-    <div class="footer" style="font-size:60%;">
-        <table width="100%">
-            <tr width = "100%">
-                <td width="33%">
-                    <apex:outputText value="Prepared by: {!$User.FirstName} {!$User.LastName}       Ver.1.0" />
-                </td>
-                <td width="33%" align="center">
-                    <span>Page </span><span class="pagenumber"></span><span> of </span>
-                    <span class="pagecount"></span>
-                </td>
-                <td width="33%" align="right">
-                    <apex:outputText value="{!forDate}  {!forTime}"/>
-                </td>
-            </tr>
-        </table>
-    </div>
-
+    <apex:repeat value="{!sUPages}" var="sUPage" id="theNSUList">
+        <div style="{!if(cnt = participantPages, 'page-break-before:avoid;','page-break-before:always;')}">    
+            <apex:variable var="cnt" value="{!cnt+1}"/>    
+            <apex:dataTable value="{!sUPage.allParticipants}" var="c" id="newSUTable" headerClass="tablehead"
+                            rowClasses="odd,even" style="font-size: 90%; "
+                            columnClasses="col"
+                            columnsWidth="30%, 20%">
+                <apex:facet name="header"></apex:facet>
+                <apex:column >
+                    <apex:facet name="header">Name</apex:facet>
+                    <apex:outputText value="{!c.Name}"/>
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">Member Since</apex:facet>
+                    <apex:outputText value="{0,date,MM/dd/yy}">
+                        <apex:param value="{!c.memberSince}" />
+                    </apex:outputText>
+                </apex:column>
+            </apex:dataTable>
+            <hr />
+        </div>
+    </apex:repeat>
+    
+    
+    
 </apex:page>
