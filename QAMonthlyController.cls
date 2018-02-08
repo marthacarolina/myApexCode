@@ -182,13 +182,10 @@ public class QAMonthlyController extends QAReports{
         for (participantInfo pI : participants)
         {
             counter = counter + 2 + pI.adventures.size();
-            system.debug('counter = ' + counter + '   breakPoint = ' + breakpoint);
             if (counter > breakPoint)
             {
                 breakPoint = subseqPageBrakes;
-                system.debug('aPage.allParticipants.size = ' + aPage.allParticipants.size());
                 allPages.add(aPage);
-                system.debug('added a page. allpages.size = ' + allPages.size());
                 aPage = new OnePage();
                 counter = 0;
             }
@@ -199,7 +196,6 @@ public class QAMonthlyController extends QAReports{
         }
         if (aPage.allParticipants.size() > 0) allPages.add(aPage);
         participantPages = allPages.size();
-        system.debug('participantPages = ' + participantPages);
         OnePage SUpage = new OnePage(); //Pages with new-sign-ups
         counter = counter + 5; //includes the header for new-sign-ups
         sUPages = new List<OnePage>();
@@ -234,11 +230,8 @@ public class QAMonthlyController extends QAReports{
         else
         {
             SUpage.allParticipants = newSignUps;
-            system.debug('SUpage.allParticipants = ' + SUpage.allParticipants.size());
-            sUpages.add(SUpage);
-            
+            sUpages.add(SUpage);            
         } 
-        system.debug('sUpages.size() = ' + sUpages.size());
     }
     
     public class OnePage{

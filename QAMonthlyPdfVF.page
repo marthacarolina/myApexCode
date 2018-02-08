@@ -74,7 +74,8 @@
     </apex:repeat>
     <hr />
     <br />
-    <div style="{!if (newPage,'page-break-before:avoid;','page-break-before:always;')}">
+    <br />
+    <div style="{!if (newPage,'page-break-before:always;','page-break-before:avoid;')}">
         <h4>New Members Signed-Up in {!month} {!year}</h4>
     </div>
     <apex:outputText value="Total new Sign-Ups: {!newSigned}" /><br/>

@@ -1,17 +1,30 @@
 public class QAMonthlyVol extends QAReports {
-    public List<volunteer> volunteers{get;set;}
-    public List<volunteer> qpVolunteers{get;set;}
-    public List<volunteer> inactiveVolunteers{get;set;}
+    public List<volPage> volPages{get;set;} //this var holds the pages that have volunteer records
+    public List<volPage> qualvPages{get;set;} //pages - qualified volunteer pages
+    public List<contPage> expCertPages{get;set;} //pages for volunteers with expired certs
+    public List<volPage> inactVolPages{get;set;} //pages for inactive volunteers
+    List<volunteer> volunteers; //the list of volunteers who worked this period
+    List<volunteer> qpVolunteers; //a list of qualified program vol
+    List<volunteer> inactiveVolunteers; //the list of inactive volunteers
     public integer totNewVolunteers{get;set;}
     public integer tot_Volunteers{get;set;}
     public integer tot_qpvol{get;set;}
     public integer tot_inactiveVols{get;set;}
     public Decimal mTot_Vol_Hours{get;set;}
-    public List<Contact> v_expiring_certs{get;set;}
-    
+    public List<Contact> v_expiring_certs{get;set;} //the list of volunteers with expiring certs
+    public boolean samePage1{get;set;}
+    public boolean samePage2{get;set;}
+    public boolean samePage3{get;set;}
+    public boolean samePage4{get;set;}
+
+    integer breakPoint = 40; //this value only works for the first page
+    integer subseqPageBrakes = 59; //this is the number of lines for the rest of the pages
+    integer linesInPage = 0;
+
     public void QAMonthlyVol(){}
     
     public void printMonthlyVol(){
+        //this is the method that the visualforce page calls
         String m = ApexPages.currentPage().getParameters().get('m');
         String y = ApexPages.currentPage().getParameters().get('y');
         getMonthYear(m, y);
@@ -23,9 +36,12 @@ public class QAMonthlyVol extends QAReports {
         inactiveVolunteers = VolunteersList(false);
         tot_inactiveVols = inactiveVolunteers.size();
         v_expiring_certs = Vol_expiring(Integer.valueOf(m));
+        
     }
     
     private void printHours(){
+        //this method runs the report VOLUNTER_HOURS_QA and parses the information
+        //saving the list of volunteers who worked during this period in - volunteers -
         List<Report> reportList = [SELECT Id, DeveloperName FROM Report where
                                     DeveloperName = 'Volunteer_Hours_QA'];
         String reportId = (String)reportList.get(0).get('Id');
@@ -105,6 +121,9 @@ public class QAMonthlyVol extends QAReports {
     
     private List<volunteer> VolunteersList(Boolean active)
     {
+        //this method runs the report QA_VOLUNTEERS_CERTS and parses the information
+        //returning the list of volunteers in the report (this can be qualified program volunteers or
+        //inactive volunteers).
         List<volunteer> volList = new List<volunteer>();
         List<Report> reportList = [SELECT Id, DeveloperName FROM Report where
                                     DeveloperName = 'QA_Volunteers_Certs'];
@@ -164,6 +183,8 @@ public class QAMonthlyVol extends QAReports {
     
     public List<Contact> Vol_expiring(Integer nMonth)
     {
+        //this method queries the CONTACT object for volunteers whose certifications are
+        //about to expired.
         integer nyear = integer.valueOf(year);
         Date start_three_month_range = Date.newInstance(nyear,nMonth+1,1);
         Date end_three_month_range = 
@@ -184,6 +205,140 @@ public class QAMonthlyVol extends QAReports {
                                 ORDER BY LastName, FirstName];
         
         return volExp;        
+    }
+
+    public void prepareLinesForPrinting(){
+        volPages = new List<volPage>();
+        integer lineCount = 0;
+        volPage onePage = new volPage();
+        for (volunteer vol : volunteers)
+        {
+            lineCount = lineCount + 2; // two lines for the volunteer header
+            lineCount = lineCount + vol.Adventures.size(); //all the detail lines for the volunteer
+            if (lineCount > breakPoint)
+            {
+                breakPoint = subseqPageBrakes;
+                volPages.add(onePage);
+                onePage = new volPage();
+                onePage.theVolunteers.add(vol);
+                lineCount = 2 + vol.Adventures.size(); //two lines for the header + campaigns
+            }
+            else
+            {
+                onePage.theVolunteers.add(vol);
+            }
+        }
+        if (onePage.theVolunteers.size() > 0) volPages.add(onePage);
+        samePage1 = true;
+        integer x = 0;
+        qualvPages = new List<volPage>();
+        onePage = new volPage();
+        lineCount = lineCount + 7; //header for qualified volunteers segment
+        if (lineCount + qpVolunteers.size() > breakPoint)
+        {
+            for (volunteer vol : qpVolunteers)
+            {
+                lineCount ++;
+                if (lineCount > breakPoint)
+                {
+                    if (x>0) samePage1 = false;
+                    breakPoint = subseqPageBrakes;
+                    qualvPages.add(onePage);
+                    onePage = new volPage();
+                    onePage.theVolunteers.add(vol);
+                    lineCount = 1;
+                }
+                else
+                {
+                    onePage.theVolunteers.add(vol);
+                }
+                x++;
+            }
+        }
+        else
+        {
+            onePage.theVolunteers.addAll(qpVolunteers);
+            lineCount=lineCount+ qpVolunteers.size();
+        }
+        if (onePage.theVolunteers.size() > 0) qualvPages.add(onePage);
+
+        samePage2 = true;
+        x = 0;
+        expCertPages = new List<contPage>();
+        contPage aPage = new contPage();
+        lineCount = lineCount + 5; //header for volunteer with expiring certs segment
+        if (lineCount + v_expiring_certs.size() > breakpoint)
+        {   //if all the lines in this section don't fit on the current page
+            for (contact volEC : v_expiring_certs)
+            { //cycle over every volunteer in this section
+                lineCount++;
+                if (lineCount > breakPoint)
+                {// if there are too many lines for this page start another page
+                    if (x>0) samePage2 = false; // this variable tells us if this section is printed in the same page
+                    breakPoint = subseqPageBrakes;
+                    expCertPages.add(aPage);
+                    aPage = new contPage();
+                    aPage.theContacts.add(volEC);
+                    lineCount = 1;
+                }
+                else
+                {// otherwise just add the line to the page
+                    aPage.theContacts.add(volEC);
+                }
+                x++;
+            }
+        }
+        else
+        {
+            aPage.theContacts.addAll(v_expiring_certs);
+            lineCount = lineCount + v_expiring_certs.size();
+        }  
+        if (aPage.theContacts.size() > 0) expCertPages.add(aPage); 
+        samePage3 = true;
+        x = 0;
+        inactVolPages = new List<volPage>();
+        onePage = new volPage();
+        lineCount = lineCount + 7; //header for inactive volunteers segment
+        if (lineCount + inactiveVolunteers.size() > breakPoint)
+        {
+            for (volunteer vol : inactiveVolunteers)
+            {
+                lineCount ++;
+                if (lineCount > breakPoint)
+                {
+                    if (x>0) samePage1 = false;
+                    breakPoint = subseqPageBrakes;
+                    inactVolPages.add(onePage);
+                    onePage = new volPage();
+                    onePage.theVolunteers.add(vol);
+                    lineCount = 1;
+                }
+                else
+                {
+                    onePage.theVolunteers.add(vol);
+                }
+                x++;
+            }
+        }
+        else
+        {
+            onePage.theVolunteers.addAll(inactiveVolunteers);
+        }
+        if (onePage.theVolunteers.size() > 0) inactVolPages.add(onePage);     
+    }
+
+    public class volPage {
+        public List<volunteer> theVolunteers {get;set;}
+        public volPage(){
+            this.theVolunteers = new List<volunteer>();
+        }
+    }
+
+    public class contPage {
+        public List<Contact> theContacts {get;set;}
+        public contPage(){
+            this.theContacts = new List<Contact>();
+        }
     }
     
 }
