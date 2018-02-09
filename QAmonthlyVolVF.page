@@ -66,6 +66,22 @@
                 </apex:dataTable>
             </apex:repeat>
         </div>
+        <div class="footer" style="font-size:60%;">
+        <table width="100%">
+            <tr width = "100%">
+                <td width="33%">
+                    <apex:outputText value="Prepared by: {!$User.FirstName} {!$User.LastName}" />
+                </td>
+                <td width="33%" align="center">
+                    <span>Page </span><span class="pagenumber"></span><span> of </span>
+                    <span class="pagecount"></span>
+                </td>
+                <td width="33%" align="right">
+                    <apex:outputText value="{!forDate}   {!forTime}"/>
+                </td>
+            </tr>
+        </table>
+    </div>
     </apex:repeat>
     <hr />
     <br />

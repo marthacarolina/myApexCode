@@ -5,10 +5,10 @@ public class QAMonthlyVol_Test {
         //instantiate page
         PageReference QAmVolReport = page.QAmonthlyVolVF;
         test.setCurrentPage(QAmVolReport);
-        ApexPages.currentPage().getParameters().put('m', '5');
-        ApexPages.currentPage().getParameters().put('y', '2017');
+        ApexPages.currentPage().getParameters().put('m', '1');
+        ApexPages.currentPage().getParameters().put('y', '2018');
         QAMonthlyVol controller = new QAMonthlyVol();
         controller.printMonthlyVol();
-        system.assertEquals('2017-05-01', controller.beginRange);
+        system.assertEquals('2018-01-01', controller.beginRange);
     }
 }

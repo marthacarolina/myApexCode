@@ -36,7 +36,7 @@ public class QAMonthlyVol extends QAReports {
         inactiveVolunteers = VolunteersList(false);
         tot_inactiveVols = inactiveVolunteers.size();
         v_expiring_certs = Vol_expiring(Integer.valueOf(m));
-        
+        prepareLinesForPrinting();        
     }
     
     private void printHours(){
@@ -209,12 +209,12 @@ public class QAMonthlyVol extends QAReports {
 
     public void prepareLinesForPrinting(){
         volPages = new List<volPage>();
-        integer lineCount = 0;
+        decimal lineCount = 0;
         volPage onePage = new volPage();
         for (volunteer vol : volunteers)
         {
             lineCount = lineCount + 2; // two lines for the volunteer header
-            lineCount = lineCount + vol.Adventures.size(); //all the detail lines for the volunteer
+            lineCount = lineCount + (vol.Adventures.size() * 1.5); //all the detail lines for the volunteer
             if (lineCount > breakPoint)
             {
                 breakPoint = subseqPageBrakes;
@@ -241,9 +241,9 @@ public class QAMonthlyVol extends QAReports {
                 lineCount ++;
                 if (lineCount > breakPoint)
                 {
-                    if (x>0) samePage1 = false;
+                    if (x==0) samePage1 = false;
                     breakPoint = subseqPageBrakes;
-                    qualvPages.add(onePage);
+                    if(onePage.theVolunteers.size()>0)qualvPages.add(onePage);
                     onePage = new volPage();
                     onePage.theVolunteers.add(vol);
                     lineCount = 1;
@@ -274,9 +274,9 @@ public class QAMonthlyVol extends QAReports {
                 lineCount++;
                 if (lineCount > breakPoint)
                 {// if there are too many lines for this page start another page
-                    if (x>0) samePage2 = false; // this variable tells us if this section is printed in the same page
+                    if (x==0) samePage2 = false; // this variable tells us if this section is printed in the same page
                     breakPoint = subseqPageBrakes;
-                    expCertPages.add(aPage);
+                    if (aPage.theContacts.size() > 0) expCertPages.add(aPage);
                     aPage = new contPage();
                     aPage.theContacts.add(volEC);
                     lineCount = 1;
@@ -306,9 +306,9 @@ public class QAMonthlyVol extends QAReports {
                 lineCount ++;
                 if (lineCount > breakPoint)
                 {
-                    if (x>0) samePage1 = false;
+                    if (x==0) samePage1 = false;
                     breakPoint = subseqPageBrakes;
-                    inactVolPages.add(onePage);
+                    if (onePage.theVolunteers.size() > 0) inactVolPages.add(onePage);
                     onePage = new volPage();
                     onePage.theVolunteers.add(vol);
                     lineCount = 1;
@@ -324,7 +324,7 @@ public class QAMonthlyVol extends QAReports {
         {
             onePage.theVolunteers.addAll(inactiveVolunteers);
         }
-        if (onePage.theVolunteers.size() > 0) inactVolPages.add(onePage);     
+        if (onePage.theVolunteers.size() > 0) inactVolPages.add(onePage); 
     }
 
     public class volPage {
