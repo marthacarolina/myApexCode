@@ -20,42 +20,50 @@ public class QAReportsController {
     }
 
     public PageReference printMonthly() {
+        //this method calls the Monthly Participant QA PDF report
         String pdfURL = '/apex/QAMonthlyPdfVF?m='+nMonth+'&y='+yearMonth;
         return new PageReference(pdfURL);
     }
 
     public PageReference printMonthlyStaff() {
+        //this method calls the Monthly Staff Involvement QA PDF Report
         String pdfURL = '/apex/QAMonthlyStaffVF?m='+nMonth+'&y='+yearMonth;
         return new PageReference(pdfURL);
     }
 
     public PageReference pMonthlyVol() {
-        String pdfURL = '/apex/QAmonthlyVolVF?m='+nMonth+'&y='+yearMonth;
+        //this method calls the Monthly Volunteer QA PDF report
+        String pdfURL = '/apex/QAmonthlyVolVF?m='+nMonth+'&y='+yearMonth+'&q=N';
         return new PageReference(pdfURL);
     }
     
     public PageReference pQuarterlyVol()
     {
-        String pdfURL = '/apex/QAquarterlyVolVF?q='+nquarter+'&y='+yearQuarter;
+        //this method calls the Quarterly Volunteer QA PDF report
+        String pdfURL = '/apex/QAmonthlyVolVF?q='+nquarter+'&y='+yearQuarter+'&m=N';
         return new PageReference(pdfURL);
     }
 
     public PageReference pQuarterlyDonor(){
+        //this method calls the Quarterly Donor QA PDF report
         String pdfURL = '/apex/QAquarterlyDonorVF?q='+nquarter+'&y='+yearQuarter;
         return new PageReference(pdfURL);
     }
 
     public PageReference pAnnualDonor(){
+        //this method calls the Annual Donor QA PDF report
         String pdfURL = '/apex/QAannualDonorVF?y='+year+'&f=false';
         return new PageReference(pdfURL);
     }
 
     public PageReference exelAnnualDonor(){
+        //this method calls the Annual Donor QA CSV report
         String pdfURL = '/apex/QAannualDonorExel?y='+year+'&f=true';
         return new PageReference(pdfURL);
     }
 
     public String currentQuarter(){
+        //this method returns the string with the current quarter for the URL
         Decimal d = date.today().month() / 3 ;
         d = d.round(System.RoundingMode.CEILING);
         Integer i = integer.valueOf(d);
@@ -65,6 +73,7 @@ public class QAReportsController {
 
     public String getMonthSel()
     {
+        //this method returns the number of the month selected by the user
         if (month == null)
         {
             nMonth = date.today().month();
@@ -137,7 +146,6 @@ public class QAReportsController {
             nQuarter = integer.valueOf(quarter) - 1;
         }
         this.quarter = quarter;
-        system.debug('quarter = '+quarter+ ' nQuarter = '+nQuarter);
     }
 
     public List<SelectOption> getQuarterItems ()
