@@ -2,7 +2,6 @@
 //
 //Martha Vance 2017
 @isTest
-
 public class CMSendEmailsTest {
     @isTest
     private static void SndEmail()
