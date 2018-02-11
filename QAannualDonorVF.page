@@ -1,0 +1,79 @@
+<apex:page controller="QAAnnualController" renderAs="PDF" showHeader="false" action="{!AnnualQA}">
+    <!--this page renders a PDF file of the Annual Donor Report. /-->
+    <!--The page is called by the class/controller QAReportsController the year is passed on in the URL. /-->
+
+    <apex:stylesheet value="{!URLFOR($Resource.advancedpdfresource, 'QAReportPDF.css')}"/>
+    <div class="header" align="center"><h3 style="font-color:#0f846d; font-family: Tahoma, Geneva, sans-serif;">QA Report for {!year}
+        <br/>Donors</h3>
+    </div>
+    <table width="100%">
+        <tr width="100%">
+            <td width="60%" align="left">
+                <h4>Total Donations for the year: {!totalPerAnnum}</h4>
+                <h4>Total Donors this year: {!totalDonors}</h4>
+                <h4>New donors this year: {!totalFirsts}</h4>
+            </td>
+            <td width="40%" align="right">
+                <apex:image value="{!URLFOR($Resource.advancedpdfresource, 'logo.png')}"/>
+            </td>
+        </tr>
+    </table>
+
+    <!--The variable cnt is used for pagination. Without the variable and the logic there would
+    be always a page-break at the begining or at the end of the document -->
+    <apex:variable var="cnt" value="{!0}" />
+    <apex:repeat value="{!pageBrokenDonorLines}" var="aPageOfDonors" id="theList">
+        <div style="{!if(cnt < 1, 'page-break-before:avoid;','page-break-before:always;')}">
+            <apex:variable var="cnt" value="{!cnt+1}"/>
+            <hr />
+            <!-- This table is used to organize the donor information -->
+            <apex:dataTable value="{!aPageOfDonors.ListOfDonors}" var="donor" id="theDonors" headerClass="tablehead"
+                            style="font-size: 90%; "
+                            width="100%"
+                            rowClasses="odd,even"
+                            columnClasses="col"
+                            columnsWidth="20%, 10%, 30%, 15%, 15%"
+                            rules="all">
+                <apex:facet name="header"></apex:facet>
+                <apex:column >
+                    <apex:facet name="header">Donor</apex:facet>
+                    <apex:outputText value="{!donor.name}"/>
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">Amount</apex:facet>
+                    <apex:outputText value="{!donor.totalDonation}" />
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">Address</apex:facet>
+                    <apex:outputText value="{!donor.street}, {!donor.city} {!donor.state} {!donor.zipcode}" />
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">Phone</apex:facet>
+                    <apex:outputText value="{!donor.phone}" />
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">Email</apex:facet>
+                    <apex:outputText value="{!donor.email}" />
+                </apex:column>
+            </apex:dataTable>
+
+            <div class="footer" style="font-size:60%;">
+                <table width="100%">
+                    <tr width = "100%">
+                        <td width="33%">
+                            <apex:outputText value="Prepared by: {!$User.FirstName} {!$User.LastName}" />
+                        </td>
+                        <td width="33%" align="center">
+                            <span>Page </span><span class="pagenumber"></span><span> of </span>
+                            <span class="pagecount"></span>
+                        </td>
+                        <td width="33%" align="right">
+                            <apex:outputText value="{!forDate}  {!forTime}"/>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </apex:repeat>
+
+</apex:page>

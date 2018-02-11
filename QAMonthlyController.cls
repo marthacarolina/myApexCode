@@ -1,4 +1,6 @@
 public class QAMonthlyController extends QAReports{
+    public List<OnePage> allPages {get;set;} //pages of participants
+    public List<OnePage> sUPages {get;set;} //pages of new-sign-ups
     public List<participantInfo> participants{get;set;}
     public List<participantInfo> newSignUps{get;set;}
     Public Integer totalMAD{get;set;}
@@ -8,6 +10,11 @@ public class QAMonthlyController extends QAReports{
     Public Integer newSigned {get;set;}
     PUblic Integer totAllInclusiveActDays {get;set;}
     Public Date endRangeDate;
+    integer breakPoint = 40; //this value only works for the first page
+    integer subseqPageBrakes = 59; //this is the number of lines for the rest of the pages
+    integer linesInPage = 0;
+    public integer participantPages {get;set;}
+    public boolean newPage {get;set;}
 
     public void QAMonthlyController(){
         totalMAD = 0;
@@ -26,15 +33,18 @@ public class QAMonthlyController extends QAReports{
         newSigned = newSignUps.size();
         ParticipantsMonthly();
         totAllInclusiveActDays = TotalActivityDaysforMonth();
+        prepareLinesForPrinting();
     }
-
+    
     public List<participantInfo> ParticipantStats()
     {
         endRangeDate = date.valueOf(endRange);
+        //This query returns the contacts that have signed up with DA during the
+        //report time range
         List<Contact> contSignups = [Select Name, Member_Since__c from Contact
                                      Where Participant__c = true AND
                                      Member_Since__c >= :beginRangeDate
-                                     And Member_Since__c <= :endRangeDate];
+                                     And Member_Since__c <= :endRangeDate];            
         List<participantInfo> newPart = new List<participantInfo>();
         for (Contact c : contSignups)
         {
@@ -45,9 +55,10 @@ public class QAMonthlyController extends QAReports{
         }
         return newPart;
     }
-
+            
     public integer TotalActivityDaysforMonth()
     {
+        //this method gets the total activity days for the time range
         List <Report> reportList = [SELECT Id,DeveloperName FROM Report where
                                     DeveloperName = 'QA_Total_Activity_Days'];
         String reportId = (String)reportList.get(0).get('Id');
@@ -61,7 +72,7 @@ public class QAMonthlyController extends QAReports{
         Reports.ReportResults results = Reports.ReportManager.runReport(reportId, rm, true);
         Reports.Dimension dim = results.getGroupingsDown();
         List<Reports.GroupingValue> groupingVal = dim.getGroupings();
-        List<String> factMapKeys = new List<String>();
+        List<String> factMapKeys = new List<String>(); 
         Integer tots = 0;
         for (Reports.GroupingValue gV : groupingVal)
         {
@@ -72,14 +83,14 @@ public class QAMonthlyController extends QAReports{
             List<Reports.ReportDetailRow> detailRows = factDetails.getRows();
             List<Reports.ReportDataCell> firstRowCells = detailRows[0].getDataCells();
             date startCamp = date.valueOf(firstRowCells[0].getValue());
-            date endCamp = date.valueOf(firstRowCells[1].getValue());
+            date endCamp = date.valueOf(firstRowCells[1].getValue());            
             Integer actDays = startCamp.daysBetween(endCamp) + 1;
             Integer campADays = detailRows.size() * actDays;
             tots = tots + campADays;
-        }
-        return tots;
+        }        
+        return tots;        
     }
-
+    
     public void ParticipantsMonthly()
     {
         List <Report> reportList = [SELECT Id,DeveloperName FROM Report where
@@ -99,11 +110,10 @@ public class QAMonthlyController extends QAReports{
 
         // Get detail columns
         List<String> columnFields = rm.getDetailColumns();
-        System.debug('Detail columns: ' + columnFields);
         Integer numOfColumns = columnFields.size();
 
         // Get report format
-        System.debug('Report format: ' + rm.getReportFormat());
+        //System.debug('Report format: ' + rm.getReportFormat());
         // Get the down-groupings in the report
         Reports.Dimension dim = results.getGroupingsDown();
         List<Reports.GroupingValue> groupingVal = dim.getGroupings();
@@ -114,28 +124,19 @@ public class QAMonthlyController extends QAReports{
         {
             Boolean firstTimer = false;
             participantInfo participant = new participantInfo();
-            System.debug('Key: ' + gV.getKey());
             participant.Name = gv.getLabel();
-            System.debug('Label: ' + participant.Name);
-            System.debug('Value: ' + gV.getValue());
             // Construct a fact map key, using the grouping key value
             String factMapKey = gV.getKey() + '!T';
-            system.debug('factMapKey for grouping = ' + factMapKey);
             factMapKeys.add(factMapKey);
-
             // Get the fact map for this grouping from the report results
             Reports.ReportFactWithDetails factDetails =
                 (Reports.ReportFactWithDetails)results.getFactMap().get(factMapKey);
-
             // Get the summary amounts from the fact map it should be
             // Total Adventures, Total Activity Days and Total records
             List<Reports.SummaryValue> sumVal = factDetails.getAggregates();
             participant.totCamp = integer.valueOf(sumVal[0].getValue());
-            System.debug('Summary Value (total campaigns): ' + participant.totCamp);
             participant.totActDays = integer.valueOf(sumVal[1].getValue());
             totalMAD = totalMAD + participant.totActDays;
-            System.debug('Summary Value (total activity days for participant): ' + participant.totActDays);
-
             // Get the fields value for the grouping
             List<Reports.ReportDetailRow> detailRows = factDetails.getRows();
             List<adventure> advs = new List<adventure>();
@@ -148,8 +149,8 @@ public class QAMonthlyController extends QAReports{
                 adv.sdate = dataCells[1].getLabel();
                 adv.ActivityDays = integer.valueOf(dataCells[2].getValue());
                 adv.Attended = boolean.valueOf(dataCells[3].getValue());
-                adv.Staff = boolean.valueOf(dataCells[4].getValue());
-                integer overallActDays = integer.valueOf(dataCells[8].getValue());
+                adv.Staff = boolean.valueOf(dataCells[4].getValue());                
+                integer overallActDays = integer.valueOf(dataCells[8].getValue());                
                 if (firstAdventure)
                 {
                   participant.firstTime = participant.totActDays >= overallActDays;
@@ -157,16 +158,13 @@ public class QAMonthlyController extends QAReports{
                   {
                       totNewParticipants++;
                       if (boolean.valueOf(dataCells[5].getValue()))
-                          participant.typeOfMember = 'Participant';
+                          participant.typeOfMember = 'Member';
                       else
                           participant.TypeOfMember = boolean.valueOf(dataCells[6].getValue()) ? 'Family/Friend' : 'Caregiver';
                   }
-                  firstAdventure = false;
+                    firstAdventure = false;
                 }
                 advs.add(adv);
-                system.debug('adventure row: Campaign '+adv.Name+' date '+adv.sdate+' actDays '+adv.ActivityDays+
-                             ' attended '+adv.Attended+ ' Staff '+adv.Staff);
-                //System.debug(detailRow.getDataCells()[0].getLabel());
             }
             participant.adventures = advs;
             if (participant.totCamp > 1 && participant.totActDays > 0 && ! participant.adventures[0].Staff)
@@ -174,6 +172,74 @@ public class QAMonthlyController extends QAReports{
             if (!advs[0].Staff) participants.add(participant);
         }
         totalParticipants = participants.size();
+    }
+    
+    private void prepareLinesForPrinting()
+    {
+        integer counter = 0; // includes the header for the page
+        allPages = new List<OnePage>();
+        OnePage aPage = new OnePage();
+        for (participantInfo pI : participants)
+        {
+            counter = counter + 2 + pI.adventures.size();
+            if (counter > breakPoint)
+            {
+                breakPoint = subseqPageBrakes;
+                allPages.add(aPage);
+                aPage = new OnePage();
+                counter = 0;
+            }
+            else
+            {
+                aPage.allParticipants.add(pI);
+            }           
+        }
+        if (aPage.allParticipants.size() > 0) allPages.add(aPage);
+        participantPages = allPages.size();
+        OnePage SUpage = new OnePage(); //Pages with new-sign-ups
+        counter = counter + 5; //includes the header for new-sign-ups
+        sUPages = new List<OnePage>();
+        integer totalLines = counter + newSignUps.size();
+        newPage = false;
+        boolean firstOfFirst = true;
+        if (totalLines > breakPoint)
+        {
+            for (participantInfo pI : newSignUps)
+            {
+                if (counter > breakPoint)
+                {
+                    if (SUpage.allParticipants.size() > 0) 
+                    {
+                        sUpages.add(SUpage);
+                        counter = 0;
+                        SUpage = new OnePage();
+                        firstOfFirst = false;
+                    }
+                    else 
+                        newPage =  firstOfFirst;
+                }
+                else
+                {
+                    SUpage.allParticipants.add(pI);
+                }
+                
+            }
+            if (SUpage.allParticipants.size() > 0) sUpages.add(SUpage);
+            firstOfFirst = false;
+        }
+        else
+        {
+            SUpage.allParticipants = newSignUps;
+            sUpages.add(SUpage);            
+        } 
+    }
+    
+    public class OnePage{
+        public List<participantInfo> allParticipants{get;set;}
+        public OnePage()
+        {
+            this.allParticipants = new List<participantInfo>();
+        }
     }
 
 }

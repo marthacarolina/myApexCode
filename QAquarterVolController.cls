@@ -2,35 +2,39 @@ public class QAquarterVolController{
     public List<volunteer> volunteers{get;set;}
     public Integer totNewVolunteers{get;set;}
     public String quarter {get;set;}
-    public Fee__c forDate{get;set;}
+    public String forDate {get;set;}
+    public String forTime {get;set;}
     public decimal qTot_Vol_Hours {get;set;}
     public Integer tot_Volunteers {get;set;}
+    public String beginRange;
+    public String endRange;
 
     public void QAquarterVolController() {
-        totNewVolunteers = 0;
+        totNewVolunteers = 0;       
     }
 
     public void QAquarterly()
     {
-        totNewVolunteers = 0;
+        totNewVolunteers = 0;       
         tot_Volunteers = 0;
         qTot_Vol_Hours = 0;
-        forDate = new Fee__c(Effective_Date__c = date.today());
+        datetime theDate = system.now();
+        forDate = string.valueOf(theDate.date().format());
+        integer minutes = theDate.time().minute();
+        string stMinutes = minutes > 9 ? string.valueOf(minutes) : '0' + string.valueOf(minutes);
+        forTime = string.valueOf(theDate.time().hour()) + ':'+ stMinutes;
         String[] beginDates = new String[] {'-01-01', '-04-01', '-07-01', '-10-01'};
-            String[] endDates = new String[] {'-03-31', '-06-30', '-09-30', '-12-31'};
-                //get the parameters q - quarter and y - year
-                String qStr = ApexPages.currentPage().getParameters().get('q');
+        String[] endDates = new String[] {'-03-31', '-06-30', '-09-30', '-12-31'};
+        //get the parameters q - quarter and y - year
+        String qStr = ApexPages.currentPage().getParameters().get('q');
         Integer qNum = integer.valueOf(qStr);
         String[] quarters = new String[]{'1st Quarter', '2nd Quarter', '3rd Quarter', '4th Quarter'};
-            quarter = quarters[qNum - 1];
-        system.debug('qNum = ' + qNum);
+            quarter = quarters[qNum];
         String year = ApexPages.currentPage().getParameters().get('y');
         //set up the date for the begining and ending of the range
-        String beginRange = year + beginDates[qNum - 1];
+        beginRange = year + beginDates[qNum];
         date beginQuarter = date.valueOf(beginRange);
-        String endRange = year + endDates[qNum - 1];
-        system.debug('beginRange = '+ beginRange);
-        system.debug('endRange = ' + endRange);
+        endRange = year + endDates[qNum];
         List<Report> reportList = [SELECT Id, DeveloperName FROM Report where
                                     DeveloperName = 'Volunteer_Hours_QA'];
         String reportId = (String)reportList.get(0).get('Id');

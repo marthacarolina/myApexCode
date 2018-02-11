@@ -5,7 +5,7 @@ public class QAquarterVolController_Test {
         //instantiate page
         PageReference QAqReport = page.QAquarterlyVolVF;
         test.setCurrentPage(QAqReport);
-        ApexPages.currentPage().getParameters().put('q', '1');
+        ApexPages.currentPage().getParameters().put('q', '0');
         ApexPages.currentPage().getParameters().put('y', '2017');
         QAquarterVolController controller = new QAquarterVolController();
         controller.QAquarterly();
