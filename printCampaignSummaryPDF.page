@@ -1,0 +1,59 @@
+<apex:page controller="printCampaignSummary" renderAs="PDF" showHeader="false">
+    <div class="header" align="center">
+        <h3 style="font-color:#0f846d; font-family: Tahoma, Geneva, sans-serif;">Campaign Summary for
+        <br/>{!campaign.name}</h3>
+    </div>
+    <table width="100%">
+        <tr width="100%">
+            <td width="60%" align="left">
+                <h4>Adventure Type: {!campaign.Type}</h4>  
+                Start Date: {!campaign.StartDate}    End Date: {!campaign.EndDate}            
+                <apex:outputText Value="Adventure Description: {!campaign.Description}" rendered="{! NOT(ISBLANK(campaign.Description))}"/>
+                <apex:outputText Value="Activity Miles: {!campaign.Activity_Miles__c}" rendered="{! NOT(ISBLANK(campaign.Activity_Miles__c))}"  />
+                Total Participans in the Adventure: {!campaign.Head_Count__c}
+                <h4>Total Activity Days: totAllInclusiveActDays</h4>
+                <h4>Total Participants Experiencing their 1st Adventure: {!totNewParticipants}</h4>
+                <h4>Total Volunteers: {!volCampaign.GW_Volunteers__Number_of_Volunteers__c}</h4>
+                <h4>Total Volunteer Hours: {!volCampaign.GW_Volunteers__Volunteer_Completed_Hours__c}</h4>
+            </td>
+            <td width="40%" align="right">
+                <apex:image value="{!URLFOR($Resource.advancedpdfresource, 'logo.png')}"/>
+            </td>
+        </tr>
+    </table>
+    Adventure Costs
+    <table width="100%">
+        <tr width="100%">
+            <td width="25%">Contract/Reservation Fee</td>
+            <td width="25%">Fees</td>
+            <td width="25%">Salary and Wages</td>
+            <td width="25%">Supplies</td>                            
+        </tr>
+        <tr width="100%">
+            <td width="25%">{!campaign.Contract_Reservation_Fee__c}</td>
+            <td width="25%">{!campaign.Fee_paid_by_DA__c}</td>
+            <td width="25%">{!campaign.Salary_Wages__c}</td>
+            <td width="25%">{!campaign.Supplies_Cost__c}</td>                            
+        </tr>
+    </table>
+    <table>
+    </table>
+
+    <apex:repeat value="{!participants}" var="participant" id="CMList">
+    <hr class="list" />Participants
+                <table width="100%">
+                    <tr width="100%" class="member">
+                        <td width ="40%" >
+                            <apex:outputText value="{!participant.Name}" />
+                            <apex:outputText value="{!IF(participant.isNew,"   ** NEW **","")}" style="font-color:green; align:right;" />
+                        </td>
+                        <td width = "30%">
+                            <apex:outputText value="{!participant.Status}" />
+                        </td>
+                        <td width = "30%">
+                            <apex:outputText value="Total Activity Days: {!participant.activityDays}" />
+                        </td>
+                    </tr>
+                </table>
+    </apex:repeat>
+</apex:page >
