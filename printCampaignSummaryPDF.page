@@ -18,7 +18,7 @@
                     <tr width="100%">                                      
                         <td width="35%" align="right" style="font-size:10pt;">Start Date: </td>
                         <td width="65%" align="left" style="font-weight:bold;font-size:12pt;">
-                            <apex:outputText value="{0,date,MM'/'DD'/'YYYY}">
+                            <apex:outputText value="{0,date,MM/dd/yy}">
                                 <apex:param value="{!campaign.StartDate}" />
                             </apex:outputText>
                         </td>
@@ -26,7 +26,7 @@
                     <tr width="100%">
                         <td width="35%" align="right" style="font-size:10pt;">End Date: </td>
                         <td width="65%" align="left" style="font-weight:bold;font-size:12pt;">
-                            <apex:outputText value="{0,date,MM'/'DD'/'YYYY}">
+                            <apex:outputText value="{0,date,MM/dd/yy}">
                                 <apex:param value="{!campaign.EndDate}" />
                             </apex:outputText>
                         </td>
@@ -144,12 +144,13 @@
     </div>
     <!-- ---------------- If there are any paticipants --------------- -->
     <div style="{!if(noParticipants,'display:none;','display:block;')}">    
-        <span style="font-family: Tahoma, Geneva, sans-serif;">Participants</span>
         <apex:variable var="cnt" value="{!0}" />
         <apex:repeat value="{!pPages}" var="pPage" id="theList">
             
             <div style="{!if(cnt < 1, 'page-break-before:avoid;','page-break-before:always;')}">
                 <apex:variable var="cnt" value="{!cnt+1}"/>  
+                <span style="font-family: Tahoma, Geneva, sans-serif;">Participants</span>
+                <apex:outputText style="font-size:10pt;font-style: italic;" value="  ...continues" rendered="{!if(cnt>1,true,false)}"/>
                 <!-- --------- this table displays the header for Participants --------- -->
                 <table width="100%">
                     <tr width="100%">
@@ -245,9 +246,9 @@
                 </td>
             </tr>
         </table>
-        <!-- ---------- End of volunteer list ---------------->    
+        <!-- ---------- End of volunteer list -------------- -->    
         <hr class="list" /> 
-        <!--------------- this table displays the list of volunteers -------------->
+        <!-- ------------- this table displays the list of volunteers ------------ -->
         <apex:repeat value="{!volunteers}" var="vol" id="volList">
             <table width="100%">
                 <tr width="100%">
