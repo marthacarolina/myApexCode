@@ -238,11 +238,20 @@ public class printCampaignSummary {
             this.ActivityDays = integer.valueOf(cm.Activity_Days__c);
             this.Party_of = integer.valueOf(cm.Party_of__c);
             if (cont.FirstAdventureDate__c == cDate) this.isNew = true;
-            this.Type = 'Participant';
-            if (cont.Participant__c) this.type = 'Member';
-            if (cont.Caregiver__c) this.type = 'Caregiver';
-            if (cont.Relationship_w_Participant__c) this.type = 'FoF';
+            if (cm.status == 'Staff') 
+            {
+                this.Type = cm.status;
+            }
+            else 
+            {
+                this.Type = 'Participant';
+                if (cont.Participant__c) this.type = 'Member';
+                else 
+                    if (cont.Caregiver__c) this.type = 'Caregiver';
+                    else if (cont.Relationship_w_Participant__c) this.type = 'FoF';
+            }
         }
+        
         public partcpnt(){}
     }
     
