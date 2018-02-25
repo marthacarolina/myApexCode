@@ -7,7 +7,6 @@
 public class printMemberInfoMeds {
     private final id memberID;
     public boolean noMeds {get;set;}
-    public List<Medication__c> Meds {set;}
     public String forDate {get;set;}
     public String forTime {get;set;}
     
