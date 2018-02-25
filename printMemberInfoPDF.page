@@ -1,0 +1,574 @@
+<apex:page standardController="Contact"  renderAs="PDF" showHeader="false" extensions="printMemberInfoMeds" >
+    <!--   Martha Vance  2/24/18  -->
+    
+    <!-- Include the style sheet to use with PDF's -->
+    <apex:stylesheet value="{!URLFOR($Resource.advancedpdfresource, 'QAReportPDF.css')}"/>
+
+    <!-- Header for pages  -->    
+    <div class="header">           
+        <table width = "100%">
+            <tr width="100%"> 
+                <td width="70%" align="left">
+                    <span style="font-color:#0f846d; font-family: Tahoma, Geneva, sans-serif;font-size:14pt;font-weight:bold;">
+                        {!contact.Name}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    </span>        
+                    <span style="font-color:#0f846d; font-family: Tahoma, Geneva, sans-serif;font-size:12pt;">
+                        {!contact.HomePhone}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        {!contact.Email}
+                    </span> 
+                </td>
+                <td width="30%" align="right">
+                    <span style="font-color:#0f846d; font-family: Tahoma, Geneva, sans-serif;font-size:10pt;">
+                        <apex:outputText value="{!if(contact.Media_Release__c,'','No Media Release')}" />
+                    </span>
+                </td>
+            </tr>
+        </table>
+        <hr />
+    </div>
+    <!-- End of Header for pages  -->    
+    
+    <!--  Member Info    -->
+    <div>
+        <table width="100%">
+            <tr width ="100%">
+                <td width = "20%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Address: " />
+                </td>
+                <td width = "80%" class="regular">
+                    <apex:outputText value="{!contact.MailingStreet}, " />
+                    <apex:outputText value="{!contact.MailingCity}, " />
+                    <apex:outputText value="{!contact.MailingState} " />
+                    <apex:outputText value="{!contact.MailingPostalCode}" />                    
+                </td>
+            </tr>
+        </table>
+        <table width="100%">            
+            <tr width = "100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Emergency Contact: " />
+                </td>
+                <td width = "25%" class="regular">
+                    <apex:outputText value="{!contact.Emergency_Contact_Name__c}" />
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Emergency Contact Phone: " />
+                </td>
+                <td width = "25%" class="regular">
+                    <apex:outputText value="{!contact.Emergency_Phone__c}" />
+                </td>
+                
+            </tr>
+            <tr width = "100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Emergency Contact Email: " />
+                </td>
+                <td width = "25%" class="regular">
+                    <apex:outputText value="{!contact.Emergency_Email__c}" />
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Emergency Contact Relationship: " />
+                </td>
+                <td width = "25%" class="regular">
+                    <apex:outputText value="{!contact.Relationship__c}" />
+                </td>
+            </tr>            
+            <tr width = "100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Disability: " />
+                </td>
+                <td width = "25%" class="regular">
+                    <apex:outputText value="{!contact.Disability__c}" />
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Disability is Congenital" rendered="{!if(contact.Congenital__c, true, false)}" />
+                </td>
+                <td width = "25%" class="regular">
+                    <apex:outputText value="" />
+                </td>
+            </tr>
+            <tr width = "100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Other Disability: " />
+                </td>
+                <td width = "25%">
+                    <apex:outputText value="{!contact.Other_Disability__c}" />
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Acquired at age: " rendered="{!if(NOT(contact.Congenital__c),true,false)}" />
+                </td>
+                <td width = "25%" class="regular">
+                    <apex:outputText value="{!contact.Acquired_at_Age__c}" rendered="{!if(NOT(contact.Congenital__c),true,false)}" />
+                </td>
+            </tr>
+            <tr width = "100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Disability Additional Info: " />
+                </td>
+                <td width = "25%" class="regular">
+                    <apex:outputText value="{!contact.Additional_Info_Related_to_Disability__c}" />
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="" />
+                </td>
+                <td width = "25%" class="regular">
+                    <apex:outputText value="" />
+                </td>
+            </tr>
+        </table>
+        <!-- End of Member info  -->    
+
+        <hr />
+        <!-- Start Member Mobility and Physical Support  -->    
+
+        <div style="font-family:Tahoma, Geneva,sans-serif;font-size:11pt;">
+            Mobility And Physical Support
+        </div>
+        <table width = "100%">
+            <tr width = "100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Assistive Aides: " />
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Type_of_Assistive_Aides__c}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Other Assitive Aids: " />
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Other_Assistive_Aides__c}" />                    
+                </td>           
+            </tr>            <tr width = "100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Hand Grip: " />
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Hand_Grip__c}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Propulsion Navigation: " />
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Propulsion_navigation__c}" />                    
+                </td>           
+            </tr>
+            <tr>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Physical Endurance:" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Physical_Endurance__c}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Transfers: " />
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Transfers__c}" />                    
+                </td>             
+            </tr>
+            <tr>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Pressure sores/skin breakdown: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!if(contact.Skin_problems__c,'Yes','No')}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Balance: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Balance__c}" />                    
+                </td>
+            </tr>
+            <tr>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Muscle Spasms or tone: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!if(contact.Muscle_Spasms__c,'Yes','N/A')}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Hand-Eye Coordination: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Hand_Eye_Coordination__c}" />                    
+                </td>
+            </tr>
+            <tr>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Concerns with Temperature: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!if(contact.Temperature_concerns__c,'Yes','No')}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="ADL Assistance: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!if(contact.ADL_Assitance__c,'Yes','No')}" />                    
+                </td>
+            </tr>
+            <tr>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Member Drives: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!if(contact.Driver__c,'Yes','No')}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Uses Public Transportation: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Public_Transportation__c}" />                    
+                </td>
+            </tr>
+        </table>
+        <table width = "100%">
+            <tr width = "100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Aditional Details: " />                    
+                </td>
+                <td width = "75%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Mobility_Additional_Details__c}" />                    
+                </td>               
+            </tr>            
+        </table>
+        <!-- END of  Start Member Mobility and Physical Support  -->    
+
+        <!-- Start Member Sensory Concerns. This section only prints if there are concerns  -->    
+        
+        <hr />
+        <div style="display:{!if(contact.Sensory_Sensitivities__c = 'No concerns','none', 'block')};" >            
+            <div style="font-family:Tahoma, Geneva,sans-serif;font-size:11pt;">
+                Sensory Concerns
+            </div> 
+            <table width="100%">
+                <tr width="100%">
+                    <td width = "10%" style="font-size:10pt;" align="right">
+                        <apex:outputText value="Sensitivity: " />                    
+                    </td>
+                    <td width = "40%" style="font-size:10pt;">
+                        <apex:outputText value="{!contact.Sensory_Sensitivities__c}" />                    
+                    </td>
+                    <td width = "25%" style="font-size:10pt;" align="right">
+                        <apex:outputText value="Assistive Technology: " />                    
+                    </td>
+                    <td width = "25%" style="font-size:10pt;">
+                        <apex:outputText value="{!contact.Assistive_Tech__c}" />                    
+                    </td>
+                </tr> 
+                <tr width="100%">
+                    <td width = "10%" style="font-size:10pt;" align="right">
+                        <apex:outputText value="Details: " />                    
+                    </td>
+                    <td width = "40%" style="font-size:10pt;">
+                        <apex:outputText value="{!contact.Sensory_Details__c}" />                    
+                    </td>
+                    <td width = "25%" style="font-size:10pt;" align="right">
+                        <apex:outputText value="" />                    
+                    </td>
+                    <td width = "25%" style="font-size:10pt;">
+                        <apex:outputText value="" />                    
+                    </td>
+                </tr>                     
+            </table>
+        </div>
+        <!-- END of Member Sensory Concerns  -->    
+
+        <!-- Start Member Behavioral Support  -->            
+        <hr />
+        <div style="font-family:Tahoma, Geneva,sans-serif;font-size:11pt;">
+            Behavioral Support
+        </div> 
+        <table width="100%">
+            <tr width="100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Behavior: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Behavior__c}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Toileting Hygine: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Toileting__c}" />                    
+                </td>
+            </tr> 
+            <tr width="100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Behavioral Support (1:1): " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!if(contact.Behavioral_Support__c,'Yes','No')}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Maintains Social Behavior:" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Social_Behavior__c}" />                    
+                </td>
+            </tr>  
+            <tr width="100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Behavior Details:" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Behavior_Details__c}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Redirection to task: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Redirection__c}" />                    
+                </td>                
+            </tr>                 
+        </table>            
+
+        <!-- END of Member Behavioral Support  -->  
+        
+        <!-- Start Member Cognition and Processing  -->                    
+        <hr />
+        <div style="font-family:Tahoma, Geneva,sans-serif;font-size:11pt;">
+            Cognition and Processing
+        </div> 
+        <table width="100%">
+            <tr width="100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="No Concerns: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!if(contact.Cognition_No_Concerns__c,'Yes','No')}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Language: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Language__c}" />                    
+                </td>
+            </tr> 
+            <tr width="100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Educational: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Educational__c}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Follows Directions:" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Follows_Directions__c}" />                    
+                </td>
+            </tr>  
+            <tr width="100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Social:" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Social__c}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Attention to task: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Attention_to_Task__c}" />                    
+                </td>                
+            </tr>                 
+            <tr width="100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Verbal Communication:" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!if(contact.Verbal_Communication__c,'Yes','No')}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Frustration Tolerance: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Frustration_Tolerance__c}" />                    
+                </td>                
+            </tr>
+            <tr width="100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Primary Mode of Communication:" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Mode_of_Communication__c}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Problem Solving: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Problem_Solving__c}" />                    
+                </td>                
+            </tr>
+            <tr width="100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Learning Style:" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Learning_Style__c}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="" />                    
+                </td>                
+            </tr>
+        </table>        
+        <!-- END of Member Cognition and Processing  -->                    
+
+        <!-- Start Member General Activity Information  -->                    
+        <hr />
+        <div style="font-family:Tahoma, Geneva,sans-serif;font-size:11pt;">
+            General Activity Information
+        </div> 
+        <table width="100%">
+            <tr width="100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Favorite Activities or Topics: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Favorite_Activities__c}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Family Do's and Dont's: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Family_dos_donts__c}" />                    
+                </td>
+            </tr> 
+            <tr width="100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Fears or Dislikes: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Fears_or_Dislikes__c}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Other Information:" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.General_Activity_Other__c}" />                    
+                </td>
+            </tr>  
+            <tr width="100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Goals:" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Goals__c}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="" />                    
+                </td>                
+            </tr>                 
+        </table>  
+        <hr /> 
+        <table width="100%">
+            <tr width="100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Weight: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Weight__c}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Height: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Height__c}" />                    
+                </td>
+            </tr> 
+            <tr width="100%">
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="T-shirt Size: " />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!contact.Tshirt_Size__c}" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;" align="right">
+                    <apex:outputText value="Media Release Permission:" />                    
+                </td>
+                <td width = "25%" style="font-size:10pt;">
+                    <apex:outputText value="{!if(contact.Media_Release__c,'Yes','No')}" />                    
+                </td>
+            </tr>                 
+        </table>
+    </div>
+        <!-- Start Member General Activity Information  -->                    
+    
+    <!-- ----------------------  FOOTER   --------------------------- -->
+    <div class="footer" style="font-size:60%;">
+        <table width="100%">
+            <tr width = "100%">
+                <td width="33%">
+                    <apex:outputText value="Prepared by: {!$User.FirstName} {!$User.LastName}" />
+                </td>
+                <td width="33%" align="center">
+                    <span>Page </span><span class="pagenumber"></span><span> of </span>
+                    <span class="pagecount"></span>
+                </td>
+                <td width="33%" align="right">
+                    <apex:outputText value="{!Now()}"/>                    
+                </td>
+            </tr>
+        </table>
+    </div>     
+    <!-- ----------------------  END FOOTER   --------------------------- --> 
+    
+    <!--  Medication list -- New Page --  Only prints if there are Medications  -->
+    
+    <div style="display:{!if(noMeds,'none','block')};">
+        <div style="page-break-before: always">
+            <div style="font-family:Tahoma, Geneva,sans-serif;font-size:11pt;" align="center">
+                Medications
+            </div> 
+            <hr />
+            <table width="100%">
+                <tr width="100%">
+                    <td width="25%" align="center" style="font-family:Tahoma, Geneva,sans-serif;font-size:11pt;font-weight:bold;">
+                        Medication Name
+                    </td>
+                    <td width="15%" align="center" style="font-family:Tahoma, Geneva,sans-serif;font-size:11pt;font-weight:bold;">
+                        Dose
+                    </td>
+                    <td width="25%" align="center" style="font-family:Tahoma, Geneva,sans-serif;font-size:11pt;font-weight:bold;">
+                        Frequency
+                    </td>
+                    <td width="35%" align="center" style="font-family:Tahoma, Geneva,sans-serif;font-size:11pt;font-weight:bold;">
+                        Notes
+                    </td>
+                </tr>
+            </table>
+            <hr class="list"/>
+            <apex:repeat value="{!Meds}" var="med" >
+                <Table width="100%">
+                    <tr width="100%">
+                        <td width="25%" align="center">
+                            <apex:outputText value="{!med.Name}" />
+                        </td>
+                        <td width="15%" align="center">
+                            <apex:outputText value="{!med.Dose__c}" />
+                        </td>
+                        <td width="25%" align="center">
+                            <apex:outputText value="{!med.Frequency__c}" />
+                        </td>
+                        <td width="35%" align="center">
+                            <apex:outputText value="{!med.Notes__c}" />
+                        </td>
+                    </tr>
+                </Table>
+                <hr class="list" />
+            </apex:repeat>
+        </div>
+    </div>
+    <!--  END of Medication list -- New Page --  Only prints if there are Medications  -->
+    
+
+</apex:page>
