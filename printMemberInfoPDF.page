@@ -514,7 +514,7 @@
                     <span class="pagecount"></span>
                 </td>
                 <td width="33%" align="right">
-                    <apex:outputText value="{!Now()}"/>                    
+                    <apex:outputText value="{!forDate}  {!forTime}"/>                     
                 </td>
             </tr>
         </table>
