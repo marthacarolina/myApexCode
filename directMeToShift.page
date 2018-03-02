@@ -1,0 +1,4 @@
+<!-- This VF pages calls the apex class directMeToShift to pull up the Volunteer Shift for the adventure   -->
+<!--    Martha Vance Feb 2018  -->
+<apex:page Standardcontroller="Campaign" extension="reDirecting" showHeader="false" action="{!sendMe}">
+</apex:page>
