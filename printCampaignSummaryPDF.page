@@ -1,0 +1,300 @@
+<apex:page Controller="printCampaignSummary" renderAs="PDF" showHeader="false" action="{!autoRun}">
+    <!-- ---------------     Load the style sheet for the report    ----------------- -->
+    <apex:stylesheet value="{!URLFOR($Resource.advancedpdfresource, 'QAReportPDF.css')}"/>
+    <div class="header" align="center">
+        <h3 style="font-color:#0f846d; font-family: Tahoma, Geneva, sans-serif;">Adventure Summary for
+            <br/>{!campaign.name}</h3>
+    </div>
+   
+    <!-- this table displays the details of the campaign on the left side and the DA logo on the right side -->
+    <table width="100%">
+        <tr width="100%">
+            <td width="60%" align="left">
+                <table>
+                    <tr width="100%">   
+                        <td width="35%" align="right" style="font-size:10pt;">Adventure Type: </td>
+                        <td width="65%" align="left" style="font-weight:bold;font-size:12pt;">{!campaign.Type}</td>
+                    </tr>
+                    <tr width="100%">                                      
+                        <td width="35%" align="right" style="font-size:10pt;">Start Date: </td>
+                        <td width="65%" align="left" style="font-weight:bold;font-size:12pt;">
+                            <apex:outputText value="{0,date,MM/dd/yy}">
+                                <apex:param value="{!campaign.StartDate}" />
+                            </apex:outputText>
+                        </td>
+                    </tr> 
+                    <tr width="100%">
+                        <td width="35%" align="right" style="font-size:10pt;">End Date: </td>
+                        <td width="65%" align="left" style="font-weight:bold;font-size:12pt;">
+                            <apex:outputText value="{0,date,MM/dd/yy}">
+                                <apex:param value="{!campaign.EndDate}" />
+                            </apex:outputText>
+                        </td>
+                    </tr>
+                    <tr width="100%">
+                        <td width="35%" align="right" style="font-size:10pt;">
+                            <apex:outputText Value="Activity Miles: " rendered="{! NOT(ISBLANK(campaign.Activity_Miles__c))}" />
+                        </td>
+                        <td width="65%" align="left" style="font-size:12pt;">
+                            <apex:outputText Value="{!campaign.Activity_Miles__c}" rendered="{! NOT(ISBLANK(campaign.Activity_Miles__c))}"  />
+                        </td>
+                    </tr>
+                    <tr width="100%">
+                        <td width="35%" align="right" style="font-size:10pt;">Participans in Adventure: </td>
+                        <td width="65%" align="left" style="font-weight:bold;font-size:12pt;">{!campaign.Head_Count__c}</td>
+                    </tr>
+                    <tr width="100%">
+                        <td width="35%" align="right" style="font-size:10pt;">New Participants:</td>
+                        <td width="65%" align="left" style="font-weight:bold;font-size:12pt;">{!totNewParticipants}</td>
+                    </tr>                    <tr width="100%">                   
+                        <td width="35%" align="right" style="font-size:10pt;">Total Activity Days: </td>
+                        <td width="65%" align="left" style="font-weight:bold;font-size:12pt;">{!totAllInclusiveActDays}</td>
+                    </tr>
+                    <tr width="100%">
+                        <td width="35%" align="right" style="font-size:10pt;">Total Volunteers:</td>
+                        <td width="65%" align="left" style="font-weight:bold;font-size:12pt;">{!volCampaign.GW_Volunteers__Number_of_Volunteers__c}</td>
+                    </tr>
+                    <tr width="100%">
+                        <td width="35%" align="right" style="font-size:10pt;">Total Volunteer Hours:</td> 
+                        <td width="65%" align="left" style="font-weight:bold;font-size:12pt;">{!volCampaign.GW_Volunteers__Volunteer_Completed_Hours__c}</td>
+                    </tr>
+                </table>
+            </td>
+            <td width="40%" align="right" style="vertical-align:top">
+                <apex:image value="{!URLFOR($Resource.advancedpdfresource, 'logo.png')}"/>
+            </td>
+        </tr>
+    </table>
+    <!-- ----------  End of details ------------------ -->
+
+    <!-- ---------------------  This table displays the description of the campaign if it's not null----------------------- -->
+    <table>
+        <tr width="100%">
+            <td width="20%" align="right" style="font-size:10pt;vertical-align:top;">
+                <apex:outputText Value="Adventure Description: " rendered="{! NOT(ISBLANK(campaign.Description))}"/>
+            </td>
+            <td width="80%" align="left" style="font-size:10pt;">
+                <apex:outputText Value="{!campaign.Description}" rendered="{! NOT(ISBLANK(campaign.Description))}"/>
+            </td>
+        </tr>
+    </table>
+    <!-- ----------------------  end of campaign description  ------------------------ -->
+    
+    <br/>
+    
+    <!-- ----------- this table displays the costs for the campaign ----------- -->
+    <span style="font-family: Tahoma, Geneva, sans-serif;">Costs</span>
+    <div style="border-style: solid;">
+        <table width="100%">
+            <tr width="100%" >
+                <td width="25%" align="center" style="font-size:10pt;">Contract/Reservation Fee</td>
+                <td width="25%" align="center" style="font-size:10pt;">Fees</td>
+                <td width="25%" align="center" style="font-size:10pt;">Salary and Wages</td>
+                <td width="25%" align="center" style="font-size:10pt;">Supplies</td>                            
+            </tr>
+            <tr width="100%">
+                <td width="25%" align="center" style="font-size:10pt;">${!if(ISNULL(campaign.Contract_Reservation_Fee__c),'0.00',campaign.Contract_Reservation_Fee__c)}</td>
+                <td width="25%" align="center" style="font-size:10pt;">${!if(ISNULL(campaign.Fee_paid_by_DA__c),'0.00',campaign.Contract_Reservation_Fee__c)}</td>
+                <td width="25%" align="center" style="font-size:10pt;">${!if(ISNULL(campaign.Salary_Wages__c) , '0.0', campaign.Salary_Wages__c)}</td>
+                <td width="25%" align="center" style="font-size:10pt;">${!if(ISNULL(campaign.Supplies_Cost__c ), '0.0', campaign.Supplies_Cost__c)}</td>                            
+            </tr>
+        </table>
+        <table width="100%">
+            <tr width="100%" >
+                <td width="25%" align="center" style="font-size:10pt;">Transportation Rental</td>
+                <td width="25%" align="center" style="font-size:10pt;">Transportation Gas</td>
+                <td width="25%" align="center" style="font-size:10pt;"></td>
+                <td width="25%" align="center" style="font-size:10pt;">Total Costs</td>                            
+            </tr>
+            <tr width="100%">
+                <td width="25%" align="center" style="font-size:10pt;">${!if(ISNULL(campaign.Transportation_Rental__c ),'0.00',campaign.Transportation_Rental__c)}</td>
+                <td width="25%" align="center" style="font-size:10pt;">${!if(ISNULL(campaign.Transportation_Gas__c),'0.00', campaign.Transportation_Gas__c)}</td>
+                <td width="25%" align="center" style="font-size:10pt;"></td>
+                <td width="25%" align="center" style="font-size:10pt;font-weight:bold;">${!if(ISNULL(campaign.ActualCost),'0.00',campaign.ActualCost)}</td>                            
+            </tr>
+        </table>
+    </div>
+    <!-- ----------- End of costs for the campaign ----------- -->
+    
+    <!-- ----------- Income from the campaign ----------- -->
+    <br />
+    <span style="font-family: Tahoma, Geneva, sans-serif;font-size:12pt;">Income  </span>
+    <span style="font-family: Tahoma, Geneva, sans-serif;font-size:10pt;">(Fees)</span>    
+    <table width="100%" style="border-style: solid;">
+        <tr width="100%" >
+            <td width="25%" align="center" style="font-size:10pt;">Number of Opportunities</td>
+            <td width="25%" align="center" style="font-size:10pt;">Total Amount of Opportunities</td>
+            <td width="25%" align="center" style="font-size:10pt;">Number of Unpaid Oppys</td>
+            <td width="25%" align="center" style="font-size:10pt;">Total Amount Won</td>                            
+        </tr>
+        <tr width="100%">
+            <td width="25%" align="center" style="font-size:10pt;">{!campaign.NumberOfOpportunities}</td>
+            <td width="25%" align="center" style="font-size:10pt;">${!campaign.AmountAllOpportunities}</td>
+            <td width="25%" align="center" style="font-size:10pt;">{!campaign.NumberOfOpportunities - campaign.NumberOfWonOpportunities}</td>
+            <td width="25%" align="center" style="font-size:10pt;font-weight:bold;">${!campaign.AmountWonOpportunities}</td>                            
+        </tr>
+    </table>   
+    <!-- ----------- End of Income from the campaign ----------- --> 
+    
+    <!-- ----- This next two tables display the list of participants in the campaign ---- -->
+    <br />
+    <!-- ---------------- If there are no participants ----------------- -->
+    <div style="{!if(noParticipants,'display:block;','display:none;')}">
+        <apex:outputText value="--  There are no volunteers in this adventure  --" />
+    </div>
+    <!-- ---------------- If there are any paticipants --------------- -->
+    <div style="{!if(noParticipants,'display:none;','display:block;')}">    
+        <apex:variable var="cnt" value="{!0}" />
+        <apex:repeat value="{!pPages}" var="pPage" id="theList">
+            
+            <div style="{!if(cnt < 1, 'page-break-before:avoid;','page-break-before:always;')}">
+                <apex:variable var="cnt" value="{!cnt+1}"/>  
+                <span style="font-family: Tahoma, Geneva, sans-serif;">Participants</span>
+                <apex:outputText style="font-size:10pt;font-style: italic;" value="  ...continues" rendered="{!if(cnt>1,true,false)}"/>
+                <!-- --------- this table displays the header for Participants --------- -->
+                <table width="100%">
+                    <tr width="100%">
+                        <td width ="35%" style="font-size:10pt;align:center" align="center">
+                            <apex:outputText value="Name" />
+                        </td>
+                        <td width = "15%" style="font-size:10pt;align:center" align="center">
+                            <apex:outputText value="Status" />
+                        </td>
+                        <td width = "15%" style="font-size:10pt;align:center" align="center">
+                            <apex:outputText value="Type" />
+                        </td>            
+                        <td width = "15%" style="font-size:10pt;align:center" align="center">
+                            <apex:outputText value="Activity Days" />
+                        </td>
+                        <td width = "20%" style="font-size:10pt;align:center" align="center">
+                            <apex:outputText value="Tot in Party" />
+                        </td>
+                    </tr>
+                </table>
+                <hr class="list" />  
+                <!-- ----- this Repeat and table displays the list of participants --------- -->
+                
+                <apex:repeat value="{!pPage.aPage}" var="participant" id="CMList">
+                    <table width="100%">
+                        <tr width="100%">
+                            <td width ="35%" style="font-size:10pt;">
+                                <apex:outputText value="{!participant.Name}" />
+                                <apex:outputText value="{!IF(participant.isNew,'  ** NEW **','')}" style="align:right;" />
+                            </td>
+                            <td width = "15%" style="font-size:10pt;"  align="center">
+                                <apex:outputText value="{!participant.Status}" />
+                            </td>
+                            <td width = "15%" style="font-size:10pt;"  align="center">
+                                <apex:outputText value="{!participant.Type}" />
+                            </td>
+                            <td width = "15%" style="font-size:10pt;"  align="center">
+                                <apex:outputText value="{!participant.ActivityDays}" />
+                            </td>
+                            <td width = "20%" style="font-size:10pt;"  align="center">
+                                <apex:outputText value="{!participant.Party_of}" />
+                            </td>
+                        </tr>
+                    </table>
+                </apex:repeat>
+            </div>
+            <!-- ----------------------  FOOTER   --------------------------- -->
+            <div class="footer" style="font-size:60%;">
+                <table width="100%">
+                    <tr width = "100%">
+                        <td width="33%">
+                            <apex:outputText value="Prepared by: {!$User.FirstName} {!$User.LastName}" />
+                        </td>
+                        <td width="33%" align="center">
+                            <span>Page </span><span class="pagenumber"></span><span> of </span>
+                            <span class="pagecount"></span>
+                        </td>
+                        <td width="33%" align="right">
+                            <apex:outputText value="{!forDate} {!forTime}"/>                    
+                        </td>
+                    </tr>
+                </table>
+            </div>     
+            <!-- ----------------------  END FOOTER   --------------------------- -->        
+        </apex:repeat>
+    </div>
+    <!-- -------------  End of Participant List  -------------- -->
+    <br />
+    <!-- ----------------- volunteer list -------------- -->
+          <!-- ---------------- If there are no volunteers ----------------- -->
+    <div style="{!if(noVolunteers,'display:block;','display:none;')}">
+        <br />
+        <apex:outputText value="--  There are no volunteers in this adventure  --" />
+    </div>
+          <!-- ---------------- If there are any volunteers --------------- -->
+
+    <div style="{!if(noVolunteers,'display:none;','display:block;')}">
+        <hr class="list" />
+        <span style="font-family: Tahoma, Geneva, sans-serif;">Volunteers</span>
+        <!-- --------- this table displays the volunteer headers --------- -->
+        <table width="100%">
+            <tr width="100%">
+                <td width ="35%" style="font-size:10pt;align:center" align="center">
+                    <apex:outputText value="Name" />
+                </td>
+                <td width = "15%" style="font-size:10pt;align:center" align="center">
+                    <apex:outputText value="Status" />
+                </td>
+                <td width = "25%" style="font-size:10pt;align:center" align="center">
+                    <apex:outputText value="Hours Completed" />
+                </td>
+                <td width = "25%" style="font-size:10pt;align:center" align="center">
+                </td>
+            </tr>
+        </table>
+        <!-- ---------- End of volunteer list -------------- -->    
+        <hr class="list" /> 
+        <!-- ------------- this table displays the list of volunteers ------------ -->
+        <apex:repeat value="{!volunteers}" var="vol" id="volList">
+            <table width="100%">
+                <tr width="100%">
+                    <td width ="35%" style="font-size:10pt;">
+                        <apex:outputText value="{!vol.Name}" />
+                    </td>
+                    <td width = "15%" style="font-size:10pt;"  align="center">
+                        <apex:outputText value="{!vol.Status}" />
+                    </td>
+                    <td width = "25%" style="font-size:10pt;"  align="center">
+                        <apex:outputText value="{!vol.Hours}" />
+                    </td>
+                    <td width = "25%" style="font-size:10pt;"  align="center">
+                    </td>
+                </tr>
+            </table>
+        </apex:repeat>
+        <br />
+    </div>
+    <!-- ---------- end of volunteer list -------------- -->
+
+    <!-- ------------------ Campaign Recap Narrative --------------------- -->
+    <div>
+        <apex:repeat value="{!theRecap}" var="recap" id="recap" rendered="{! haveRecap}">
+            <div style="font-size:10pt;">
+                <apex:outputText value="Activity Overview: " style="font-weight:bold;"/>
+                <apex:outputText value="{!recap.Activity_Overview__c}" />
+            </div>
+            <br/>
+            <div style="font-size:10pt;">
+                <apex:outputText value="Stories/Notes: " style="font-weight:bold;" />
+                <apex:outputText value="{!recap.Stories_Notes__c}" />
+            </div> 
+            <br/>
+            <div style="font-size:10pt;">
+                <apex:outputText value="Strengths/Weaknesses: " style="font-weight:bold;" />
+                <apex:outputText value="{!recap.Strength_Weaknesses__c}" />
+            </div>
+            <br />
+            <div style="font-size:10pt;">
+                <apex:outputText value="Opportunities for Improvement: " style="font-weight:bold;" />
+                <apex:outputText value="{!recap.Opportunities_for_Improvement__c}" />
+            </div>        
+        </apex:repeat>
+    </div>
+    <!-- ------------------ End of Campaign Recap Narrative --------------------- -->  
+    
+ 
+</apex:page>
