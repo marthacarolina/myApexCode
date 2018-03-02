@@ -1,5 +1,5 @@
 <apex:page standardController="Contact"  renderAs="PDF" showHeader="false" extensions="printMemberInfoMeds" >
-    <!--   Martha Vance  2/24/18  -->
+    <!--   Martha Vance  2/25/18  -->
     
     <!-- Include the style sheet to use with PDF's -->
     <apex:stylesheet value="{!URLFOR($Resource.advancedpdfresource, 'QAReportPDF.css')}"/>
@@ -24,11 +24,14 @@
                 </td>
             </tr>
         </table>
-        <hr />
+        <span style="font-family: Tahoma, Geneva, sans-serif;font-size:10pt;">
+            <apex:outputText value="This information was last reviewed on {!contact.Last_Reviewed__c}" rendered="{!NOT(ISNULL(contact.Last_Reviewed__c))}" />
+        </span>
+        <hr />        
     </div>
     <!-- End of Header for pages  -->    
     
-    <!--  Member Info    -->
+    <!-- Main Member Info    -->
     <div>
         <table width="100%">
             <tr width ="100%">
@@ -101,22 +104,18 @@
                     <apex:outputText value="{!contact.Acquired_at_Age__c}" rendered="{!if(NOT(contact.Congenital__c),true,false)}" />
                 </td>
             </tr>
+        </table>
+        <table width="100%">
             <tr width = "100%">
                 <td width = "25%" style="font-size:10pt;" align="right">
                     <apex:outputText value="Disability Additional Info: " />
                 </td>
-                <td width = "25%" class="regular">
+                <td width = "75%" class="regular" style="font-size:10pt;">
                     <apex:outputText value="{!contact.Additional_Info_Related_to_Disability__c}" />
-                </td>
-                <td width = "25%" style="font-size:10pt;" align="right">
-                    <apex:outputText value="" />
-                </td>
-                <td width = "25%" class="regular">
-                    <apex:outputText value="" />
                 </td>
             </tr>
         </table>
-        <!-- End of Member info  -->    
+        <!-- End of Main Member info  -->    
 
         <hr />
         <!-- Start Member Mobility and Physical Support  -->    
@@ -515,7 +514,7 @@
                     <span class="pagecount"></span>
                 </td>
                 <td width="33%" align="right">
-                    <apex:outputText value="{!Now()}"/>                    
+                    <apex:outputText value="{!forDate}  {!forTime}"/>                     
                 </td>
             </tr>
         </table>
