@@ -53,8 +53,9 @@ public class printCampaignSummary {
                     Contract_Reservation_Fee__c, Fee_paid_by_DA__c, Salary_Wages__c,
                     Supplies_Cost__c, Transportation_Rental__c, Transportation_Gas__c,
                     Related_Campaign__c, NumberOfOpportunities, AmountAllOpportunities,
-                    NumberOfWonOpportunities, AmountWonOpportunities, ActualCost
-                    FROM Campaign WHERE id = :campId];        
+                    NumberOfWonOpportunities, AmountWonOpportunities, ActualCost,
+                    Participant_Days__c
+                    FROM Campaign WHERE id = :campId]; 
         //retrieve the campaign members (participants)
         List<CampaignMember> cms = [SELECT firstName, lastName,
                                     Activity_Days__c, Additional_Invitees__c,
