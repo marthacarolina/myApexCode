@@ -1,3 +1,8 @@
+//This class prints the QA Staff Involvement Report
+//
+//Martha Vance 3/30/18
+
+
 public class QAMonthlyStaffController extends QAReports {
     Public Integer totalCamp {get;set;}
     Public List<cType> allCampaignsByType{get;set;}
@@ -14,30 +19,43 @@ public class QAMonthlyStaffController extends QAReports {
         getMonthYear(monthNum, year);        
         totalCamp = 0;
         Date endRangeDate = date.valueOf(endRange);
-        List<String> allTypes = new String[]{'Backpacking', 'Cycling', 'Healthy Day','Hiking',
-            'Kayaking','Camping','XCskiing','Sled Hockey','Fundraising',
-            'Outreach','Orientation','River Trip'};
+        //get from the metadata type the types of campaigns that will have 
+        //active participants
+        Map<id, Campaign_Type__mdt> theTypes = new Map<id, Campaign_Type__mdt>(
+                                           [SELECT id, Label 
+                                            FROM Campaign_Type__mdt
+                                            WHERE Status_Group__c != 0]);
+        //Make a list with the types for the query
+        List<String> allTypes = new List<String>();
+        for (Campaign_Type__mdt tp : theTypes.values())
+        {
+            allTypes.add(tp.Label);
+        }  
+        //Get the RecordTypeid for the Campaign record to set the order of the query
         Map<Id, RecordType> recTypes = new Map<id, RecordType>([select id, Name, DeveloperName, sObjectType from RecordType
-                                                WHERE Name = 'Adventure' OR
-                                                Name = 'Fundraising' OR
-                                                Name = 'Volunteer Campaign'
+                                                WHERE sObjectType = 'Campaign' 
                                                 Order By Name]);
-       
+        //query the Campaign object to get all the campaigns with active participants
+        //within the time range
         Map<Id,Campaign> campaigns = new Map<id, Campaign>([SELECT id, Name, Type, RecordTypeId, StartDate,
-                                      EndDate, IsActive, Related_Campaign__c from
+                                      EndDate, IsActive, Related_Campaign__c, Participant_Days__c from
                                       Campaign
                                       WHERE StartDate >= :beginRangeDate AND
                                       StartDate <= :endRangeDate AND
                                       Type IN :allTypes                   
                                       Order By Type, StartDate, RecordTypeId]);
+        //retrieve all the campaign members in campaigns
         cms = [SELECT id, FirstName, LastName, Status, ContactId, CampaignId, CampaignDate__c
                                     FROM CampaignMember
                                     WHERE CampaignId IN :campaigns.keySet() order by CampaignId, Status];
+        //make a list of Contact id's to use in the Contact query to retrieve the contact records
+        //of the Campaign Members
         list<id> contIds= new List<id>();
         for (CampaignMember cm : cms)
         {
             contIds.add(cm.ContactId);
         }
+        //query contacts
         contacts = new Map<Id, Contact>([Select id, Participant__c,Caregiver__c, Relationship_w_Participant__c
                                   From Contact WHERE id IN :contIds]);        
         allCampaignsByType = new List<cType>();
@@ -48,6 +66,7 @@ public class QAMonthlyStaffController extends QAReports {
         // Iterating over the Campaigns
         for (Campaign camp : campsQueried)      
         {
+            //this if creates the Type grouping for the campaigns
             if (camp.Type != newType)
             {    
                 if (oneType != null)
@@ -64,7 +83,10 @@ public class QAMonthlyStaffController extends QAReports {
                 newType = camp.Type;
             }
             String campRecType = recTypes.get(camp.RecordTypeId).Name;
-            campaignEvent campE = new campaignEvent(camp.id, camp.Name, campRecType, string.valueOf(camp.StartDate), string.valueOf(camp.EndDate));
+            campaignEvent campE = new campaignEvent(camp.id, camp.Name, campRecType, 
+                                                    string.valueOf(camp.StartDate), 
+                                                    string.valueOf(camp.EndDate), 
+                                                    string.valueOf(camp.Participant_Days__c));
             List<cMember> mems = getTheMembers(camp, campRecType);
             // if the campaign is not a Volunteer campaign
             if (mems.size() > 0)if (campRecType == 'Volunteer Campaign')
@@ -278,6 +300,7 @@ public class QAMonthlyStaffController extends QAReports {
         public String StartDate{get;set;}
         public String EndDate{get;set;}
         public String cRecordType{get;set;}
+        public String sParticipantDays{get;set;}
         public List<cMember> Members{get;set;}
         
         public campaignEvent()
@@ -292,10 +315,11 @@ public class QAMonthlyStaffController extends QAReports {
             this.StartDate = ce.StartDate;
             this.EndDate = ce.EndDate;
             this.cRecordType = ce.cRecordType;
+            this.sParticipantDays = ce.sParticipantDays;
             this.Members = new List<cMember>();
         }
         
-        public campaignEvent(Id campId, String n, String cRt, String sd, String ed)
+        public campaignEvent(Id campId, String n, String cRt, String sd, String ed, String pd)
         {
             date sDate = date.valueOf(sd);
             this.id = sDate.day(); //this field is used to order the list of campaigns
@@ -304,6 +328,8 @@ public class QAMonthlyStaffController extends QAReports {
             this.cRecordType = cRt;
             this.StartDate = sd;
             this.EndDate = ed;
+            if(pd == null) this.sParticipantDays = '0';
+               else this.sParticipantDays = pd;
             this.Members = new List<cMember>();
         }
         

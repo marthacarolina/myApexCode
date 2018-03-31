@@ -44,8 +44,11 @@ be always a page-break at the begining or at the end of the document -->
 
                     <table width="100%">
                         <tr width="100%">
-                            <td width ="54%" >
+                            <td width ="34%" >
                                 <apex:outputText value="{!c.Name} {!if(c.id == 200,' continues....','')}"/>
+                            </td>
+                            <td width = "20%">
+                                <apex:outputText value="Part. Days: {!c.sParticipantDays}" />
                             </td>
                             <td width = "23%" style="font-size: 90%;">
                                 <apex:outputText value="Start Date: {!c.StartDate}"/>

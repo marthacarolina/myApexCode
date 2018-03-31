@@ -1,3 +1,9 @@
+<!-- QA Monthly Participant Report
+     This page renders a PDF. It works with the class QAMonthlyController.
+
+     Martha Vance 2018
+-->
+
 <apex:page controller="QAMonthlyController" renderAs="PDF" showHeader="false" action="{!MonthlyQA}">
     <apex:stylesheet value="{!URLFOR($Resource.advancedpdfresource, 'QAReportPDF.css')}"/>
     <div class="header" align="center"><h3 style="font-color:#0f846d; font-family: Tahoma, Geneva, sans-serif;">QA Report for {!month} {!year}
@@ -6,10 +12,10 @@
     <table width="100%">
         <tr width="100%">
             <td width="60%" align="left">               
-                <h4>Total Participans in Adventures: {!totalParticipants}</h4>
-                <h4>Total Activity Days this Month: {!totAllInclusiveActDays}</h4>
+                <h4>Total Participants in Adventures: {!totalParticipants}</h4>
+                <h4>Total Participant Days this Month: {!totParticipantDays}</h4>
                 <h4>Total Participants Experiencing their 1st Adventure: {!totNewParticipants}</h4>
-                <h4>Participants attending more than one Adventure: {!serialParticipants}</h4>
+                <h4>Participants in more than one Adventure this month: {!serialParticipants}</h4>
                 <span style="font-size:70%;">Participants: all people attending an Adventure. Members: our target population.</span>
             </td>
             <td width="40%" align="right">
@@ -102,7 +108,5 @@
             <hr />
         </div>
     </apex:repeat>
-    
-    
-    
+            
 </apex:page>

@@ -1,9 +1,16 @@
+// This is the class controller for the visualforce page QAMonthlyPdfVF it
+// runs the report QA Total Activity Days and parces the information to print 
+// 
+// Martha Vance 3/30/2018
+
+
 public class QAMonthlyController extends QAReports{
     public List<OnePage> allPages {get;set;} //pages of participants
     public List<OnePage> sUPages {get;set;} //pages of new-sign-ups
     public List<participantInfo> participants{get;set;}
     public List<participantInfo> newSignUps{get;set;}
     Public Integer totalMAD{get;set;}
+    Public Integer totParticipantDays {get;set;}
     Public Integer serialParticipants{get;set;}
     Public Integer totalParticipants{get;set;}
     Public Integer totNewParticipants{get;set;}
@@ -32,7 +39,7 @@ public class QAMonthlyController extends QAReports{
         newSignUps = ParticipantStats();
         newSigned = newSignUps.size();
         ParticipantsMonthly();
-        totAllInclusiveActDays = TotalActivityDaysforMonth();
+        TotalParticipantDaysforMonth();
         prepareLinesForPrinting();
     }
     
@@ -56,9 +63,14 @@ public class QAMonthlyController extends QAReports{
         return newPart;
     }
             
-    public integer TotalActivityDaysforMonth()
+    public void TotalParticipantDaysforMonth()
     {
-        //this method gets the total activity days for the time range
+        //this method gets the total participant in each campaign days for the time range
+        // **  3-30-18 I am going to comment most of the method because I don't think
+        // **  we need to include Total Activity Days -- not the ways it's calculated here
+
+        //it uses a report report that queries the campaigns that have CMs with status of
+        //Attended, Completed or Staff
         List <Report> reportList = [SELECT Id,DeveloperName FROM Report where
                                     DeveloperName = 'QA_Total_Activity_Days'];
         String reportId = (String)reportList.get(0).get('Id');
@@ -70,25 +82,30 @@ public class QAMonthlyController extends QAReports{
         filter2.setValue(endRange);
         // Run the report - syncronously
         Reports.ReportResults results = Reports.ReportManager.runReport(reportId, rm, true);
-        Reports.Dimension dim = results.getGroupingsDown();
-        List<Reports.GroupingValue> groupingVal = dim.getGroupings();
-        List<String> factMapKeys = new List<String>(); 
-        Integer tots = 0;
-        for (Reports.GroupingValue gV : groupingVal)
-        {
-            String campName = gv.getLabel();
-            String factMapKey = gV.getKey() + '!T';
-            Reports.ReportFactWithDetails factDetails =
-                (Reports.ReportFactWithDetails)results.getFactMap().get(factMapKey);
-            List<Reports.ReportDetailRow> detailRows = factDetails.getRows();
-            List<Reports.ReportDataCell> firstRowCells = detailRows[0].getDataCells();
-            date startCamp = date.valueOf(firstRowCells[0].getValue());
-            date endCamp = date.valueOf(firstRowCells[1].getValue());            
-            Integer actDays = startCamp.daysBetween(endCamp) + 1;
-            Integer campADays = detailRows.size() * actDays;
-            tots = tots + campADays;
-        }        
-        return tots;        
+        // Get the grand total Participant Days
+        Reports.ReportFact grandTotal = (Reports.ReportFact)results.getFactMap().get('T!T');
+        decimal tempDec = (Decimal)grandTotal.getAggregates().get(1).getValue();
+        totParticipantDays = integer.valueOf(tempDec);
+        // Get the groupings (campaigns)
+        //Reports.Dimension dim = results.getGroupingsDown();
+        //List<Reports.GroupingValue> groupingVal = dim.getGroupings();
+        //List<String> factMapKeys = new List<String>(); 
+        //Integer tots = 0;
+        // Parse the report by campaigns
+        //for (Reports.GroupingValue gV : groupingVal)
+        //{
+        //    String campName = gv.getLabel();
+        //    String factMapKey = gV.getKey() + '!T';
+        //    Reports.ReportFactWithDetails factDetails =
+        //        (Reports.ReportFactWithDetails)results.getFactMap().get(factMapKey);
+        //    List<Reports.ReportDetailRow> detailRows = factDetails.getRows();
+        //    List<Reports.ReportDataCell> firstRowCells = detailRows[0].getDataCells();
+        //    date startCamp = date.valueOf(firstRowCells[0].getValue());
+        //    date endCamp = date.valueOf(firstRowCells[1].getValue());            
+        //    Integer actDays = startCamp.daysBetween(endCamp) + 1;
+        //    Integer campADays = detailRows.size() * actDays;
+        //    tots = tots + campADays;
+        //}        
     }
     
     public void ParticipantsMonthly()
