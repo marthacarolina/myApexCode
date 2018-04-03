@@ -1,0 +1,59 @@
+<!-- This page will be contained in an iframe and put in DA website the Benevon Invitee will
+get a link to the page to sign up for the event -->
+
+<apex:page showHeader="false" Controller="signUpBenevonMembers" standardStylesheets="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0">
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en" />
+    <head>
+        <!-- Import the Design System style sheet -->
+        <apex:slds />
+    </head>
+    <body>
+        <div class="slds-scope">
+            <!-- Page Title -->
+            <h2 id="pageTitle" class="slds-text-heading_large slds-m-vertical--large">Sign Up for a Benevon Event</h2>
+            <apex:form >
+                <h4 id="instructions" class="slds-text-heading_medium slds-p-bottom_xxx-small">Select the Event</h4>
+                <apex:selectList value="{!campaignID}" multiselect="false" size="1" style="font-size:1.2em;">
+                    <apex:selectOptions value="{!BenevonEvents}"/>
+                </apex:selectList>    
+                
+                <div class="slds-p-horizontal_large slds-m-vertical--medium">
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label" for="input-unique-id">
+                            <abbr class="slds-required" title="required">*</abbr>First Name</label>
+                        <div class="slds-form-element__control">
+                            <apex:inputText value="{!invitee.FirstName}" />
+                        </div>
+                    </div>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label" for="input-unique-id">
+                            <abbr class="slds-required" title="required">*</abbr>Last Name</label>
+                        <div class="slds-form-element__control">
+                            <apex:inputText value="{!invitee.LastName}" />
+                        </div>
+                    </div>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label" for="input-unique-id">
+                            <abbr class="slds-required" title="required">*</abbr>Email</label>
+                        <div class="slds-form-element__control">
+                            <apex:inputText value="{!invitee.Email}" />
+                        </div>
+                    </div>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label" for="input-unique-id">Phone</label>
+                        <div class="slds-form-element__control">
+                            <apex:inputText value="{!invitee.Phone}" />
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-text-heading_small slds-text-color_error">
+                    <apex:pageMessages ></apex:pageMessages>
+                </div>
+                <apex:commandButton value="Sign Up" action="{!save}" style="font-size:100%;"/>
+            </apex:form>
+            
+            
+        </div>
+    </body>
+
+</apex:page>
