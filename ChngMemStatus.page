@@ -1,0 +1,49 @@
+<apex:page standardController="Campaign" extensions="CampMemsListEdit">
+    <script type="text/javascript">
+        function selectAllCheckboxes(obj,receivedInputID){
+            var inputCheckBox = document.getElementsByTagName("input");
+            for(var i=0; i<inputCheckBox.length; i++){
+                if(inputCheckBox[i].id.indexOf(receivedInputID)!=-1){
+                    inputCheckBox[i].checked = obj.checked;
+                }
+            }
+        }
+    </script>
+  <apex:form ><h2 style="font-size:200%; color:red">
+  <apex:outputText value="{!message}" rendered="{!LEN(message)>0}"/></h2>
+   <apex:pageBlock title="Change Participants' Status">
+      <apex:pageBlockSection title="Adventure Campaign">
+            <apex:outputField value="{!Campaign.Name}"/>
+            <apex:outputField value="{!Campaign.Description}"/>
+      </apex:pageBlockSection>
+      <apex:pageBlockSection title="Participants" columns="1">
+          <span style="font-size:120%; font-weight:bold; align:left;">Select the New Status and the participants
+              <apex:selectList value="{!selectedStatus}" multiselect="false" size="1" style="font-size:120%;">
+                  <apex:selectOptions value="{!PossibleStatuses}"/>
+              </apex:selectList> 
+          </span>
+          <apex:commandButton value="Save Changes" action="{!saveChanges}"/>
+          
+          <apex:pageBlockTable value="{!wrapParticipantList}" var="partWrap" id="PartTable" title="Participants">
+                <apex:column >
+                    <apex:facet name="header">
+                       <apex:inputCheckbox onclick="selectAllCheckboxes(this,'inputId')"/>
+                    </apex:facet>
+                    <apex:inputCheckbox value="{!partWrap.selected}" id="inputId"/>
+                </apex:column>
+                <apex:column value="{!partWrap.part.Name}" />
+                <apex:column value="{!partWrap.part.Email}" />
+                <apex:column value="{!partWrap.part.Status}" />
+                <apex:column value="{!partWrap.part.Activity_Days__c}" />
+            </apex:pageBlockTable>
+
+      </apex:pageBlockSection>
+  </apex:pageBlock>
+   <apex:commandButton value="Save Changes" action="{!saveChanges}"/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
+
+   <apex:commandButton value="Save and Go Back to Campaign Page" action="{!Done}"
+                       style="align:right;"/>
+  </apex:form>
+</apex:page>
