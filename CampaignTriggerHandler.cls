@@ -229,11 +229,9 @@ public class CampaignTriggerHandler extends TriggerHandler{
             for (CampaignMemberStatus dcms : DefStatuses)
             {
                 mapOldStat.put(dcms.Label, dcms);
-                system.debug('mapOldStat dcms.label = '+dcms.label);
             }
             for (CampaignMemberStatus cms : newStatuses)
             {
-                system.debug('cms.Label = '+cms.Label);
                 if (mapOldStat.containsKey(cms.Label))
                 {
                     Integer theIndex = getIndex(DefStatuses, cms.Label);
@@ -241,11 +239,9 @@ public class CampaignTriggerHandler extends TriggerHandler{
                 }
                 else
                 {
-                    system.debug('adding' + cms.label + 'to que to insert');
                     realNewStatuses.add(cms);
                 }
             }
-            system.debug('about to make the insert');
             if (realNewStatuses.size() > 0) insert realNewStatuses;
             If (DefStatuses.size() > 0) 
             {

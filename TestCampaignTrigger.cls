@@ -1,14 +1,14 @@
 @isTest
 private class TestCampaignTrigger {
     //This test is for the CampaignTriggerHandler trigger
-    @isTest static void TestInsertVolCampaignAlloc() {
+    @isTest static void TestInsertVolCampaignAlloc() {        
         //find the id for the RecordType 'Volunteers_Campaign' in object Campaign
         TestDataFactory.CreateGAU ('Activity Fees');
         id feeId = TestDataFactory.CreateFee('Cycling', 10);
         TestDataFactory.CreateCampaigns('Test ' ,'Adventure', 'Cycling', 5, 0, Date.TODAY(), Date.TODAY(), feeId);
         TestDataFactory.CreateCampaigns('Test ','Fundraising', 'Cycling', 3, 5, Date.TODAY(), Date.TODAY(), feeId);
         //test trigger with a fundraising campaign that have CMstatus of Sent Responded
-        TestDataFactory.CreateCampaigns('Test fundraising','Fundraising', 'Benevon', 3, 5, Date.TODAY(), Date.TODAY(), feeId);
+        TestDataFactory.CreateCampaigns('Test fundraising','Fundraising', 'Orientation', 3, 5, Date.TODAY(), Date.TODAY(), feeId);
 
         //make a Mailchimp campaign (the trigger will change the RecordType to Fundraising)
         TestDataFactory.CreateCampaigns('MailChimp ','Adventure', 'Cycling', 1, 8, Date.TODAY(), Date.TODAY(), feeId);
@@ -32,7 +32,7 @@ private class TestCampaignTrigger {
         //retrieve tha volunteer records inserted by the trigger
         // when the Adventure campaigns were inserted
         List<Campaign> volrecsinserted = [SELECT id FROM Campaign WHERE Type = 'Cycling' and
-                          EndDate = Today and
+                          EndDate = Today and 
                            RecordType.DeveloperName ='Volunteers_Campaign'];
         System.assertEquals(5, volrecsinserted.size());
 
@@ -43,10 +43,10 @@ private class TestCampaignTrigger {
         updateCamps.add(myCampaigns[4]);
         //this part tests the after update trigger
         Campaign originCamp = campSignedUp[0];
-        TestDataFactory.CreateJobShift(campSignedUp);
+        TestDataFactory.CreateJobShift(campSignedUp);       
         originCamp.StartDate = date.today() + 30;
-        originCamp.EndDate = date.today() + 31;
-        updateCamps.add(originCamp);
+        originCamp.EndDate = date.today() + 31;        
+        updateCamps.add(originCamp);        
         update updateCamps;
         Campaign volCamp = [select id, StartDate, EndDate from Campaign
                            where id = :originCamp.Related_Campaign__c limit 1];
@@ -67,6 +67,6 @@ private class TestCampaignTrigger {
             Boolean expectedExceptionThrown = statusException || volunteerException;
             System.AssertEquals(expectedExceptionThrown, true);
             //system.assertEquals('Before deleting the campaign you must delete the volunteer campaign associated with it.', e.getMessage());
-        }
+        }        
     }
 }
