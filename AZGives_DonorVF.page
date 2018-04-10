@@ -1,0 +1,31 @@
+<!--  This page is called from VF AZGivesVF.
+      It calles a class that parses the donations from AZGives_Donors__c   
+
+      Martha Vance  April 2018  -->
+
+<apex:page controller="processOpportunitiesFromDonations" renderAs="pdf" action="{!processDonors}" >
+
+
+<apex:pageBlock >
+    <h1>
+        Arizona Gives Day {!year}
+    </h1>
+
+        Donations Processed =&nbsp;        
+        <apex:outputText value="{!donorCount}" />
+        <br /><br />
+        Total number of Donations =&nbsp;
+        <apex:outputText value="{!opportunitiesCount}"/>
+        <br/><br />
+        Number of new contacts =&nbsp;
+        <apex:outputText value="{!newContactsCount}" />
+        <br /><br />
+        <br /><br />
+        Number of donors that want to be more involved =&nbsp;
+        <apex:outputText value="{!tasksCount}" />
+    
+        Donors not processed = &nbsp;{!dontHaveOppy}
+    
+</apex:pageBlock>
+
+</apex:page>
