@@ -1,0 +1,48 @@
+<!-- This VFpage calls three different pocesses for AZGivesDay  
+
+     Martha Vance  -->
+
+
+
+<apex:page showHeader="false" Controller="deleteAZGivesRecs" standardStylesheets="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0">
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en" />
+    <head>
+        <!-- Import the Design System style sheet -->
+        <apex:slds />
+    </head>
+    <body>
+        <div class="slds-scope">
+            <apex:form >
+                <div class="slds-grid slds-grid_align-center slds-p-top_xx-large"> 
+                    <div class="slds-col slds-text-heading_large"> 
+                        AZGivesDay Processes
+                    </div>            
+                </div>
+                <div class="slds-grid slds-grid_align-center slds-p-top_xx-large"> 
+                    <div class="slds-col">                        
+                    </div>            
+                </div>
+                <div class="slds-grid slds-grid_align-center slds-p-top_xx-large"> 
+                    <div class="slds-col">                        
+                        <apex:commandButton value="Delete Recs in AZGives_Donor" action="{!deleteRecords}" style="font-size:120%;"/>
+                    </div>            
+                </div>
+                <div class="slds-grid slds-grid_align-center slds-p-top_xx-large">    
+                    <div class="slds-col">                        
+                        <apex:commandButton value="Reset Records in AZGives_Donor" action="{!resetRecords}" style="font-size:120%;"/>
+                    </div>
+                </div>
+                <div class="slds-grid slds-grid_align-center">    
+                    <div class="slds-col"> 
+                        Resets the Matched_Email and Processed fields to false
+                    </div>
+                </div>
+                <div class="slds-grid slds-grid_align-center slds-p-top_xx-large">    
+                    <div class="slds-col slds-text-heading_medium">                        
+                        <a href="{!URLFOR($Page.AZGives_DonorVF)}" target ="_blank">Process Donors and Print Results</a>      
+                    </div>
+                </div>
+            </apex:form>
+        </div>
+    </body>
+</apex:page>
