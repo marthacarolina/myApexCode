@@ -47,8 +47,8 @@
                         <td width="35%" align="right" style="font-size:10pt;">New Participants:</td>
                         <td width="65%" align="left" style="font-weight:bold;font-size:12pt;">{!totNewParticipants}</td>
                     </tr>                    <tr width="100%">                   
-                        <td width="35%" align="right" style="font-size:10pt;">Total Activity Days: </td>
-                        <td width="65%" align="left" style="font-weight:bold;font-size:12pt;">{!totAllInclusiveActDays}</td>
+                        <td width="35%" align="right" style="font-size:10pt;">Total Participant Days: </td>
+                        <td width="65%" align="left" style="font-weight:bold;font-size:12pt;">{!campaign.Participant_Days__c}</td>
                     </tr>
                     <tr width="100%">
                         <td width="35%" align="right" style="font-size:10pt;">Total Volunteers:</td>
@@ -228,51 +228,58 @@
           <!-- ---------------- If there are any volunteers --------------- -->
 
     <div style="{!if(noVolunteers,'display:none;','display:block;')}">
-        <hr class="list" />
-        <span style="font-family: Tahoma, Geneva, sans-serif;">Volunteers</span>
-        <!-- --------- this table displays the volunteer headers --------- -->
-        <table width="100%">
-            <tr width="100%">
-                <td width ="35%" style="font-size:10pt;align:center" align="center">
-                    <apex:outputText value="Name" />
-                </td>
-                <td width = "15%" style="font-size:10pt;align:center" align="center">
-                    <apex:outputText value="Status" />
-                </td>
-                <td width = "25%" style="font-size:10pt;align:center" align="center">
-                    <apex:outputText value="Hours Completed" />
-                </td>
-                <td width = "25%" style="font-size:10pt;align:center" align="center">
-                </td>
-            </tr>
-        </table>
-        <!-- ---------- End of volunteer list -------------- -->    
-        <hr class="list" /> 
-        <!-- ------------- this table displays the list of volunteers ------------ -->
-        <apex:repeat value="{!volunteers}" var="vol" id="volList">
-            <table width="100%">
-                <tr width="100%">
-                    <td width ="35%" style="font-size:10pt;">
-                        <apex:outputText value="{!vol.Name}" />
-                    </td>
-                    <td width = "15%" style="font-size:10pt;"  align="center">
-                        <apex:outputText value="{!vol.Status}" />
-                    </td>
-                    <td width = "25%" style="font-size:10pt;"  align="center">
-                        <apex:outputText value="{!vol.Hours}" />
-                    </td>
-                    <td width = "25%" style="font-size:10pt;"  align="center">
-                    </td>
-                </tr>
-            </table>
+        <apex:variable var="cnt" value="{!0}" />
+        <apex:repeat value="{!vPages}" var="vPage" id="volPages">
+            
+            <div style="{!if(cnt < 1, 'page-break-before:avoid;','page-break-before:always;')}">
+                <apex:variable var="cnt" value="{!cnt+1}"/>         
+                <hr class="list" />
+                <span style="font-family: Tahoma, Geneva, sans-serif;">Volunteers</span>
+                <!-- --------- this table displays the volunteer headers --------- -->
+                <table width="100%">
+                    <tr width="100%">
+                        <td width ="35%" style="font-size:10pt;align:center" align="center">
+                            <apex:outputText value="Name" />
+                        </td>
+                        <td width = "15%" style="font-size:10pt;align:center" align="center">
+                            <apex:outputText value="Status" />
+                        </td>
+                        <td width = "25%" style="font-size:10pt;align:center" align="center">
+                            <apex:outputText value="Hours Completed" />
+                        </td>
+                        <td width = "25%" style="font-size:10pt;align:center" align="center">
+                        </td>
+                    </tr>
+                </table>
+                <!-- ---------- End of volunteer list -------------- -->    
+                <hr class="list" /> 
+                <!-- ------------- this table displays the list of volunteers ------------ -->
+                <apex:repeat value="{!vPage.aPage}" var="vol" id="volList">
+                    <table width="100%">
+                        <tr width="100%">
+                            <td width ="35%" style="font-size:10pt;">
+                                <apex:outputText value="{!vol.Name}" />
+                            </td>
+                            <td width = "15%" style="font-size:10pt;"  align="center">
+                                <apex:outputText value="{!vol.Status}" />
+                            </td>
+                            <td width = "25%" style="font-size:10pt;"  align="center">
+                                <apex:outputText value="{!vol.Hours}" />
+                            </td>
+                            <td width = "25%" style="font-size:10pt;"  align="center">
+                            </td>
+                        </tr>
+                    </table>
+                </apex:repeat>
+            </div>
         </apex:repeat>
-        <br />
     </div>
     <!-- ---------- end of volunteer list -------------- -->
 
     <!-- ------------------ Campaign Recap Narrative --------------------- -->
     <div>
         <apex:repeat value="{!theRecap}" var="recap" id="recap" rendered="{! haveRecap}">
+            <br />
             <div style="font-size:10pt;">
                 <apex:outputText value="Activity Overview: " style="font-weight:bold;"/>
                 <apex:outputText value="{!recap.Activity_Overview__c}" />
