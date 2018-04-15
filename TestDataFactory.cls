@@ -1,8 +1,8 @@
 @isTest
 public class TestDataFactory {
-
+    
     public static List<Contact> CreateContacts(integer totContacts, integer startIndex){
-        List<Contact> conts = new List<Contact>();
+        List<Contact> conts = new List<Contact>();  
         for (Integer x=startIndex; x<totContacts + startIndex; x++){
             Contact cont1 = new Contact(FirstName = 'Contact' + x,
                                         LastName = 'Test'+ x,
@@ -12,28 +12,28 @@ public class TestDataFactory {
         insert conts;
         return conts;
     }
-
+    
     public static id CreateFee(String cType, Decimal amount)
-    {
+    {             
         //insert fee for the campaign
         Fee__c fee = new Fee__c (Activity_Type__c = cType,
-                                Amount__c = amount);
+                                Amount__c = amount);                               
         insert fee;
         return fee.id;
     }
-
+    
     public static void CreateGAU (String gauName) //
     {
         //insert the general accounting unit used for the opportunities
-        npsp__General_Accounting_Unit__c genAcUnit =
+        npsp__General_Accounting_Unit__c genAcUnit = 
             new npsp__General_Accounting_Unit__c (Name = gauName,
                                                  npsp__Active__c = true);
-        insert genAcUnit;
+        insert genAcUnit;      
     }
-
+    
     public static void CreateCMStatusDefault(String ctype)
     {
-        //AAKCS__Campaign_Status_Default__c statDef =
+        //AAKCS__Campaign_Status_Default__c statDef = 
         //    new AAKCS__Campaign_Status_Default__c (Name = ctype,
         //                                           AAKCS__Action__c = 'Replace All',
         //                                           AAKCS__Active__c = true);
@@ -53,9 +53,9 @@ public class TestDataFactory {
         //                                                AAKCS__Campaign_Status_Default__c = statDef.id);
         //    sdValues.add(sdValue);
         //}
-        //insert sdValues;
+        //insert sdValues;        
     }
-
+    
     public static void CreateCampaigns(String cName, String recType, String ctype, integer totCamp, integer startIndex, Date sDate, Date eDate, Id fee)
     {
         //get record type ids
@@ -63,7 +63,7 @@ public class TestDataFactory {
         List<RecordType> recs = [select id, Name, DeveloperName from RecordType
                                 where sObjectType = 'Campaign'];
         for (RecordType rt : recs)
-            recTypeIds.put(rt.DeveloperName, rt.id);
+            recTypeIds.put(rt.DeveloperName, rt.id);  
         // insert campaigns
         List<Campaign> myCampaigns = new List<Campaign>();
         for (Integer i=startIndex; i< totCamp + startIndex; i++){
@@ -71,15 +71,15 @@ public class TestDataFactory {
                                              Name = cName + i,
                                              IsActive = True,
                                              Type = ctype,
-                                             Fee_for_Activity__c = fee,
+                                             Fee_for_Activity__c = fee, 
                                              Status = 'Planned',
                                              EndDate = eDate,
                                              StartDate = sDate);
             myCampaigns.add(aCampaign);
         }
-        insert myCampaigns;
+        insert myCampaigns;                                     
     }
-
+    
     public static void CreateCampaignMembers(List<Campaign> campaigns, List<Contact> contacts, Integer contsInCamp, List<String> stats)
     {
         List<CampaignMember> theCMs = new List<CampaignMember>();
@@ -105,10 +105,10 @@ public class TestDataFactory {
             insert theCMs;
         }
     }
-
+    
     public static void CreateJobShift(List<Campaign> camps)
     {
-        List<GW_Volunteers__Volunteer_Job__c> jobs =
+        List<GW_Volunteers__Volunteer_Job__c> jobs = 
             new List<GW_Volunteers__Volunteer_Job__c>();
         Map<id, Date> cDates = new Map<id, Date>();
         for (Campaign c : camps)

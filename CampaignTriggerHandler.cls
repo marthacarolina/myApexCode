@@ -145,14 +145,12 @@ public class CampaignTriggerHandler extends TriggerHandler{
         
         //Now it needs to add a GAU Alocation (General fund Activities Fee)
         //for the Adventure Campaign
-        //This part is not inside the if, but only works with the records that were
-        //of record type Adventure.
-        npsp__General_Accounting_Unit__c genAcUnit =
-            [select id from npsp__General_Accounting_Unit__c
-             where Name = 'Activity Fees'];
-        
+
         if (adventCampaign.size() > 0)
         {
+            npsp__General_Accounting_Unit__c genAcUnit =
+            [select id from npsp__General_Accounting_Unit__c
+             where Name = 'Activity Fees'];
             List<npsp__Allocation__c> theAllocation = new List<npsp__Allocation__c>();
             for (Campaign each : adventCampaign)
             {
