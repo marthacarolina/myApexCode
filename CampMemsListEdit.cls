@@ -22,7 +22,7 @@ public class CampMemsListEdit
                 Integer i = 0;
                 for (wrapCampMem a: wrapParticipantList){
                     if (a.selected == true) 
-                    {   system.debug('i = '+i);
+                    {   
                         participants[i].Status = selectedStatus;
                     }                    
                         i++;
@@ -32,10 +32,10 @@ public class CampMemsListEdit
     
     public CampMemsListEdit(ApexPages.StandardController stdCtrl)
     {
-        camp = (Campaign)stdCtrl.getRecord();
+        camp = [SELECT id, Name, Type FROM Campaign
+                WHERE id = :stdCtrl.getId() LIMIT 1];
         message = '';
         //The default value for Status is SIGNED UP
-        selectedStatus = 'Signed Up';
         wrapParticipantList = New List<wrapCampMem>();
         participants=[select id, Name, Email, Status, Activity_Days__c 
                       from CampaignMember where CampaignId =: camp.id 
@@ -56,17 +56,15 @@ public class CampMemsListEdit
     {
         //retrieve the possible statuses for this campaign
         List<SelectOption> PossibleStatuses = new List<SelectOption>();
-        Campaign_Type__mdt campTypeGroup = [SELECT Status_Group__c FROM
-                                           Campaign_Type__mdt WHERE 
-                                           MasterLabel =: camp.Type
-                                           LIMIT 1];
-        List<CM_Status_Setting__mdt> theStatuses = [SELECT MasterLabel FROM
-                                              CM_Status_Setting__mdt
-                                              WHERE 
-                                              Group_Number__c =: campTypeGroup.Status_Group__c
-                                              Order by Order__c];
-        for (CM_Status_Setting__mdt sts : theStatuses)
-            PossibleStatuses.add(new SelectOption(sts.MasterLabel,sts.MasterLabel));        
+        List<CampaignMemberStatus> cms = 
+            [SELECT label, campaignid, SortOrder, isDefault from campaignmemberstatus WHERE
+             campaignId = :camp.id ORDER BY SortOrder ASC];
+        for (CampaignMemberStatus sts : cms)
+        {
+            PossibleStatuses.add(new SelectOption(sts.Label,sts.Label));
+            if (sts.isDefault)
+                selectedStatus = sts.Label;
+        }        
         return PossibleStatuses;
     }
         

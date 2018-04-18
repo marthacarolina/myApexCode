@@ -26,6 +26,9 @@
 
     <apex:form >
        <apex:pageBlock title="{!campaign.name}">
+           <apex:variable value="i" var="i" rendered="false" >
+               <span>{!campaign.type}{!campaign.id}</span>
+           </apex:variable>
           <apex:actionFunction name="doSearchAF" action="{!executeSearch}" />
           <apex:pageMessages ></apex:pageMessages>
           <apex:pageBlockSection title="Find Contacts to Add to Campaign" columns="2">

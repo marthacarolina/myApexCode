@@ -1,21 +1,22 @@
 // this class is used for adding participants to an Adventure Campaign
+// it is the controller for the visualforce page selectCampaignMembers2
 //
 //  Martha C. Vance --  April, 2018
 
 public class selectParticipants
 {
+    @TestVisible private final Campaign camp;
     public String nameQuery {get; set;}
     public List<Contact> selectedContacts {get; set;}
     public List<CampaignMember> campMembers {get; set;}
     public set<id> currentCM {get; set;}
     public List<partContainer> participants {get; set;}
-    @TestVisible private Campaign camp;
     public List<wrapContact> wrapContactList {get; set;}
     public id theCampaignId {get; set;}
     public Boolean thereAreContacts {get; set;}
     public String mess {get; set;}
     public String selectedStatus {get;set;}
- 
+    
     public PageReference executeSearch()
     {
         if (nameQuery != null)
@@ -36,20 +37,18 @@ public class selectParticipants
         return null;
     }
     
-  
+    
     public selectParticipants(ApexPages.StandardController stdCtrl)
     {
-        camp = [SELECT id, Name, Type FROM Campaign 
-                WHERE id = :stdCtrl.getId() LIMIT 1];       
+        camp = (Campaign) stdCtrl.getRecord();
         currentCM = new set<id>();
         participants = new List<partContainer>();
         thereAreContacts = False;
         nameQuery = '';
         mess = '';
-        selectedStatus = 'Signed Up';
         wrapContactList = new List<wrapContact>();
-        campMembers = [SELECT id, ContactId, Name, Email, Status FROM CampaignMember
-                        WHERE CampaignId = :camp.id ORDER BY FirstName];
+        campMembers = [SELECT id, ContactId, Name, Email, Status, CampaignId FROM CampaignMember
+                       WHERE CampaignId = :camp.id ORDER BY FirstName];
         for (CampaignMember p : campMembers) {
             partContainer aPart = new partContainer(p, p.Name, p.Email);
             participants.add(aPart);
@@ -61,27 +60,27 @@ public class selectParticipants
         selectedContacts = new List<Contact>();
         // make sure that the list has records
         if (wrapContactList.size() > 0){
-                for(wrapContact wrapContactObj : wrapContactList) {
+            for(wrapContact wrapContactObj : wrapContactList) {
                 //only process contacts that have been selected
-                    if(wrapContactObj.selected == true) {
-                        //check if contact is already a campaign member, if not then add
-                        //otherwise notify the user that the contact is already a member
-                        if ( ! currentCM.contains(wrapContactObj.cont.id) )
-                        {
-                            CampaignMember oneCampMem = new CampaignMember();
-                            oneCampMem.CampaignId = theCampaignId;
-                            oneCampMem.ContactId = wrapContactObj.cont.id;
-                            oneCampMem.Status = selectedStatus;
-                            partContainer onePart = new partContainer(oneCampMem, wrapContactObj.cont.Name, wrapContactObj.cont.Email);
-                            participants.add(onePart);
-                            currentCM.add(wrapContactObj.cont.id);
-                        }
-                        else {
-                            mess = wrapContactObj.cont.Name + ' is already a member of the adventure.';
-                            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.WARNING,mess));
-                        }
+                if(wrapContactObj.selected == true) {
+                    //check if contact is already a campaign member, if not then add
+                    //otherwise notify the user that the contact is already a member
+                    if ( ! currentCM.contains(wrapContactObj.cont.id) )
+                    {
+                        CampaignMember oneCampMem = new CampaignMember();
+                        oneCampMem.CampaignId = camp.Id;
+                        oneCampMem.ContactId = wrapContactObj.cont.id;
+                        oneCampMem.Status = selectedStatus;
+                        partContainer onePart = new partContainer(oneCampMem, wrapContactObj.cont.Name, wrapContactObj.cont.Email);
+                        participants.add(onePart);
+                        currentCM.add(wrapContactObj.cont.id);
+                    }
+                    else {
+                        mess = wrapContactObj.cont.Name + ' is already a member of the adventure.';
+                        ApexPages.addmessage(new ApexPages.message(ApexPages.severity.WARNING,mess));
+                    }
                 }
-                }
+            }
         }
     }
     
@@ -89,17 +88,15 @@ public class selectParticipants
     {
         //retrieve the possible statuses for this campaign
         List<SelectOption> PossibleStatuses = new List<SelectOption>();
-        Campaign_Type__mdt campTypeGroup = [SELECT Status_Group__c FROM
-                                           Campaign_Type__mdt WHERE 
-                                           MasterLabel =: camp.Type
-                                           LIMIT 1];
-        List<CM_Status_Setting__mdt> theStatuses = [SELECT MasterLabel FROM
-                                              CM_Status_Setting__mdt
-                                              WHERE 
-                                              Group_Number__c =: campTypeGroup.Status_Group__c
-                                              Order by Order__c];
-        for (CM_Status_Setting__mdt sts : theStatuses)
-            PossibleStatuses.add(new SelectOption(sts.MasterLabel,sts.MasterLabel));        
+        List<CampaignMemberStatus> cms = 
+            [SELECT label, campaignid, SortOrder, isDefault from campaignmemberstatus WHERE
+             campaignId = :camp.id ORDER BY SortOrder ASC];
+        for (CampaignMemberStatus sts : cms)
+        {
+            PossibleStatuses.add(new SelectOption(sts.Label,sts.Label));
+            if (sts.isDefault)
+                selectedStatus = sts.Label;
+        }           
         return PossibleStatuses;
     }
     
@@ -128,11 +125,11 @@ public class selectParticipants
             pEmail = e;          
         }
     }
-
+    
     public class wrapContact {
         public Contact cont {get; set;}
         public Boolean selected {get; set;}
- 
+        
         public wrapContact(Contact c) {
             cont = c;
             selected = false;
