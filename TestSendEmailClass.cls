@@ -29,15 +29,17 @@ public class TestSendEmailClass {
         Vols[6].First_Aid_Certification_Expiration_Date__c = Date.today() + 10;
         Vols[6].Fingerprint_Clearance_Expiration_Date__c = Date.today() + 10;
         Vols[7].CPR_Certificate_Expiration_Date__c = Date.today() - 10;
-        Vols[7].First_Aid_Certification_Expiration_Date__c = Date.today() - 20;
+        Vols[7].First_Aid_Certification_Expiration_Date__c = Date.today() - 20;            
         Vols[7].Fingerprint_Clearance_Expiration_Date__c = Date.today() - 1;
         Vols[8].Fingerprint_Clearance_Expiration_Date__c = Date.today() - 20;
         Vols[9].CPR_Certificate_Expiration_Date__c = Date.today() - 10;
-        Vols[9].First_Aid_Certification_Expiration_Date__c = Date.today() - 20;
+        Vols[9].First_Aid_Certification_Expiration_Date__c = Date.today() - 20;         
         Vols[10].First_Aid_Certification_Expiration_Date__c = Date.today() + 60;
         Vols[11].First_Aid_Certification_Expiration_Date__c = Date.today() - 20;
         Vols[12].Fingerprint_Clearance_Expiration_Date__c = Date.today() - 1;
-
+        vols[13].First_Aid_Certification_Expiration_Date__c = Date.today() + 2;
+        Vols[13].Email = '';
+        
         //insert volunteer records in database
         Database.SaveResult[] srList = Database.insert(Vols, false);
         for (Database.SaveResult sr : srList){
@@ -46,9 +48,9 @@ public class TestSendEmailClass {
                 System.debug('Successfully inserted contact. Contact ID: ' + sr.getId());
             }
             else {
-                // Operation failed, so get all errors
+                // Operation failed, so get all errors                
                 for(Database.Error err : sr.getErrors()) {
-                    System.debug('The following error has occurred.');
+                    System.debug('The following error has occurred.');                    
                     System.debug(err.getStatusCode() + ': ' + err.getMessage());
                     System.debug('Account fields that affected this error: ' + err.getFields());
                 }
@@ -62,16 +64,16 @@ public class TestSendEmailClass {
             Task oneTask = new Task(ActivityDate = hoy - 2,
                                     Priority = 'Normal',
                                     Status = 'Completed',
-                                    Subject =
+                                    Subject = 
                                     'Email: Friendly reminder: Your FirstAid certification on file with Daring Adventures will expire soon',
                                     WhoId = srList[0].getid());
             myAlerts.add(oneTask);
         }
-        myAlerts[0].Subject =
+        myAlerts[0].Subject = 
             'Email: Friendly reminder: Your CPR certification on file with Daring Adventures will expire soon';
         myAlerts[0].WhoId = srList[4].getId();
         myAlerts[1].WhoId = srList[5].getId();
-        myAlerts[2].Subject =
+        myAlerts[2].Subject = 
             'Email: Friendly reminder: Your Fingerprint Clearance Card on file with Daring Adventures will expire soon';
         myAlerts[2].WhoId = srList[6].getId();
         myAlerts[3].Subject =
@@ -83,7 +85,7 @@ public class TestSendEmailClass {
         myAlerts[4].ActivityDate = Date.newInstance(2015, 1, 16);
         myAlerts[5].Subject =
             'Email: Friendly reminder: Your Fingerprint Clearance Card on file with Daring Adventures has EXPIRED';
-        myAlerts[5].WhoId = srList[8].getId();
+        myAlerts[5].WhoId = srList[8].getId();       
         myAlerts[6].Subject =
             'Email: Friendly reminder: Your CPR certification on file with Daring Adventures has EXPIRED';
         myAlerts[6].WhoId = srList[9].getId();
@@ -91,22 +93,22 @@ public class TestSendEmailClass {
         myAlerts[7].Subject =
             'Email: Friendly reminder: Your First Aid certification on file with Daring Adventures has EXPIRED';
         myAlerts[7].WhoId = srList[9].getId();
-        myAlerts[7].ActivityDate = Date.today()-35;
-
+        myAlerts[7].ActivityDate = Date.today()-35;         
+                
         Database.SaveResult[] Tasklist = Database.insert(myAlerts);
-
+        
         //now run the class we are testing
         test.startTest();
         SendKACEmailClass.sendReminderEmails();
-
+        
         //query all the activities that have todays date and check if we have the right amount
         List<Task> newActivities = [SELECT id, ActivityDate FROM Task];
         test.stopTest();
         // it seems that the email class is not actually adding any records to the
-        // task object there should be 13 records in the list, but only the
+        // task object there should be 13 records in the list, but only the 
         // four that the test method inserts are inserted.
-
-        system.assertEquals(22, newActivities.size());
-
+        
+        system.assertEquals(23, newActivities.size());
+        
     }
 }
