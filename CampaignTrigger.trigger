@@ -1,3 +1,3 @@
-trigger CampaignTrigger on Campaign (after insert, before delete) {
+trigger CampaignTrigger on Campaign (after insert, after update, before delete) {
     new CampaignTriggerHandler().run();
 }

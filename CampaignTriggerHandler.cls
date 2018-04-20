@@ -1,34 +1,34 @@
 //Martha Vance
-//Rev. Nov 12, 2017
+//Rev. April 2, 2018
 
 public class CampaignTriggerHandler extends TriggerHandler{
     public Map<String, id> campRecType;
-
+    
     public CampaignTriggerHandler()
     {
         //get a map of the record types for Campaign
         campRecType = getRecTypeId();
     }
-
+    
     protected override void afterInsert() {
         //If the campaign inserted is an Adventure Campaign add the adventure campaign
         //as well as the Volunteer campaign related to it.
         AddAdventureCampaign();
     }
-
+    
     protected override void beforeDelete() {
         //prepare the campaign record to be deleted. I will not allow the user to delete
         //a campaign that has a related Volunteer campaign, or
         //an adventure campaign that has members with Attended status
         PrepareForDeletion();
     }
-
+    
     protected override void afterUpdate() {
         //if the dates of the Volunteer campaign has changed then change the
         //dates for the volunteer jobs and shifts associated to the campaign
         ChangeVolCampDates();
     }
-
+    
     public void AddAdventureCampaign()
     {
         list<Campaign> aList = new List<Campaign>();
@@ -94,15 +94,17 @@ public class CampaignTriggerHandler extends TriggerHandler{
                     aList.add(volunteerCampaign);
                 }
             }
-            //make a list of fundraising campaigns that have Campaign Member Status other
+            //make a list of fundraising and Benevon campaigns that 
+            //have Campaign Member Status other
             //than SENT and RESPONDED to assign new Campaign Member Status
-            if (each.RecordTypeId == campRecType.get('Fundraising'))
+            if (each.RecordTypeId == campRecType.get('Fundraising')
+               || each.RecordTypeId == campRecType.get('Benevon'))
             {
                 if (mapTypes.get(each.Type).Status_Group__c > 0)
                 {
                     fundCampaigns.add(each);
-                }
-            }
+                }                
+            }               
         }
         // Add the CampaignMember Status for all the new Adventure Campaigns and
         // the new fundraising campaigns that need new CMStatus
@@ -114,7 +116,7 @@ public class CampaignTriggerHandler extends TriggerHandler{
         {
             //Insert the new Volunteer Campaign records
             Database.SaveResult[] srList = Database.insert(aList, false);
-
+            
             Integer i = 0;
             for (Database.SaveResult sr : srList)
             {
@@ -140,17 +142,15 @@ public class CampaignTriggerHandler extends TriggerHandler{
         campaignToUpdate.addAll(adventCampaign);
         campaignToUpdate.addAll(mailChimpCampaign);
         update campaignToUpdate;
-
+        
         //Now it needs to add a GAU Alocation (General fund Activities Fee)
         //for the Adventure Campaign
-        //This part is not inside the if, but only works with the records that were
-        //of record type Adventure.
-        npsp__General_Accounting_Unit__c genAcUnit =
-            [select id from npsp__General_Accounting_Unit__c
-             where Name = 'Activity Fees'];
 
         if (adventCampaign.size() > 0)
         {
+            npsp__General_Accounting_Unit__c genAcUnit =
+            [select id from npsp__General_Accounting_Unit__c
+             where Name = 'Activity Fees'];
             List<npsp__Allocation__c> theAllocation = new List<npsp__Allocation__c>();
             for (Campaign each : adventCampaign)
             {
@@ -160,7 +160,7 @@ public class CampaignTriggerHandler extends TriggerHandler{
                     npsp__Percent__c = 100);
                 theAllocation.add(theAlloc);
             }
-
+            
             try {
                 insert theAllocation;
             } catch(DmlException e) {
@@ -168,37 +168,43 @@ public class CampaignTriggerHandler extends TriggerHandler{
             }
         }
     }
-
+    
     private void insertCampaignMembersStats(List<Campaign> campaigns,
                                            Map<String, Campaign_Type__mdt> mapTypes,
-                                           List <CM_Status_Setting__mdt> allStatus){
+                                           List <CM_Status_Setting__mdt> allStatus)
+    {
          //this method gathers all the old CM Status for the campaigns in the list,
          //makes a new list of statuses, inserts the new list and deletes the old statuses for
-         //those campaigns.
-
+         //those campaigns.                                      
+                                               
         //make a set with all the new campaign ids
         List <id> CampIds = new List <id> ();
         for (Campaign c : campaigns){
             CampIds.add(c.id);
-        }
+        }        
         List <CampaignMemberStatus> DefStatuses = [SELECT id, CampaignID, HasResponded, IsDefault, Label, SortOrder
                                                    FROM CampaignMemberStatus
                                                    WHERE CampaignID IN :CampIds];
         //if IsDefault is turned on the record can't be deleted so it needs to be
-        //turned off
+        //turned off 
         for (CampaignMemberStatus cms : DefStatuses){
             if (cms.IsDefault) cms.IsDefault = false;}
         //Before updating the default statuses need to add new defaults
-
+                
         //create a list of new status to be inserted per campaign
         List <CampaignMemberStatus> newStatuses = new List<CampaignMemberStatus>();
         for (Campaign c : campaigns){
+            //check if the Campaign Type is included in the list for CM status
             if (mapTypes.containsKey(c.Type))
             {
-                Campaign_Type__mdt ct = mapTypes.get(c.Type);
+                //In the Custom Metadata Type for Campaign types, each campaign type has
+                //a group number that corresponds with the group of Campaign Member Status
+       
+                Campaign_Type__mdt ct = mapTypes.get(c.Type);            
                 integer grp = Integer.valueOf(ct.Status_Group__c);
                 for (CM_Status_Setting__mdt cmStat : allStatus)
                 {
+                    //check to see if this type of campaign needs a different group of CM statuses
                     If (cmStat.Group_Number__c == grp){
                         CampaignMemberStatus campMemStat = new CampaignMemberStatus(CampaignID = c.Id,
                                                                                     HasResponded = cmStat.Responded__c,
@@ -210,17 +216,54 @@ public class CampaignTriggerHandler extends TriggerHandler{
                 }
             }
         }
-        if (newStatuses.size() > 0)
+        //if there are new Campaign Member statuses for the campaign                                    
+        if (newStatuses.size() > 0) 
         {
-            insert newStatuses;
-            If (DefStatuses.size() > 0)
+            //make a list of new statuses that will be inserted in the CampaignMemberStatus object
+            List<CampaignMemberStatus> realNewStatuses = new List<CampaignMemberStatus>();
+            //make a map (mapOldStat) with all the existing CM statuses for the campaign
+            map<String, CampaignMemberStatus> mapOldStat = 
+                new Map<String, CampaignMemberStatus>();
+            for (CampaignMemberStatus dcms : DefStatuses)
+            {
+                mapOldStat.put(dcms.Label, dcms);
+            }
+            for (CampaignMemberStatus cms : newStatuses)
+            {
+                if (mapOldStat.containsKey(cms.Label))
+                {
+                    Integer theIndex = getIndex(DefStatuses, cms.Label);
+                    DefStatuses.remove(theIndex);
+                }
+                else
+                {
+                    realNewStatuses.add(cms);
+                }
+            }
+            if (realNewStatuses.size() > 0) insert realNewStatuses;
+            If (DefStatuses.size() > 0) 
             {
                 Update DefStatuses;
                 Delete DefStatuses;
             }
         }
     }
-
+    
+    private Integer getIndex(List<CampaignMemberStatus> campMemSt, String theLabel)
+    {
+        //this method obtains the index of the record in the list that has theLabel
+        Integer theIndex = 0;
+        for (integer x = 0; x < campMemSt.size(); x++)
+        {
+            if (campMemSt[x].Label == theLabel)
+            {
+                theIndex = x;
+                break;
+            }
+        }
+        return theIndex;
+    }
+    
     private Map<String, id> getRecTypeId ()
     {
         //This method returns a map of all the record types indexed by the Record Type name
@@ -231,10 +274,10 @@ public class CampaignTriggerHandler extends TriggerHandler{
             recTypeIds.put(rt.DeveloperName, rt.id);
         return recTypeIds;
     }
-
+    
     private void PrepareForDeletion()
     {
-        //this method checks if the campaign can be deleted. Campaigns with members that have
+        //this method checks if the campaign can be deleted. Campaigns with members that have 
         //status of Attended can't be deleted
         List<Campaign> delCampaign = (List<Campaign>) trigger.old;
         for (Campaign eachCampaign : delCampaign)
@@ -268,7 +311,7 @@ public class CampaignTriggerHandler extends TriggerHandler{
             }
         }
     }
-
+    
     private void ChangeVolCampDates()
     {
         //This method checks if the dates or type of campaign have changed. If the
@@ -277,7 +320,7 @@ public class CampaignTriggerHandler extends TriggerHandler{
         //If the campaign type has changed and the Campaing Member Status
         //group has changed it changes the possible Campaign Member Status for the campaign,
         //deleting the previous choices.
-
+        
         //Retrieve all campaign types and their CampaignMember Status_Group
         map<String, Campaign_Type__mdt> mapTypes = getMapOfTypes();
         //Retrieve all the possible Status for Adventure campaigns from the Custom Metadata Type CM_Status_Setting
@@ -300,17 +343,24 @@ public class CampaignTriggerHandler extends TriggerHandler{
                  newRec[x].EndDate != newRec[x].EndDate)
                 && newRec[x].RecordTypeId == campRecType.get('Adventure')
                 && newRec[x].Related_Campaign__c != null)
-                changedCamps.put(newRec[x].Related_Campaign__c, newRec[x]);
+                changedCamps.put(newRec[x].Related_Campaign__c, newRec[x]);            
             if (newRec[x].Type != oldRec[x].Type)
             {
+                //before changing the status for the campaign members check that there
+                //are no campaign members for the campaign                
                 Integer campMembers = [SELECT count() FROM CampaignMember
                                        WHERE CampaignId = :newRec[x].id];
                 if (campMembers == 0)
-                {
+                {   
                     if (mapTypes.containsKey(newRec[x].Type))
                     {
+                        Decimal oldGrp = 0;
+                        If (oldRec[x].Type != null)
+                        {
+                            oldGrp = mapTypes.get(oldRec[x].Type).Status_Group__c;
+                        }                        
                         if (mapTypes.get(newRec[x].Type).Status_Group__c !=
-                            mapTypes.get(oldRec[x].Type).Status_Group__c)
+                            oldGrp)
                         {
                             changedType.add(newRec[x]);
                         }
@@ -331,7 +381,7 @@ public class CampaignTriggerHandler extends TriggerHandler{
             insertCampaignMembersStats(changedType, mapTypes, allStatus);
         }
     }
-
+    
     private void changeVolShiftDates(Map<id, Campaign> changedCamps)
     {
         // this method changes the dates on the volunteer campaigns, jobs and shifts
@@ -370,7 +420,7 @@ public class CampaignTriggerHandler extends TriggerHandler{
         }
         update shiftsMap.values();
     }
-
+    
     private Map<String, Campaign_Type__mdt> getMapOfTypes()
     {
         list<Campaign_Type__mdt> camp_Type = [SELECT MasterLabel, Status_Group__c
@@ -381,5 +431,5 @@ public class CampaignTriggerHandler extends TriggerHandler{
         }
         return mapTypes;
     }
-
+    
 }
