@@ -1,0 +1,73 @@
+<!-- This page will be contained in an iframe and put in DA website the Benevon Invitee will
+get a link to the page to sign up for the event -->
+
+<apex:page showHeader="false" Controller="Vol_Intermittent_Hours" standardStylesheets="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0">
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en" />
+    <head>
+        <!-- Import the Design System style sheet -->
+        <apex:slds />
+    </head>
+    <body style="background-color:#ffccb3;">
+        <div class="slds-scope">
+            <!-- Page Title -->
+            <div style="margin:auto;width:500px;padding:20px;background-color:white;">
+                
+                <h2 id="pageTitle" class="slds-text-heading_large slds-m-vertical--large slds-text-align_center">Intermittent Volunteer Hours<br/>Enter Hours Worked</h2>
+            <apex:form >
+                <h4 id="instructions" class="slds-text-heading_medium slds-p-bottom_xxx-small">Type of work done while volunteering? </h4>
+                <apex:selectList value="{!JobName}" multiselect="false" size="1" style="font-size:1.2em;">
+                    <apex:selectOptions value="{!PossibleJobs}"/>
+                </apex:selectList>    
+                
+                <div class="slds-p-horizontal_large slds-m-vertical--medium">
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label" for="input-unique-id">
+                            <abbr class="slds-required" title="required">*</abbr>First Name</label>
+                        <div class="slds-form-element__control">
+                            <apex:inputText value="{!vFirstName}" />
+                        </div>
+                    </div>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label" for="input-unique-id">
+                            <abbr class="slds-required" title="required">*</abbr>Last Name</label>
+                        <div class="slds-form-element__control">
+                            <apex:inputText value="{!vLastName}" />
+                        </div>
+                    </div>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label" for="input-unique-id">
+                            <abbr class="slds-required" title="required">*</abbr>Email</label>
+                        <div class="slds-form-element__control">
+                            <apex:inputText value="{!vEmail}" />
+                        </div>
+                    </div>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label" for="input-unique-id">Date work was done</label>
+                        <div class="slds-form-element__control">
+                            <apex:inputText value="{!dateVol}" />
+                        </div>
+                    </div>                
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label" for="input-unique-id">Time Started</label>
+                        <div class="slds-form-element__control">
+                            <apex:inputText value="{!startTime}" />
+                        </div>
+                    </div>  
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label" for="input-unique-id">Hours Worked (use .50 for 1/2 and hour, .25 for 1/4 of an hour, etc)</label>
+                        <div class="slds-form-element__control">
+                            <apex:inputText value="{!duration}" />
+                        </div>
+                    </div>                
+                </div>
+                <div class="slds-text-heading_small slds-text-color_error">
+                    <apex:pageMessages ></apex:pageMessages>
+                </div>
+                <apex:commandButton value="Enter Hours" action="{!save}" style="font-size:100%;"/>
+            </apex:form>
+            
+            </div>
+        </div>
+    </body>
+
+</apex:page>
