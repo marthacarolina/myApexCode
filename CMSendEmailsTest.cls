@@ -1,7 +1,8 @@
 //This is the test for CMSendEmails class
 //
 //Martha Vance 2017
-@isTest
+@isTest    
+
 public class CMSendEmailsTest {
     @isTest
     private static void SndEmail()
@@ -9,18 +10,10 @@ public class CMSendEmailsTest {
         Map<String, id> recTypeIds = new Map<String, id>();
         List<RecordType> recs = [select id, Name, DeveloperName from RecordType
                                  where sObjectType = 'Campaign'];
-        //Document document = new Document();
-        //document.Body = Blob.valueOf('Some Text');
-        //document.ContentType = 'application/pdf';
-        //document.DeveloperName = 'P204Camping';
-        //document.IsPublic = true;
-        //document.Name = 'Camping';
-        //document.FolderId = [select id from folder
-        //                     where name = 'DA Programs Policies and Procedures'].id;
-        //insert document;
 
+        
         for (RecordType rt : recs)
-            recTypeIds.put(rt.DeveloperName, rt.id);
+            recTypeIds.put(rt.DeveloperName, rt.id); 
         id fee = TestDataFactory.CreateFee('Cycling', 15);
         TestDataFactory.CreateGAU('Activity Fees');
         TestDataFactory.CreateCMStatusDefault('Cycling');
@@ -37,7 +30,7 @@ public class CMSendEmailsTest {
         TestDataFactory.CreateCampaigns('Testing ', 'Adventure', 'Camping', 1, 6, date.today() + 20, date.today() + 20, fee);
         TestDataFactory.CreateCampaigns('Testing ', 'Adventure', 'Backpacking', 1, 7, date.today() + 10, date.today() + 10, fee);
         TestDataFactory.CreateContacts(12, 1);
-
+        
         List<Contact> contacts = [SELECT id, FirstName, LastName, email
                                  FROM Contact ORDER BY LastName];
         contacts[6].email = '';
@@ -47,27 +40,30 @@ public class CMSendEmailsTest {
         CreateEmailContent('Kayaking');
         CreateEmailContent('Hiking');
 
-
+        
         //only insert campaign members for the first campaign created
         //camp[0] - Adventure, CM 0,1,2   Volunteer - CM 3,4
         //camp[1] - Adventure no CM  volunteer - CM 4,5
         //camp[2] - Adventure CM 0,1,2,3 Volunteer No CM
         //camp[3] - Adventure no CM  volunteer no CM
 
-        //make a campaign without volunteer campaign
-        Campaign camp6 = [select id, Name, Related_Campaign__c
-                          from Campaign
+        //make a campaign without volunteer campaign        
+        Campaign camp6 = [select id, Name, RecordTypeId, Type, Description,
+                           StartDate, EndDate, Email_Message__c, Related_Campaign__c
+                          from Campaign 
                           where Name = 'Testing 6' limit 1];
-        Campaign volCamp6 = [select id from Campaign
-                            where id = :camp6.Related_Campaign__c];
+        Campaign volCamp6 = [select id, Name, RecordTypeId, Type, Description,
+                             StartDate, EndDate, Email_Message__c, Related_Campaign__c
+                             FROM Campaign
+                             where id = :camp6.Related_Campaign__c];
         delete volCamp6;
         camp6.Related_Campaign__c = null;
         update camp6;
-        //Retrieve the campaigns that were just created
+        //Retrieve the campaigns that were just created        
         List<Campaign> campList = new List<Campaign>
-            ([Select id, Name, Related_Campaign__c, StartDate,
-              EndDate, RecordTypeId
-              from Campaign
+            ([Select id, Name, RecordTypeId, Type, Description,
+                     StartDate, EndDate, Email_Message__c, Related_Campaign__c 
+              from Campaign              
               ORDER BY RecordType.Name, Name]);
         Map<id, Campaign> mapCamps = new Map<id, Campaign>(campList);
         //make a map of the campaign Id's where the Key is the campaign Name
@@ -87,7 +83,7 @@ public class CMSendEmailsTest {
         contacts.remove(0);  //test 1  rec 0
         camps.clear();
         statai.clear();
-        Campaign tempCamp = mapCamps.get(campsByName.get('Testing 3'));
+        Campaign tempCamp = mapCamps.get(campsByName.get('Testing 3')); 
         camps.add(tempCamp); //send the Adventure campaign to TestDataFactory it will insert job in related campaign
         TestDataFactory.CreateJobShift(camps);
         statai.add('Canceled');
@@ -111,7 +107,7 @@ public class CMSendEmailsTest {
         TestDataFactory.CreateCampaignMembers(camps, contacts, 1, statai);
         contacts.remove(0);  // test 8   rec 7
         camps.clear();
-        tempCamp = mapCamps.get(campsByName.get('Testing 5'));
+        tempCamp = mapCamps.get(campsByName.get('Testing 5')); 
         camps.add(tempCamp);
         TestDataFactory.CreateJobShift(camps);
         statai.clear();
@@ -128,11 +124,11 @@ public class CMSendEmailsTest {
         contacts.remove(0);
         //create volunteers for Testing 7
         TestDataFactory.CreateJobShift(camps);
-        statai.clear();
+        statai.clear();        
         statai.add('Confirmed');
         tempCamp = mapCamps.get(tempCamp.Related_Campaign__c);
         CreateVolHours(tempCamp, contacts, 1, statai);
-
+                                
         //begin test now
         //
         //CAMP[0] reminder emails - cycling  2 participants selected 1 volunteers
@@ -142,35 +138,36 @@ public class CMSendEmailsTest {
         test.startTest();
         List<String> returnPages = new List<String>();
         List<PageReference> pgref = new List<PageReference>();
-
+        
         ///------------------------
-
+        
         ApexPages.StandardController std1 =
             new ApexPages.StandardController(campList[0]);
-        CMSendEmails firstTest = new CMSendEmails(std1);
+        CMSendEmails firstTest = new CMSendEmails(std1); 
+        List<SelectOption> typesOfEmail = firstTest.getEmailTypes();
         pgref.add(firstTest.SendTheEmails());
         returnPages.add(pgref[0].getUrl());
-
+        
         //--------------------
         //Campaign 2 has no participants and no volunteers
         std1 = new ApexPages.StandardController(campList[1]);
         CMSendEmails secondTest = new CMSendEmails(std1);
         system.assertEquals('There are no participants or volunteers associated with this campaign', secondTest.message);
-        pgref.add(secondTest.SendTheEmails());
+        pgref.add(secondTest.SendTheEmails());                
         returnPages.add(pgref[1].getUrl());
-
+        
         //-------------------
         std1 = new ApexPages.StandardController(campList[2]);
         CMSendEmails thirdTest = new CMSendEmails(std1);
         pgref.add(thirdTest.SendTheEmails());
         returnPages.add(pgref[2].getUrl());
-
+                
         //--------------------
         std1 = new ApexPages.StandardController(campList[3]);
         CMSendEmails fourthTest = new CMSendEmails(std1);
-        pgref.add(fourthTest.SendTheEmails());
+        pgref.add(fourthTest.SendTheEmails());        
         returnPages.add(pgref[3].getUrl());
-
+                
         //---------
         //There is no email templates for this campaign
         std1 = new ApexPages.StandardController(campList[4]);
@@ -179,18 +176,18 @@ public class CMSendEmailsTest {
         pgref.add(fifthTest.SendTheEmails());
         returnPages.add(pgref[4].getUrl());
 
-        std1 = new ApexPages.StandardController(campList[5]);
+        std1 = new ApexPages.StandardController(campList[5]);        
         CMSendEmails sixthTest = new CMSendEmails(std1);
-        pgref.add(sixthTest.SendTheEmails());
+        pgref.add(sixthTest.SendTheEmails());       
         returnPages.add(pgref[5].getUrl());
-
-        std1 = new ApexPages.StandardController(campList[6]);
+        
+        std1 = new ApexPages.StandardController(campList[6]);        
         CMSendEmails seventhTest = new CMSendEmails(std1);
-        pgref.add(seventhTest.SendTheEmails());
+        pgref.add(seventhTest.SendTheEmails());       
         returnPages.add(pgref[6].getUrl());
-
+        
         test.stopTest();
-
+        
         //Integer tasksInserted = [select count() from Task where ];
         //system.assertEquals(5, tasksInserted);
         system.debug('returnPages.size()' + returnPages.size());
@@ -198,9 +195,9 @@ public class CMSendEmailsTest {
 //        {
 //            if (CampList[x].Name != 'Testing 2' && CampList[x].Name != 'Testing 5')
 //                system.assertEquals(true, returnPages[x].contains(CampList[x].id));
-//        }
+//        }                
     }
-
+    
     public static void CreateVolHours (Campaign camp, List<Contact> conts, Integer numVol, List<String> stats)
     {
         GW_Volunteers__Volunteer_Job__c job = [SELECT id, Name, GW_Volunteers__Campaign__c
@@ -210,7 +207,7 @@ public class CMSendEmailsTest {
                                                    GW_Volunteers__Start_Date_Time__c
                                                   from GW_Volunteers__Volunteer_Shift__c
                                                   where GW_Volunteers__Volunteer_Job__c = :job.id Limit 1];
-        List<GW_Volunteers__Volunteer_Hours__c> hours =
+        List<GW_Volunteers__Volunteer_Hours__c> hours = 
             new List<GW_Volunteers__Volunteer_Hours__c>();
         if (conts.size() < stats.size())
             system.debug('Not enough contacts, or too many statuses');
@@ -220,7 +217,7 @@ public class CMSendEmailsTest {
             for (Integer x=0; x < numVol; x++)
             {
                 Integer y = statusIndex < stats.size() ? statusIndex : stats.size() - 1;
-                GW_Volunteers__Volunteer_Hours__c volHour =
+                GW_Volunteers__Volunteer_Hours__c volHour = 
                     new GW_Volunteers__Volunteer_Hours__c(GW_Volunteers__Contact__c = conts[x].id,
                                                       GW_Volunteers__End_Date__c = camp.EndDate,
                                                       GW_Volunteers__Hours_Worked__c = 3,
@@ -234,16 +231,16 @@ public class CMSendEmailsTest {
                 hours.add(volHour);
             }
             insert hours;
-        }
+        }        
     }
-
+    
     private static void CreateEmailContent (String cType)
     {
         List<String> typeEmail = new List<String>{'Reminder Emails', 'After Campaign Emails'};
         List<Email_Content__c> eContents = new List<Email_Content__c>();
         for (Integer x = 0; x < 2; x++)
         {
-            Email_Content__c eContent =
+            Email_Content__c eContent = 
                 new Email_Content__c (Name = cType + ' content email',
                                       Body__c = 'this is the body',
                                       Campaign_Type__c = cType,

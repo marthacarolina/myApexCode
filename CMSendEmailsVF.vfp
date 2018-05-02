@@ -1,53 +1,62 @@
 <apex:page standardController="Campaign" extensions="CMSendEmails">
     <script type="text/javascript">
-        function selectAllCheckboxes(obj,receivedInputID){
-            var inputCheckBox = document.getElementsByTagName("input");
-            for(var i=0; i<inputCheckBox.length; i++){
-                if(inputCheckBox[i].id.indexOf(receivedInputID)!=-1){
-                    inputCheckBox[i].checked = obj.checked;
-                }
+    function selectAllCheckboxes(obj,receivedInputID){
+        var inputCheckBox = document.getElementsByTagName("input");
+        for(var i=0; i<inputCheckBox.length; i++){
+            if(inputCheckBox[i].id.indexOf(receivedInputID)!=-1){
+                inputCheckBox[i].checked = obj.checked;
             }
         }
+    }
     </script>
-  <apex:form >
-    <h2 style="font-size:200%;">
-    <apex:outputText value="{!message}" rendered="{!LEN(message)>0}"/></h2>
+    <apex:form >
+        <!------  This queries the fields for the campaign needed by the controller  ---->
+        <apex:outputText value="{!campaign.Related_Campaign__c}" rendered="false"/>
+        <apex:outputText value="{!campaign.RecordTypeId}" rendered="false"/>
+
+        <!-- ----  Form starts here  ----------- -->
+        <h2 style="font-size:200%;">
+            <apex:outputText value="{!message}" rendered="{!LEN(message)>0}"/></h2>
         <apex:pageBlock title="Send Emails to Campaign Members">
             <apex:pageBlockSection title="Adventure Campaign" columns="1">
                 <apex:outputField value="{!Campaign.Name}"/>
+                <apex:outputField value="{!Campaign.StartDate}"/>
+                <apex:outputField value="{!Campaign.Type}"/>                                
                 <apex:outputField value="{!Campaign.Description}"/>
-                <apex:inputField label="Email Message for Participants" value="{!camp.Email_Message__c}" />
+                <apex:inputField label="Email Message for Participants" value="{!campaign.Email_Message__c}" />
                 <apex:inputField label="Email Message for Volunteers" value="{!volCamp.Email_Message__c}" />
             </apex:pageBlockSection>
-        <apex:pageBlockSection columns="1" title="Campaign Members" >
-            <h2 style="font-size:120%; color:darkblue; font-weight: normal;">
-                <apex:outputlink title="Campaign Detail" value="{!URLFOR('/' + campaign.id)}" style="font-size:120%; color:cadetblue; font-weight: normal;">
-                campagin detail page </apex:outputlink>
-            </h2>
-            <h2>
-                <ol><li>Select what type of emails you want to send.</li>
-                <li>Select the Participants and/or Volunteers you want to receive the email.</li>
-                <li>If you don't want to send attachments make sure to uncheck the attachments box </li>
-                <li>After selecting all the recipients click on the <span class="btn">Send the Emails</span> button.</li></ol>
-            </h2>
-            <apex:inputfield value="{!picklist.etype__c}" Label="Select the type of email to send" />
-            <apex:inputCheckbox value="{!volAttachment}" Label="Attach Policies and Procedures for Volunteers" />
-            <apex:inputCheckbox value="{!sansTemplate}" Label="DO NOT Use Templates" />
-            <apex:pageBlockTable value="{!cMs}" var="partWrap" id="PartTable" title="Campaign Members">
-                <apex:column >
-                    <apex:facet name="header">
-                        <apex:inputCheckbox onclick="selectAllCheckboxes(this,'inputId')"/>
-                    </apex:facet>
-                    <apex:inputCheckbox value="{!partWrap.selected}" id="inputId"/>
-                </apex:column>
-                <apex:column value="{!partWrap.part.Name}" />
-                <apex:column value="{!partWrap.part.Email}" />
-                <apex:column value="{!partWrap.part.Status}" />
-                <apex:column value="{!partWrap.type_member}" />
-            </apex:pageBlockTable>
-
-      </apex:pageBlockSection>
-  </apex:pageBlock>
-   <apex:commandButton value="Send the Emails" action="{!SendTheEmails}"/>
-  </apex:form>
+            <apex:pageBlockSection columns="1" title="Campaign Members" >
+                <h2 style="font-size:120%; color:darkblue; font-weight: normal;">
+                    <apex:outputlink title="Campaign Detail" value="{!URLFOR('/' + campaign.id)}" style="font-size:120%; color:cadetblue; font-weight: normal;">
+                        campagin detail page </apex:outputlink>                
+                </h2>
+                <h2>
+                    <ol><li>Select what type of emails you want to send.</li>
+                        <li>Select the Participants and/or Volunteers you want to receive the email.</li>
+                        <li>If you don't want to send attachments make sure to uncheck the attachments box </li>
+                        <li>After selecting all the recipients click on the <span class="btn">Send the Emails</span> button.</li></ol>
+                </h2>
+                <apex:selectList Label="Select the type of email to send" value="{!emailType}" multiselect="false" size="1" style="font-size:1.2em;">
+                    <apex:selectOptions value="{!EmailTypes}"/>
+                </apex:selectList>
+                <apex:inputText value="{!emailSubject}" label="Subject for the email:" rendered="{!if(emailType='No Template',true,false)}"/> 
+                <apex:inputCheckbox value="{!volAttachment}" Label="Attach Policies and Procedures for Volunteers" />
+                <apex:pageBlockTable value="{!cMs}" var="partWrap" id="PartTable" title="Campaign Members">
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:inputCheckbox onclick="selectAllCheckboxes(this,'inputId')"/>
+                        </apex:facet>
+                        <apex:inputCheckbox value="{!partWrap.selected}" id="inputId"/>
+                    </apex:column>
+                    <apex:column value="{!partWrap.part.Name}" />
+                    <apex:column value="{!partWrap.part.Email}" />
+                    <apex:column value="{!partWrap.part.Status}" />
+                    <apex:column value="{!partWrap.type_member}" />
+                </apex:pageBlockTable>
+                
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        <apex:commandButton value="Send the Emails" action="{!SendTheEmails}"/>
+    </apex:form>
 </apex:page>

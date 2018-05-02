@@ -1,46 +1,49 @@
+//This class sends emails to members of a campaign, using a template in the
+//object Email_Content. 
+//It attaches Policies and procedures according to the Campaign type.
+//It uses the Custom Type Settings: Attachment_Setting__mdt
+//Martha Vance 2017
+
+
 public class CMSendEmails {
-
-    //This class sends emails to members of a campaign, using a template in the
-    //object Email_Content.
-    //It attaches Policies and procedures according to the Campaign type.
-    //It uses the Custom Type Settings: Attachment_Setting__mdt
-    //Martha Vance 2017
-
+    
     private ApexPages.StandardController std;
-    public Campaign camp {get;set;}
+    @TestVisible private final Campaign camp;
     public Campaign volCamp {get;set;}
-    public Picklist_Values__c picklist {get;set;}
-    private Boolean no_Vol = false;
-    private Boolean no_participants = false;
-    private List<CampaignMember> cMAdv;
-    private List<CampaignMember> cMVol;
+    public String emailType {get;set;}
     public List<WrapCM> cMs {get;set;}
     public String message {get;set;}
+    public Boolean volAttachment {get;set;}
+    public String emailSubject {get;set;}
+    private List<String> attch = new List<String>();
+    private List<CampaignMember> cMAdv;
+    private List<CampaignMember> cMVol;
     private List<id> volIds;
     private List<GW_Volunteers__Volunteer_Hours__c> volInfo;
     private map<id,GW_Volunteers__Volunteer_Job__c> jobInfo;
     private String theSubject;
     private Boolean noTemplate;
-    public Boolean volAttachment {get;set;}
-    public Boolean sansTemplate {get;set;}
-    private List<String> attch = new List<String>();
     private Boolean attExist = True;
-
-    //initialize
+    private Boolean sansTemplate;
+    private Boolean no_Vol = false;
+    private Boolean no_participants = false;
+    
     public CMSendEmails (ApexPages.StandardController stdCtrl)
     {
         volAttachment = true;
         noTemplate = False;
         sansTemplate = False;
-        camp = [SELECT id, Name, RecordTypeId, Type, Description, StartDate,
-                Email_Message__c, Related_Campaign__c
-                FROM Campaign WHERE id = :stdCtrl.getId()];
+        camp = (Campaign) stdCtrl.getRecord();
+        
         //check if it is an Adventure or a Volunteer campaign
-        If (camp.RecordTypeId == '012o0000000xwhO' ||
-            camp.RecordTypeId == '012o0000000xwhT')
+        Map<id, RecordType> cRecordType = Utilities.CampaignRecTypes();
+        If (cRecordType.get(camp.RecordTypeId).Name == 'Adventure' ||
+            cRecordType.get(camp.RecordTypeId).Name == 'Volunteer Campaign')
         {
             //Get Volunteer campaign
-            If (camp.RecordTypeId == '012o0000000xwhO' && camp.Related_Campaign__c != null)
+            //If the campaign that originated the process is a volunteer campaign with no related
+            //campaign
+            If (camp.Related_Campaign__c != null)
             {
                 volCamp = [SELECT id, Name, RecordTypeId, Type, Description,
                            StartDate, Email_Message__c, Related_Campaign__c
@@ -49,19 +52,16 @@ public class CMSendEmails {
             }
             else
             {
-                if (camp.Related_Campaign__c == null)
-                {
-                    no_Vol = true;
-                    volCamp = new Campaign();
-                    volCamp.id = camp.id;
-                }
+                no_Vol = true;
+                volCamp = new Campaign();
+                volCamp.id = camp.id;               
             }
         }
         cMs = new List<WrapCM>();
-        picklist = new Picklist_Values__c();
-        if (camp.StartDate > date.today()) picklist.etype__c = 'Reminder Emails';
-        else picklist.etype__c = 'After Campaign Emails';
-
+        //set the default for the type of emails to send
+        if (camp.StartDate > date.today()) emailType = 'Reminder Emails';
+        else emailType = 'After Campaign Emails';
+        
         //Get campaign members from both campaigns and show them on the VF page
         //The campaign members without emails will not be visible in the page
         cMAdv = [SELECT id, Email, Name, FirstName, LastName, Status,
@@ -77,7 +77,7 @@ public class CMSendEmails {
                      Description, ContactId, Activity_Days__c
                      FROM CampaignMember WHERE CampaignId = :volCamp.id AND Email != null
                      ORDER BY Name LIMIT 30];
-            system.debug('Number of Volunteers in Campaign ' + cMVol.size());
+            //system.debug('Number of Volunteers in Campaign ' + cMVol.size());
             if (cMVol.size() > 0)
             {
                 Make_Wrap(cMVol, 'Volunteer');
@@ -87,27 +87,27 @@ public class CMSendEmails {
             {
                 no_Vol = true;
                 VolunteerInformation(False);
-            }
+            }            
         }
         if (no_Vol && no_participants)
             message = 'There are no participants or volunteers associated with this campaign';
     }
-
+    
     public void Make_Wrap (List<CampaignMember> campMems, String type_Cm){
-
+        
         //this method makes the wrap to include the checkbox and distinguish
         //participants from volunteers. It adds the object to a list which will
         //be the list of recipients
-        boolean selected = false;
+        boolean selected = false;      
         For (CampaignMember c : campMems)
         {
-            if (Picklist.etype__c == 'Reminder Emails')
+            if (emailType == 'Reminder Emails')
             {
                 if (c.Status == 'Signed Up' || c.Status == 'Confirmed') selected = true;
             }
             else
             {
-                if (picklist.etype__c == 'After Campaign Emails')
+                if (emailType == 'After Campaign Emails')
                 {
                     if (c.Status == 'Attended' || c.Status == 'Completed')
                         selected = true;
@@ -117,15 +117,23 @@ public class CMSendEmails {
             selected = false;
         }
     }
-
+    
+    public List<SelectOption> getEmailTypes(){
+        //this method creates the selection list (drop down) for the type of email to send
+        List<SelectOption> emTypes = new List<SelectOption>();
+        emTypes.add(new SelectOption('Reminder Emails','Reminder Emails'));
+        emTypes.add(new SelectOption('After Campaign Emails','After Campaign Emails'));        
+        emTypes.add(new SelectOption('No Template','No Template Emails (only the message here is included)'));                
+        return emTypes;        
+    }
+    
     private void VolunteerInformation(Boolean isVol)
     {
         // this method retrieves the Volunteer's campaign records and attachments
-        //
         if (isVol)  // If there are volunteers in the campaign
         {
             if (volAttachment)
-            { 	// Get the id of the document to be attached
+            {   // Get the id of the document to be attached
                 Attachment_Setting__mdt attachments = [Select Document_Name__c
                                                        FROM Attachment_Setting__mdt
                                                        WHERE CampType__c = :camp.Type Limit 1];
@@ -183,7 +191,7 @@ public class CMSendEmails {
                   LIMIT 1]);
         }
     }
-
+    
     private GW_Volunteers__Volunteer_Hours__c whatShift(id contId)
     {
         //this method retrieves the shift record for the volunteer campaign
@@ -193,21 +201,23 @@ public class CMSendEmails {
             shft = vh;
         return shft;
     }
-
-    public PageReference SendTheEmails()
+    
+    public PageReference SendTheEmails()        
     {
-        //This action is triggered when the user clicks on the Send Emails button
+        //This method is triggered when the user clicks on the Send Emails button
+        if(emailType == 'No Template') sansTemplate = true;
+        
         if (!no_Vol || !no_participants)
         {
             List<Messaging.SingleEmailMessage> messages = new List<Messaging.SingleEmailMessage>();
             //add a SingleEmailMessage to each campaignmember selected
             //+++ here get the records from the Email_Content__c one for participants
             String cType = camp.Type;
-            if (picklist.etype__c == 'After Campaign Emails')
+            if (emailType == 'After Campaign Emails')
                 cType = 'Cycling';
             List<Email_Content__c> emailBody = new List<Email_Content__c>();
             // initialize template variables
-            String pBody = '';
+            String pBody = '';   
             String pSubject = '';
             String vBody = '';
             String vSubject = '';
@@ -219,47 +229,50 @@ public class CMSendEmails {
                                  Type_of_Email__c, Campaign_Type__c, Body__c,
                                  Subject__c
                                  From Email_Content__c
-                                 Where Type_of_Email__c = :picklist.etype__c AND
+                                 Where Type_of_Email__c = :emailType AND
                                  Campaign_Type__c = :cType];
                 }
                 catch (Exception e)
                 {
-                    message = 'There is no Email_Content of type '+ picklist.etype__c + ' for '+ cType+' Adventure';
+                    message = 'There is no Email_Content of type '+ emailType + ' for '+ cType+' Adventure';
                     noTemplate = true;
                 }
                 if (emailBody.size() == 0) //if there were no records found for the campaign type
                 {
-                    message = 'There is no Email_Content of type '+ picklist.etype__c + ' for '+ cType+' Adventure';
+                    message = 'There is no Email_Content of type '+ emailType + ' for '+ cType+' Adventure';
                     noTemplate = true;
+                }
+                if (! noTemplate)
+                {
+                    for (Email_Content__c bd : emailBody)
+                    {
+                        // set the subject and body of the email depending on whether the
+                        // campaign member is a Participant or a Volunteer
+                        if (bd.Body__c == null) bd.Body__c = '<span></span>';
+                        if (bd.For_Participants__c)
+                        {
+                            pBody = bd.Body__c;
+                            pSubject = bd.Subject__c;
+                        }
+                        if (bd.For_Volunteers__c)
+                        {
+                            vBody = bd.Body__c;
+                            vSubject = bd.Subject__c;
+                        }
+                    }
                 }
             }
             else  //if the user doesn't want to include a template asign values to template variables
             {
-                pBody = '<span></span>';
-                pSubject = 'A message from Daring Adventures';
-                vBody = '<span></span>';
-                vSubject = 'A message from Daring Adventures';
+                pBody = '*additional.message*<br/><br/><br/>*user.name*<br/>*user.email*';
+                if (emailSubject != null) 
+                    pSubject = emailSubject;
+                else
+                    pSubject = 'A message from Daring Adventures';                  
+                vBody = '*additional.message*<br/><br/><br/>*user.name*<br/>*user.email*';
+                vSubject = pSubject;
             }
-            If (! noTemplate && ! sansTemplate)  //if a template was found and we are using a template
-            {
-                for (Email_Content__c bd : emailBody)
-                {
-                    // set the subject and body of the email depending on whether the
-                    // campaign member is a Participant or a Volunteer
-                    if (bd.Body__c == null) bd.Body__c = '<span></span>';
-                    if (bd.For_Participants__c)
-                    {
-                        pBody = bd.Body__c;
-                        pSubject = bd.Subject__c;
-                    }
-                    if (bd.For_Volunteers__c)
-                    {
-                        vBody = bd.Body__c;
-                        vSubject = bd.Subject__c;
-                    }
-                }
-            }
-            if (! noTemplate)  // if there was a template found or we are not using a template
+            if (! noTemplate)  // if there was a template found or the user elected No Template
             {
                 //set the bcc address to the user sending the emails
                 List<String> bccAddys = new List<String>();
@@ -309,7 +322,7 @@ public class CMSendEmails {
                             volJob = FillNull(volJob);
                             theBody = makeBody(wCM.part, volCamp, vBody, volShift, volJob);
                             //attach a file to the volunteers emails
-                            if (volAttachment && attExist && (picklist.etype__c == 'Reminder Emails'))
+                            if (volAttachment && attExist && (emailType == 'Reminder Emails'))
                                 mess.setEntityAttachments(attch);
                         }
                         mess.setSubject(theSubject);
@@ -332,9 +345,9 @@ public class CMSendEmails {
             }
         }
         else
-            return ApexPages.currentPage();
+            return ApexPages.currentPage();        
     }
-
+    
     private GW_Volunteers__Volunteer_Job__c FillNull (GW_Volunteers__Volunteer_Job__c vJ)
     {
         if (vJ.GW_Volunteers__Location__c == null)
@@ -349,17 +362,17 @@ public class CMSendEmails {
             vJ.GW_Volunteers__Location_Information__c = '<span></span>';
         return vJ;
     }
-
+    
     private String makeBody(CampaignMember c, Campaign tcamp, String template,
                             GW_Volunteers__Volunteer_Hours__c vHours,
                             GW_Volunteers__Volunteer_Job__c vJob)
     {
         // This method calls the Reminder method or the ThankYou method. Both metohds
         // return the body of the email.
-        If (picklist.etype__c == 'Reminder Emails') return Reminder(c, tcamp, template, vHours, vJob);
+        If (emailType == 'Reminder Emails') return Reminder(c, tcamp, template, vHours, vJob);
         else return ThankYou(c, tcamp, template, vHours, vJob);
     }
-
+    
     private String Reminder(CampaignMember c, Campaign tcamp, String template,
                             GW_Volunteers__Volunteer_Hours__c vHours,
                             GW_Volunteers__Volunteer_Job__c vJob)
@@ -371,11 +384,9 @@ public class CMSendEmails {
             template = template.replace('*adventure.description*', tcamp.Description);
         else
             template = template.replace('*adventure.description*', ' ');
-
+        
         template = template.replace('*adventure.startdate*', tcamp.StartDate.format());
-        String rplcment='';
-        if (tcamp.Email_Message__c == null) rplcment = '<span></span>';
-        else rplcment = tcamp.Email_Message__c;
+        String rplcment= specMessage(tcamp);
         template = template.replace('*additional.message*', rplcment);
         template = template.replace('*user.name*', UserInfo.getName());
         template = template.replace('*user.email*', UserInfo.getUserEmail());
@@ -393,7 +404,7 @@ public class CMSendEmails {
         body = body + template;
         return body;
     }
-
+    
     public String ThankYou(CampaignMember c, Campaign tcamp, String template,
                            GW_Volunteers__Volunteer_Hours__c vHours,
                            GW_Volunteers__Volunteer_Job__c vJob)
@@ -405,21 +416,30 @@ public class CMSendEmails {
         template = template.replace('*XX*', activity_days);
         template = template.replace('*HH*', hours);
         template = template.replace('adventure.type', tcamp.type);
-        String rplcment='';
-        if (tcamp.Email_Message__c == null) rplcment = '<span></span>';
-        else rplcment = tcamp.Email_Message__c;
+        String rplcment= specMessage(tcamp);
         template = template.replace('*additional.message*', rplcment);
         template = template.replace('*user.name*', UserInfo.getName());
         template = template.replace('*user.email*', UserInfo.getUserEmail());
         body = body + template;
         return body;
     }
-
+    
+    private String specMessage(Campaign tcamp)
+    {
+        string rplcment='';
+        if (tcamp.Email_Message__c == null) {
+            rplcment = '<span></span>';
+        }
+        else 
+            rplcment = tcamp.Email_Message__c;
+        return rplcment;        
+    }
+    
     public class WrapCM {
         public CampaignMember part {get;set;}
         public Boolean selected {get;set;}
         public String type_member {get; set;}
-
+        
         public WrapCM (CampaignMember p, Boolean sel, String tCM)
         {
             part = p;
