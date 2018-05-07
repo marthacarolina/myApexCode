@@ -1,8 +1,8 @@
 //This class sends emails to members of a campaign, using a template in the
 //object Email_Content. 
 //It attaches Policies and procedures according to the Campaign type.
-//It uses the Custom Type Settings: Attachment_Setting__mdt
-//Martha Vance 2017
+//It uses the Custom Type Settings: Attachment_Setting__mdt to check the campaign type
+//Martha Vance May 2018
 
 
 public class CMSendEmails {
@@ -30,15 +30,23 @@ public class CMSendEmails {
     
     public CMSendEmails (ApexPages.StandardController stdCtrl)
     {
+        volInfo = new List<GW_Volunteers__Volunteer_Hours__c>();
+        jobInfo = new map<id,GW_Volunteers__Volunteer_Job__c>();
         volAttachment = true;
         noTemplate = False;
         sansTemplate = False;
         camp = (Campaign) stdCtrl.getRecord();
-        
-        //check if it is an Adventure or a Volunteer campaign
         Map<id, RecordType> cRecordType = Utilities.CampaignRecTypes();
+        //if the campaign is a benevon campaign do not include the attachment for Volunteers
+        if (cRecordType.get(camp.RecordTypeId).Name == 'Benevon')
+        {
+            volAttachment = false;
+        }
+        //check if it is an Adventure or a Volunteer campaign
         If (cRecordType.get(camp.RecordTypeId).Name == 'Adventure' ||
-            cRecordType.get(camp.RecordTypeId).Name == 'Volunteer Campaign')
+            cRecordType.get(camp.RecordTypeId).Name == 'Volunteer Campaign' ||
+            cRecordType.get(camp.RecordTypeId).Name == 'Benevon' ||
+            camp.Type == 'Orientation')
         {
             //Get Volunteer campaign
             //If the campaign that originated the process is a volunteer campaign with no related
@@ -57,10 +65,18 @@ public class CMSendEmails {
                 volCamp.id = camp.id;               
             }
         }
+        else
+            no_Vol = true;
+        
         cMs = new List<WrapCM>();
         //set the default for the type of emails to send
-        if (camp.StartDate > date.today()) emailType = 'Reminder Emails';
-        else emailType = 'After Campaign Emails';
+        if (cRecordType.get(camp.RecordTypeId).Name == 'Benevon')
+        {
+            volAttachment = false;
+            emailType = 'No Template';
+        }
+        else if (camp.StartDate > date.today()) emailType = 'Reminder Emails';
+             else emailType = 'After Campaign Emails';
         
         //Get campaign members from both campaigns and show them on the VF page
         //The campaign members without emails will not be visible in the page
@@ -91,10 +107,10 @@ public class CMSendEmails {
         }
         if (no_Vol && no_participants)
             message = 'There are no participants or volunteers associated with this campaign';
+        
     }
     
-    public void Make_Wrap (List<CampaignMember> campMems, String type_Cm){
-        
+    public void Make_Wrap (List<CampaignMember> campMems, String type_Cm){        
         //this method makes the wrap to include the checkbox and distinguish
         //participants from volunteers. It adds the object to a list which will
         //be the list of recipients
@@ -209,9 +225,9 @@ public class CMSendEmails {
         
         if (!no_Vol || !no_participants)
         {
+            //if there are participants and/or volunteers
             List<Messaging.SingleEmailMessage> messages = new List<Messaging.SingleEmailMessage>();
             //add a SingleEmailMessage to each campaignmember selected
-            //+++ here get the records from the Email_Content__c one for participants
             String cType = camp.Type;
             if (emailType == 'After Campaign Emails')
                 cType = 'Cycling';
@@ -296,9 +312,14 @@ public class CMSendEmails {
                         {
                             // if the campaign member is a participant
                             theSubject = pSubject.replace('*adventure.type*', camp.type);
-                            GW_Volunteers__Volunteer_Hours__c volShift = volInfo[0];
-                            GW_Volunteers__Volunteer_Job__c volJob =
-                                jobInfo.get(volShift.GW_Volunteers__Volunteer_Job__c);
+                            GW_Volunteers__Volunteer_Hours__c volShift = 
+                                new GW_Volunteers__Volunteer_Hours__c();
+                            GW_Volunteers__Volunteer_Job__c volJob = 
+                                new GW_Volunteers__Volunteer_Job__c();
+                            if (volInfo.size() > 0) {
+                                volShift = volInfo[0];
+                                volJob = jobInfo.get(volShift.GW_Volunteers__Volunteer_Job__c);
+                            }
                             volJob = FillNull(volJob);
                             theBody = makeBody(wCM.part, camp, pBody, volShift, volJob);
                         }
@@ -335,7 +356,7 @@ public class CMSendEmails {
                 messaging.sendEmail(messages);
                 List<Campaign> updatedCamps = new List<Campaign>();
                 updatedCamps.add(camp);
-                updatedCamps.add(volCamp);
+                if (! no_Vol) updatedCamps.add(volCamp);
                 update updatedCamps;
                 return new PageReference('/'+camp.id);
             }
@@ -350,6 +371,7 @@ public class CMSendEmails {
     
     private GW_Volunteers__Volunteer_Job__c FillNull (GW_Volunteers__Volunteer_Job__c vJ)
     {
+        //This method fills in the null values 
         if (vJ.GW_Volunteers__Location__c == null)
             vJ.GW_Volunteers__Location__c = '<span></span>';
         if (vJ.GW_Volunteers__Location_Street__c == null)
