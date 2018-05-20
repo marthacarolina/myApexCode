@@ -24,7 +24,7 @@ public class CMSendEmails {
     private String theSubject;
     private Boolean noTemplate;
     private Boolean attExist = True;
-    private Boolean sansTemplate;
+    @TestVisible private Boolean sansTemplate;
     private Boolean no_Vol = false;
     private Boolean no_participants = false;
     
@@ -408,6 +408,17 @@ public class CMSendEmails {
             template = template.replace('*adventure.description*', ' ');
         
         template = template.replace('*adventure.startdate*', tcamp.StartDate.format());
+        if (tcamp.Google_Calendar_Link__c != null)
+        {
+            String linkAndImage = '<a target="_blank" href="' + 
+                                    tcamp.Google_Calendar_Link__c + 
+                                    '"><img border="0" src="https://www.google.com/calendar/images/ext/gc_button1_en.gif"></a>';
+            template = template.replace('*adventure.googlelink*', linkAndImage);
+        }
+        else
+        {
+            template = template.replace('*adventure.googlelink*', '');            
+        }
         String rplcment= specMessage(tcamp);
         template = template.replace('*additional.message*', rplcment);
         template = template.replace('*user.name*', UserInfo.getName());

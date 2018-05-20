@@ -62,9 +62,14 @@ public class CMSendEmailsTest {
         //Retrieve the campaigns that were just created        
         List<Campaign> campList = new List<Campaign>
             ([Select id, Name, RecordTypeId, Type, Description,
-                     StartDate, EndDate, Email_Message__c, Related_Campaign__c 
+                     StartDate, EndDate, Email_Message__c, Related_Campaign__c,
+                     Google_Calendar_Link__c
               from Campaign              
               ORDER BY RecordType.Name, Name]);
+        //add a google link to 3 of the campaigns
+        for (Integer x=0; x < 3; x++)
+            campList[x].Google_Calendar_Link__c = 'https://google.com';
+        update campList;
         Map<id, Campaign> mapCamps = new Map<id, Campaign>(campList);
         //make a map of the campaign Id's where the Key is the campaign Name
         Map<String, id> campsByName = new Map<String, Id>();
@@ -162,9 +167,10 @@ public class CMSendEmailsTest {
         pgref.add(thirdTest.SendTheEmails());
         returnPages.add(pgref[2].getUrl());
                 
-        //--------------------
+        //--------------------  Test with no template
         std1 = new ApexPages.StandardController(campList[3]);
         CMSendEmails fourthTest = new CMSendEmails(std1);
+        fourthTest.sansTemplate = true;
         pgref.add(fourthTest.SendTheEmails());        
         returnPages.add(pgref[3].getUrl());
                 

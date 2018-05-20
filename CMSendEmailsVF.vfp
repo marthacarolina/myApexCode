@@ -13,6 +13,8 @@
         <!------  This queries the fields for the campaign needed by the controller  ---->
         <apex:outputText value="{!campaign.Related_Campaign__c}" rendered="false"/>
         <apex:outputText value="{!campaign.RecordTypeId}" rendered="false"/>
+        <apex:outputText value="{!campaign.Google_Calendar_Link__c}" rendered="false"/>
+        
 
         <!-- ----  Form starts here  ----------- -->
         <h2 style="font-size:200%;">
