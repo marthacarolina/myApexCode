@@ -20,16 +20,30 @@ public class signUpBenevonMembers_Test {
         }
         insert conts;
         TestDataFactory.CreateCampaigns('Campaign', 'Benevon', 
-                                        'POE', 3, 0, Date.TODAY()+7, 
+                                        'POE', 4, 0, Date.TODAY()+7, 
                                         Date.TODAY()+7, fee);
         List<Campaign> myCampaigns = [Select id, Name, Type,
                                       RecordTypeId from Campaign
                                       where RecordType.DeveloperName = 'Benevon'
                                       and Type = 'POE'];
+        Campaign privateCamp = myCampaigns[3];
+        privateCamp.Public_Event__c = false;
+        update privateCamp;        
         Test.startTest();
-        PageReference signUpForm = page.signUpBenevonMember;
-        test.setCurrentPage(signUpForm);
+        //test with the private POE
+        PageReference privateEvent = page.signUpPrivatePOEVF;
+        privateEvent.getParameters().put('id',privateCamp.id);
+        test.setCurrentPage(privateEvent);
         signUpBenevonMembers controller = new signUpBenevonMembers();
+        controller.invitee = controller.getInvitee();
+        controller.invitee.FirstName = 'Hola';
+        controller.invitee.LastName = 'ComoEstas';
+        controller.invitee.email = 'hola@gmail.com';
+        controller.save();        
+        
+        PageReference signUpForm = page.signUpMember;
+        test.setCurrentPage(signUpForm);
+        controller = new signUpBenevonMembers();
 
         //test without campaigns
         controller.invitee = controller.getInvitee();
