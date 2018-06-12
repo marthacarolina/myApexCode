@@ -1,0 +1,859 @@
+<!-- This page will be on one of the SF sites, 
+This is sign up form page for the public to sign up for a Volunteer Orientation -->
+
+<apex:page showHeader="false" Controller="VolRegistrationController" standardStylesheets="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0">
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en" />
+    <head>
+        <!-- Import the Design System style sheet -->
+        <apex:slds />
+        <style type="text/css">
+            #divFccExpDate, #divCPRexpDate, #divFAidexpDate,
+            #wildernesCertDate, #divExplainConviction, #divWorkWitDis,
+            #divWorkWithYouth, #movingViolation, #medCond,
+            #volAdaptive, #equipList { display: none; }
+            .darkblue {color:#5484ab;}
+            .insideBox {background-color:#ffeee6;}
+        </style>
+        
+    </head>
+    <body style="background-color:#ffccb3;">
+        <div class="slds-scope">
+            <!-- Page Title -->
+            <apex:variable var="first" value="{!Ini}"/>
+            <div class="slds-align_absolute-center" style="height: 3rem;">
+                <h2 id="pageTitle" class="slds-text-heading_large slds-m-vertical--large">Volunteer Application</h2>
+            </div>
+            <apex:form >
+                <!-- Start with input -->
+                <h4 id="instructions" class="slds-m-top_large slds-m-bottom_medium slds-text-heading_medium">Please answer all questions (n/a where applicable).</h4>
+                <div class="darkblue slds-m-bottom_x-small">
+                    In addition to filling this application, you will need to send us a copy of your certifications, Fingerprint Clearance Card and Driver's License (if applciable). As well as, sign a Release of Liability and a Media Release.
+                </div>
+                <div class="slds-box slds-box_x-small slds-m-bottom_x-small insideBox" >
+                    <div class="slds-grid slds-gutters slds-p-left_x-small">
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">
+                                <abbr class="slds-required" title="required">*</abbr>First Name</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.FirstName}" styleClass="slds-input" />
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">
+                                <abbr class="slds-required" title="required">*</abbr>Last Name</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.LastName}" styleClass="slds-input" />
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">
+                                <abbr class="slds-required" title="required">*</abbr>Email</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.Email}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Preferred Phone</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.Phone}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                    </div> 
+                    <div class="slds-grid slds-gutters slds-p-left_x-small">
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Birthdate</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.Birthdate}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element slds-p-left_x-small">
+                            <label class="slds-form-element__label">Gender</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.Gender__c}" />
+                            </div>
+                        </div>
+                        <div class="slds-form-element slds-p-left_x-small">
+                            <label class="slds-form-element__label">Height (X' XX")</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.Height__c}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Weight (lbs)</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.Weight__c}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element slds-p-left_x-small">
+                            <label class="slds-form-element__label">T-Shirt size</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.Tshirt_Size__c}" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-gutters slds-p-left_x-small">
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Address: Street</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.MailingStreet}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">City</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.MailingCity}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">State</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.MailingState}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Zip Code</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.MailingPostalCode}" styleClass="slds-input" />
+                            </div>
+                        </div>                    
+                    </div>
+                </div>
+                <div class="slds-box slds-box_x-small slds-m-vertical_x-small insideBox" > 
+                    <h4 class="slds-text-heading_medium slds-p-bottom_xxx-small slds-p-top_x-small">Emergency Contact Information</h4>
+                    <div class="slds-grid slds-gutters slds-p-left_x-small">
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Emergency Contact Name</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.Emergency_Contact_Name__c}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Phone</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.Emergency_Phone__c}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Email</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.Emergency_Email__c}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Relationship</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.Relationship__c}" styleClass="slds-input"/>
+                            </div>
+                        </div>                    
+                    </div>
+                </div>
+                <div class="slds-box slds-box_x-small slds-m-bottom_x-small insideBox" >                    
+                    <h5 id="certsHeader" 
+                        class="slds-text-heading_medium slds-p-bottom_xxx-small slds-p-top_x-small">Certifications/Clearance</h5>
+                    <div class="darkblue">If your answer is YES, check the box by clicking on it.</div>
+                    <div class="slds-grid slds-gutters slds-p-left_x-small">
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label"></label>
+                            <div class="slds-form-element__control">
+                                <span class="slds-text-heading_small">Do you have a current Fingerprint Clearance Card?  </span>
+                                <input type="checkbox" id="fcc" value="{!volunteer.Fingerprint_Clearance__c}" onchange="showing('fcc','divFccExpDate')"/>
+                                <!--  -->
+                            </div>
+                        </div>
+                        <div class="slds-form-element slds-p-left_x-small" id="divFccExpDate">
+                            <label class="slds-form-element__label">Expiration Date</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.Fingerprint_Clearance_Expiration_Date__c}" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-gutters slds-p-left_x-small">
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label"></label>
+                            <div class="slds-form-element__control">
+                                <span class="slds-text-heading_small">Do you have current CPR Certification?  </span>
+                                <input type="checkbox" id="cpr" value="{!volunteer.CPR_Certificate__c}" onchange="showing('cpr','divCPRexpDate')"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element slds-p-left_x-small" id="divCPRexpDate">
+                            <label class="slds-form-element__label">Expiration Date</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.CPR_Certificate_Expiration_Date__c}" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-gutters slds-p-left_x-small">
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label"></label>
+                            <div class="slds-form-element__control">
+                                <span class="slds-text-heading_small">Do you have current 1st. Aid Certification?  </span>
+                                <input type="checkbox" id="firstAid" value="{!volunteer.First_Aid_Certification__c}" 
+                                       onchange="showing('firstAid','divFAidexpDate');"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element slds-p-left_x-small" id="divFAidexpDate">
+                            <label class="slds-form-element__label">Expiration Date</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.First_Aid_Certification_Expiration_Date__c}" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-gutters slds-p-left_x-small">
+                        <div class="slds-form-element">                         
+                            <label class="slds-form-element__label"></label>
+                            <div class="slds-form-element__control"> 
+                                <span class="slds-text-heading_small">Do you have current Wilderness First Responder Certification?  </span>
+                                <input type="checkbox" id="wfr" value="{!wildernesCert}" 
+                                       onchange="showing('wfr','wildernesCertDate')"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element slds-p-left_x-small" id="wildernesCertDate">
+                            <label class="slds-form-element__label">Expiration Date</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.Discharge_Date__c}" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-text-heading_small slds-m-top_x-small">Do you hold any of the following certifications?</div>
+                    <div class="slds-grid slds-gutters slds-p-left_x-small">
+                        <div class="slds-col">
+                            <div class="slds-form-element slds-align_absolute-center">
+                                <label class="slds-form-element__label">EMT</label>
+                                <div class="slds-form-element__control">                                
+                                    <apex:inputCheckbox value="{!moreCerts.emt}"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col">
+                            <div class="slds-form-element slds-align_absolute-center">
+                                <label class="slds-form-element__label">RN or NP</label>
+                                <div class="slds-form-element__control">                                
+                                    <apex:inputCheckbox value="{!moreCerts.rn}"/>                                   
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col">
+                            <div class="slds-form-element slds-align_absolute-center">
+                                <label class="slds-form-element__label">PA or MD</label>
+                                <div class="slds-form-element__control">                                
+                                    <apex:inputCheckbox value="{!moreCerts.md}"/>                                   
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col">
+                            <div class="slds-form-element slds-align_absolute-center">
+                                <label class="slds-form-element__label">PT,OT,CT,CTRS</label>
+                                <div class="slds-form-element__control">                                
+                                    <apex:inputCheckbox value="{!moreCerts.pt}"/>                                   
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label">Other Certificiations we should know about?</label>
+                                <div class="slds-form-element__control">                                
+                                    <apex:inputText value="{!moreCerts.otherCerts}" styleClass="slds-input"/>                                   
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col">
+                            
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-box slds-box_x-small slds-m-bottom_x-small insideBox" >
+                    <h5 id="perHistoryHeader" 
+                        class="slds-text-heading_medium slds-p-bottom_xxx-small slds-p-top_x-small">Personal History</h5>
+                    <div class="darkblue">If your answer is YES, check the box by clicking on it.</div>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label"></label>
+                        <div class="slds-form-element__control">
+                            <span>Have you ever been found guilty, pled guilty or no contest, been convicted, paid a fine, served probation or served any type of sentence for any crime or offence other than minor traffic violations or juvenile offences?  </span>                               
+                            <input type="checkbox" id="convicted" onchange="showing('convicted','divExplainConviction')"/>
+                        </div>
+                    </div>
+                    <div class="slds-form-element slds-p-left_x-small" id="divExplainConviction">
+                        <label class="slds-form-element__label">Please Explain:</label>
+                        <div class="slds-form-element__control">
+                            <apex:inputField value="{!vApplication.Criminal_Offense__c}" styleClass="slds-input" />
+                        </div>
+                    </div>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label"></label>
+                        <div class="slds-form-element__control">
+                            <span>Do you have experience working with individuals with disabilities?   </span>                               
+                            <input type="checkbox" id="expWdis" onchange="showing('expWdis','divWorkWitDis')"/>
+                        </div>
+                    </div>
+                    <div class="slds-form-element slds-p-left_x-small" id="divWorkWitDis">
+                        <label class="slds-form-element__label">Please tell us about your role or responsibilities:</label>
+                        <div class="slds-form-element__control">
+                            <apex:inputField value="{!vApplication.Worked_w_Individuals_w_Disabilitie__c}" styleClass="slds-input"/>
+                        </div>
+                    </div>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label"></label>
+                        <div class="slds-form-element__control">
+                            <span>Do you have experience working with at-risk youth/teens? Other vulnerable populations?   </span>                               
+                            <input type="checkbox" id="vulnTeens" onchange="showing('vulnTeens','divWorkWithYouth')"/>
+                        </div>
+                    </div>
+                    <div class="slds-form-element slds-p-left_x-small" id="divWorkWithYouth">
+                        <label class="slds-form-element__label">Please explain:</label>
+                        <div class="slds-form-element__control">
+                            <apex:inputField value="{!vApplication.Worked_w_at_risk_Teens__c}" styleClass="slds-input"/>
+                        </div>
+                    </div>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label"></label>
+                        <div class="slds-form-element__control">
+                            <span>Have you had a moving violation in the last three years?   </span>                               
+                            <input type="checkbox" id="movV" onchange="showing('movV','movingViolation')"/>
+                        </div>
+                    </div>
+                    <div class="slds-form-element slds-p-left_x-small" id="movingViolation">
+                        <label class="slds-form-element__label">Please explain:</label>
+                        <div class="slds-form-element__control">
+                            <apex:inputField value="{!vApplication.Moving_Violation__c}" styleClass="slds-input" />
+                        </div>
+                    </div>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label" ></label>
+                        <div class="slds-form-element__control">
+                            <span class="slds-text-color_default" style="font-size:105%;">May Daring Adventures have access to your driving records?  </span>
+                            <apex:inputCheckbox value="{!accToDrvRec}" />
+                            <span>&nbsp;&nbsp;&nbsp; (If driving participants, Daring Adventures may need to review your driving record) </span>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-gutters slds-p-left_x-small slds-m-top_x-small">
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Your primary language</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!vApplication.Primary_Language__c}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Secondary language</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!vApplication.Secondary_Language__c}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label"></label>
+                        <div class="slds-form-element__control">
+                            <span>Do you have any medical conditions, injuries, or limitations we should know about?   </span>
+                            <span>(This will not disqualify you from being a volunteer, but will help us understand how we can accommodate all participants and volunteers.)</span>
+                            <input type="checkbox" id="medC" onchange="showing('medC','medCond')"/>
+                        </div>
+                    </div>
+                    <div class="slds-form-element slds-p-left_x-small" id="medCond">
+                        <label class="slds-form-element__label">Please explain:</label>
+                        <div class="slds-form-element__control">
+                            <apex:inputField value="{!vApplication.Vol_Medical_Conditions_Limitations__c}" styleClass="slds-input"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-box slds-box_x-small slds-m-bottom_x-small insideBox" > 
+                    <div class="darkblue">If your answer is YES, check the box by clicking on it. Unchecked boxes denote a NO answer.</div>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label"></label>
+                        <div class="slds-form-element__control">
+                            <span>Do you use cigarettes or other tobacco products?  </span>                               
+                            <apex:inputCheckbox value="{!volunteer.Uses_Tobacco__c}" id="eCig"/>
+                        </div>
+                    </div>     
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label"></label>
+                        <div class="slds-form-element__control">
+                            <span>Do you use e-cigarettes or similar products?  </span>                               
+                            <apex:inputCheckbox value="{!volunteer.Uses_e_cigarettes__c}" />                            
+                        </div>
+                    </div>
+                    <div class="slds-text-body_small slds-text-color_error">
+                        If you use these products, please note that there will be restrictions on their use During Daring Adventures activities.
+                    </div>                                                              
+                </div>
+                <div class="slds-box slds-box_x-small slds-m-bottom_x-small insideBox" > 
+                    <h5 id="allergies" 
+                        class="slds-text-heading_medium slds-p-bottom_xxx-small slds-p-top_x-small">Allergies</h5>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label">(please list ALL, including medications, food, airborne, animal, etc)</label>
+                        <div class="slds-form-element__control">
+                            <apex:inputField value="{!volunteer.Allergies__c}" styleClass="slds-input" />                            
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-box slds-box_x-small slds-m-bottom_x-small insideBox" > 
+                    <h5 id="dietary" 
+                        class="slds-text-heading_medium slds-p-bottom_xxx-small slds-p-top_x-small">Dietary Restrictions</h5>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label">(please list any restrictions, preferences or concerns)</label>
+                        <div class="slds-form-element__control">
+                            <apex:inputField value="{!volunteer.Dietary_Restrictions__c}" styleClass="slds-input" />                            
+                        </div>
+                    </div>
+                </div> 
+                <div class="slds-box slds-box_x-small slds-m-bottom_x-small insideBox" > 
+                    <h5 id="employment" 
+                        class="slds-text-heading_medium slds-p-bottom_xxx-small slds-p-top_x-small">Current Employment/Education</h5>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label">Employer and/or School Name</label>
+                        <div class="slds-form-element__control">
+                            <apex:inputField value="{!vApplication.Employer__c}" styleClass="slds-input"/>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-gutters slds-p-left_x-small">
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Since</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!vApplication.Employment_Start_Date__c}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Job Title or Area of Study</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!vApplication.Job_Title__c}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Supervisor's Name</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!vApplication.Supervisor__c}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Supervisor's Email</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!vApplication.Employer_Email__c}" styleClass="slds-input"/>
+                            </div>
+                        </div> 
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Supervisor's Phone</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!vApplication.Employer_Phone__c}" styleClass="slds-input"/>
+                            </div>
+                        </div> 
+                    </div>
+                </div>
+                <div class="slds-box slds-box_x-small slds-m-vertical_x-small insideBox" > 
+                    <h4 class="slds-text-heading_medium slds-p-bottom_xxx-small slds-p-top_x-small">Personal References <span class="slds-text-body_regular">   (non-relatives)</span></h4>
+                    <div class="slds-grid slds-gutters slds-p-left_x-small">
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Reference #1 Name</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!vApplication.Reference_1_Name__c}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Relationship</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!vApplication.Reference_1_Relationship__c}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Email</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!vApplication.Reference_1_Email__c}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Phone</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!vApplication.Reference_1_Phone__c}" styleClass="slds-input"/>
+                            </div>
+                        </div>                    
+                    </div>
+                    <div class="slds-grid slds-gutters slds-p-left_x-small">
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Reference #2 Name</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!vApplication.Reference_2_Name__c}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Relationship</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!vApplication.Reference_2_Relationship__c}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Email</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!vApplication.Reference_2_Email__c}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Phone</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!vApplication.Reference_2_Phone__c}" styleClass="slds-input"/>
+                            </div>
+                        </div>                    
+                    </div>
+                </div>
+                <div class="slds-box slds-box_x-small slds-m-vertical_x-small insideBox" > 
+                    <h4 class="slds-text-heading_medium slds-p-bottom_xxx-small slds-p-top_x-small">Demographics &amp; Military Status<span class="slds-text-body_regular">   (to better assists us with funding opportunities, optional)</span></h4>
+                    <div class="slds-grid slds-gutters slds-p-left_x-small">
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Demographics</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.Demographics__c}"/>
+                            </div>
+                        </div>            
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Branch of Military</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.Branch_of_Military__c}"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Discharge Date</label>
+                            <div class="slds-form-element__control">
+                                <apex:inputField value="{!volunteer.Discharge_Date__c}" styleClass="slds-input"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-text-heading_small slds-text-color_weak slds-m-top_x-small">Additonal Information to Assist with Funding opportunities</div>                                            
+                    <div class="slds-grid slds-gutters slds-p-left_xx-small slds-m-top_x-small">
+                        <div class="slds-col slds-size_1-of-3">                    
+                            <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_col-bordered">
+                                <thead>
+                                    <tr class="slds-text-title_caps">
+                                        <th scope="col">
+                                            <div class="slds-truncate slds-text-align_center" title="Opportunity Name">Household Size</div>
+                                        </th>
+                                        <th scope="col">
+                                            <div class="slds-truncate slds-text-align_center" title="Opportunity Name">Annual Income Below</div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td data-label="Household Size">
+                                            <div class="slds-truncate slds-text-align_center" title="Cloudhub">1</div>
+                                        </td>
+                                        <td data-label="Annual Income Below">
+                                            <div class="slds-truncate slds-text-align_center" title="Cloudhub">$17,550</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td data-label="Household Size">
+                                            <div class="slds-truncate slds-text-align_center" title="Cloudhub">2</div>
+                                        </td>
+                                        <td data-label="Annual Income Below">
+                                            <div class="slds-truncate slds-text-align_center" title="Cloudhub">$23,595</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td data-label="Household Size">
+                                            <div class="slds-truncate slds-text-align_center" title="Cloudhub">3</div>
+                                        </td>
+                                        <td data-label="Annual Income Below">
+                                            <div class="slds-truncate slds-text-align_center" title="Cloudhub">$29,685</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td data-label="Household Size">
+                                            <div class="slds-truncate slds-text-align_center" title="Cloudhub">4</div>
+                                        </td>
+                                        <td data-label="Annual Income Below">
+                                            <div class="slds-truncate slds-text-align_center" title="Cloudhub">$35,755</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td data-label="Household Size">
+                                            <div class="slds-truncate slds-text-align_center" title="Cloudhub">5</div>
+                                        </td>
+                                        <td data-label="Annual Income Below">
+                                            <div class="slds-truncate slds-text-align_center" title="Cloudhub">$41,865</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td data-label="Household Size">
+                                            <div class="slds-truncate slds-text-align_center" title="Cloudhub">6</div>
+                                        </td>
+                                        <td data-label="Annual Income Below">
+                                            <div class="slds-truncate slds-text-align_center" title="Cloudhub">$47,955</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td data-label="Household Size">
+                                            <div class="slds-truncate slds-text-align_center" title="Cloudhub">7</div>
+                                        </td>
+                                        <td data-label="Annual Income Below">
+                                            <div class="slds-truncate slds-text-align_center" title="Cloudhub">$54,404</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td data-label="Household Size">
+                                            <div class="slds-truncate slds-text-align_center" title="Cloudhub">8</div>
+                                        </td>
+                                        <td data-label="Annual Income Below">
+                                            <div class="slds-truncate slds-text-align_center" title="Cloudhub">$60,135</div>
+                                        </td>
+                                    </tr>
+                                </tbody>                        
+                            </table>
+                        </div>
+                        <div class="slds-col slds-size_2-of-3 slds-m-left_small">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label"></label>
+                                <div class="slds-form-element__control">
+                                    <apex:inputField value="{!volunteer.Below_Amount_Listed__c}"/>
+                                    <span>  Based on my household size, my income IS below the amount listed.</span>                                
+                                </div>
+                                <div class="slds-text-body_small">(According to the number of people in your household, is the total income for the household below the shown Annual Income?</div>
+                            </div>
+                        </div>                  
+                    </div>
+                </div> 
+                <div class="slds-box slds-box_x-small slds-m-vertical_x-small insideBox" >                    
+                    <h2 class="slds-text-heading_medium slds-p-bottom_xxx-small slds-p-top_x-small">VOLUNTEER INTEREST ASSESSMENT</h2>
+                    <h4 class="slds-text-heading_medium slds-p-bottom_xxx-small slds-p-top_x-small">Please indicate the activities/events you are most interested in volunteering for:</h4>
+                    <div class="slds-grid slds-gutters slds-p-left_x-small">
+                        <div class="slds-col ">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label">Choose the activities from the list on the left and add them to the list of <span style="font-style:italic;">chosen</span> using the arrows</label>
+                                <div class="slds-form-element__control">
+                                    <apex:inputField value="{!volunteer.Activities__c}"/>
+                                </div>
+                            </div>
+                        </div>                       
+                        <div class="slds-col">
+                            <div class="slds-form-element ">
+                                <label class="slds-form-element__label">Other (list any additional interests)</label>
+                                <div class="slds-form-element__control">
+                                    <apex:inputField value="{!volunteer.Other_Area_of_Interest__c}" styleClass="slds-input"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <h4 class="slds-text-heading_medium slds-p-bottom_xxx-small slds-p-top_x-small"></h4>
+                    <div class="slds-grid slds-gutters slds-p-left_x-small">
+                        <div class="slds-col ">
+                            <div class="slds-form-element">
+                                <div>
+                                    What is your availability for volunteering? 
+                                </div>
+                                <label class="slds-form-element__label">Choose the options on the left and <br/>add them to the list of <span style="font-style:italic;">chosen</span> using the arrows</label>
+                                <div class="slds-form-element__control">
+                                    <apex:inputField value="{!volunteer.GW_Volunteers__Volunteer_Availability__c}"/>
+                                </div>
+                            </div>             
+                        </div>
+                        <div class="slds-col ">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label">What sort of time commitment are you looking for?</label>
+                                <div class="slds-form-element__control">
+                                    <apex:inputField value="{!volunteer.Volunteer_Time_Commitment__c}"/>
+                                </div>
+                            </div>             
+                        </div>    
+                    </div>
+                    <div class="slds-form-element slds-m-top_x-small">
+                        <label class="slds-form-element__label">
+                            <span class="slds-text-body_regular slds-text-color_default">Why do you want to Volunteer with Daring Adventures?</span>
+                        </label>
+                        <div class="slds-form-element__control">
+                            <apex:inputField value="{!vApplication.Vol_why_volunteer__c}" styleClass="slds-input"/>
+                        </div>
+                    </div>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label">
+                            <span class="slds-text-body_regular slds-text-color_default">What do you hope to gain from being a volunteer with Daring Adventures? Is there anything that we can do to enhance your volunteer experience?</span>
+                        </label>
+                        <div class="slds-form-element__control">
+                            <apex:inputField value="{!vApplication.Hope_to_gain__c}" styleClass="slds-input"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-box slds-box_x-small slds-m-vertical_x-small insideBox" >                    
+                    <h2 class="slds-text-heading_medium slds-p-bottom_small slds-p-top_x-small">VOLUNTEER ASSESSMENT INFORMATION</h2>
+                    <div class="slds-m-bottom_small">
+                        Please answer the following questions regarding your participation in outdoor adaptive recreation.
+                        Daring Adventures will use this information to continually evaluate and improve our programs, and to ensure
+                        that we are providing activities and events that are beneficial and worthwhile to our participants and their
+                        own personal goals. <span style="font-weight:bold;">Thank you!!</span>
+                    </div>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label">
+                            <span class="slds-text-body_regular slds-text-color_default">Have you volunteered in adaptive AND/OR outdoor recreation before?</span>
+                        </label>
+                        <div class="slds-form-element__control">                            
+                            <input type="checkbox" id="volAd" onchange="showing('volAd','volAdaptive')"/>
+                        </div>
+                    </div>
+                    <div class="slds-form-element slds-p-left_x-small" id="volAdaptive">
+                        <label class="slds-form-element__label">What activities? How often?</label>
+                        <div class="slds-form-element__control">
+                            <apex:inputField value="{!vApplication.what_activities_involved__c}" styleClass="slds-input" />
+                        </div>                        
+                    </div>
+                </div>
+                <div class="slds-box slds-box_x-small slds-m-vertical_x-small insideBox" >                    
+                    <div class="slds-text-heading_medium">Disability Experience</div>
+                    <div class="darkblue">Please indicate whether or not you agree with the following statements.
+                    </div>
+                    <div class="slds-form-element">                           
+                        <label class="slds-form-element__label"></label>
+                        <div class="slds-form-element__control">
+                            <span>I feel comfortable working with and assisting people with PHYSICAL disabilities.&nbsp;&nbsp;&nbsp;</span>
+                            <apex:inputField value="{!vApplication.Working_physica_disabilities__c}"/>
+                        </div>
+                    </div>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label"></label>
+                        <div class="slds-form-element__control">
+                            <span>I feel comfortable working with and assisting people with COGNITIVE and/or DEVELOPMENTAL disabilities.&nbsp;&nbsp;&nbsp;</span>
+                            <apex:inputField value="{!vApplication.Working_cognitive_disabilities__c}"/>
+                        </div>
+                    </div>                      
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label"></label>
+                        <div class="slds-form-element__control">
+                            <span>I feel comfortable working with and assisting people with BEHAVIORAL disorders.&nbsp;&nbsp;&nbsp;</span>
+                            <apex:inputField value="{!vApplication.Working_with_behavioral_disorders__c}"/>
+                        </div>
+                    </div>                    
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label"></label>
+                        <div class="slds-form-element__control">
+                            <span>I feel comfortable working with and assisting people with mental health disorders.&nbsp;&nbsp;&nbsp;</span>
+                            <apex:inputField value="{!vApplication.People_with_mental_health_disorders__c}"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-box slds-box_x-small slds-m-vertical_x-small insideBox" >                    
+                    <div class="slds-text-heading_medium">Volunteer Contribution</div>
+                    <div class="darkblue">Please indicate whether or not you agree with the following statements.
+                    </div>
+                    <div class="slds-form-element">                           
+                        <label class="slds-form-element__label"></label>
+                        <div class="slds-form-element__control">
+                            <span>I am comfortable leading small group of participants.&nbsp;&nbsp;&nbsp;</span>
+                            <apex:inputField value="{!vApplication.Leading_small_groups__c}"/>
+                        </div>
+                    </div>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label"></label>
+                        <div class="slds-form-element__control">
+                            <span>I am comfortable working one-on-one with participants.&nbsp;&nbsp;&nbsp;</span>
+                            <apex:inputField value="{!vApplication.working_one_on_one__c}"/>
+                        </div>
+                    </div>                      
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label"></label>
+                        <div class="slds-form-element__control">
+                            <span>I feel comfortable approaching and having a conversation with someone I don't know.&nbsp;&nbsp;&nbsp;</span>
+                            <apex:inputField value="{!vApplication.Comfortable_conversing_with_others__c}"/>
+                        </div>
+                    </div>                               
+                </div>
+                <div class="slds-box slds-box_x-small slds-m-vertical_x-small insideBox" >                    
+                    <div class="slds-text-heading_medium">Leadership Skills</div>
+                    <div class="darkblue">Please indicate whether or not you agree with the following statements.
+                    </div>
+                    <div class="slds-form-element">                           
+                        <label class="slds-form-element__label"></label>
+                        <div class="slds-form-element__control">
+                            <span>I am open to new experiences and stepping outside of my comfort zone.&nbsp;&nbsp;&nbsp;</span>
+                            <apex:inputField value="{!vApplication.Open_to_New_Experiences__c}"/>
+                        </div>
+                    </div>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label"></label>
+                        <div class="slds-form-element__control">
+                            <span>I am motivated to be self-sufficient and feel comfortable taking leadership.&nbsp;&nbsp;&nbsp;</span>
+                            <apex:inputField value="{!vApplication.Motivated_to_be_independent__c}"/>
+                        </div>
+                    </div>                      
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label"></label>
+                        <div class="slds-form-element__control">
+                            <span>I feel comfortable discussing my questions and concerns as well as providing feedback to Daring Adventures' staff.&nbsp;&nbsp;&nbsp;</span>
+                            <apex:inputField value="{!vApplication.Comfortable_discussing_with_DA__c}"/>
+                        </div>
+                    </div>                               
+                </div>
+                <div class="slds-box slds-box_x-small slds-m-vertical_x-small insideBox" >                    
+                    <div class="slds-text-heading_medium">Recreation Participation</div>
+                    <div class="darkblue">Please indicate whether or not you agree with the following statements.
+                    </div>
+                    <div class="slds-form-element">                           
+                        <label class="slds-form-element__label"></label>
+                        <div class="slds-form-element__control">
+                            <span>I currently participate in outdoor recreation during my own leisure time.&nbsp;&nbsp;&nbsp;</span>
+                            <apex:inputField value="{!vApplication.Open_to_New_Experiences__c}"/>
+                        </div>
+                    </div>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label"></label>
+                        <div class="slds-form-element__control">
+                            <span>I have the knowledge and skills to participate in outdoor recreation or adaptive sports independently.&nbsp;&nbsp;&nbsp;</span>
+                            <apex:inputField value="{!vApplication.Motivated_to_be_independent__c}"/>
+                        </div>
+                    </div>                      
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label"></label>
+                        <div class="slds-form-element__control">
+                            <span>I have my own outdoor recreation equipment that I can bring and use during Daring Adventures activities as needed.&nbsp;&nbsp;&nbsp;</span>
+                            <apex:inputField id="ownEq" value="{!vApplication.Have_Own_Equipment__c}" onchange="showing('ownEq','equipList')"/>
+                            <span>    YES  (If the box is NOT checked it denotes a NO)</span>
+                        </div>
+                    </div> 
+                    <div class="slds-form-element" id="equipList">
+                        <label class="slds-form-element__label">Please list your equipment</label>
+                        <div class="slds-form-element__control">
+                            <apex:inputField value="{!vApplication.Equipment_Participant_Owns__c}" styleClass="slds-input" />
+                        </div>
+                    </div>   
+                </div>
+                <div class="slds-box slds-box_x-small slds-m-vertical_x-small insideBox" >                    
+                    <div class="slds-text-heading_medium">Optional</div>
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label">It's there anything else you'd like to share with us about your experience, skills, interests? Do you have any questions?</label>                        
+                        <div class="slds-form-element__control">
+                            <apex:inputField value="{!vApplication.Anything_else_to_share__c}" styleClass="slds-input" />
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-m-large slds-text-heading_medium slds-text-align_center" >
+                    <span style="font-weight:bold;">THANK YOU</span> for taking the time to answer these questions 
+                    to help us improve the quality of our volunteer program and measure progress! 
+                    <span style="font-style:italic;">All information collected will remain anonymous.</span>                    
+                </div>
+                
+                <apex:pageMessages ></apex:pageMessages>
+                <div class="slds-grid slds-gutters slds-p-left_x-small">
+                    <div class="slds-col slds-size_2-of-5">
+                    </div>
+                    <div class="slds-col slds-size_1-of-5">
+                        <apex:commandButton value="Submit" action="{!save}" style="font-size:150%;" styleClass="slds-button slds-button_neutral slds-button_outline-brand slds-m-top_medium" />                
+                    </div>
+                    <div class="slds-col slds-size_2-of-5">
+                    </div>
+                </div>
+                <div><br /><br /></div>
+                </apex:form>
+        </div>
+    </body>
+    
+    <script type='text/javascript'>
+    function showing(cb, div) {
+        var divi = document.getElementById(div);
+        var ele = document.getElementById(cb);
+        console.log("entered into the checkbox onclick function");
+        if(ele.checked) {
+            console.log('ele = '+ele);
+            
+            divi.style.display = 'block';
+        }
+        else {
+            divi.style.display = 'none';
+        }
+    }
+    
+    
+    </script>
+    
+</apex:page>

@@ -1,0 +1,27 @@
+<!-- This page is the confirmation page for a Volunteer Orientation singup. 
+It will be on one of the SF sites -->
+
+<apex:page showHeader="false" standardStylesheets="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0">
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en" />
+    <head>
+        <!-- Import the Design System style sheet -->
+        <apex:slds />
+    </head>
+    <body>
+        <div class="slds-scope">
+            <div class="slds-box slds-theme_success">
+                <div class="slds-text-heading_medium">
+                    <p>You have been signed up for {!$CurrentPage.parameters.camp}</p>
+                    <p>A confirmation email with details of the event will be sent to you shortly.</p>     
+                </div>
+            </div>
+            <h4 class="slds-m-top_large slds-text-heading_medium">If you haven't yet, please fill out a 
+                <!--This link is not safe as it gives the user an entrance to see a contact 
+                    record... the id can be hacked and switch for another 
+                    <a href="{!URLFOR($Page.VolApplication, null, [contID=$CurrentPage.parameters.contID])}"> --> 
+                <a href="{!URLFOR($Page.VolApplication)}">Volunteer Application</a>. 
+                <span class="slds-text-body_regular">(Click on the link to be directed to the application page).</span>
+            </h4>
+        </div>
+    </body>
+</apex:page>

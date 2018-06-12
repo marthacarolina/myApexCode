@@ -1,25 +1,32 @@
-//this class is the controller for the VF page signUpBenevonMember (for public POE's)
-//and singUpPrivatePOE (for private POE's)
+//this class is the controller for the VF pages 
+//    signUpBenevonMember (a form for anyone to sign up for public POE's)
+//    singUpPrivatePOE (a form for people invited to sign up for private POE's)
+//    signUpOrientation (a form for anyone to sign up for Volunteer Orientation)
 
 public class signUpBenevonMembers {
     public BenInvitee invitee;
-    id benevonTypeID;
+    @TestVisible private id campTypeID;
     public Id campaignID{get;set;}
     @TestVisible private boolean isPublic; //if the campaign is public this var is true
-    map<id, Campaign> BenCamp;
+    map<id, Campaign> CampaignsMap;
     Boolean changeEmailAddress;
     Boolean triedUpdate;
     public Campaign privateCampaign {get;set;}
+    private String campType;
+    public Boolean newContact {get;set;} //if the contact is not already in the database
 
-    public signUpBenevonMembers(){
+
+    public void signUpBenevonMembers(){}
+    
+    public boolean getBegin() {
         //retrieve the id number for the Campaign records of record type Benevon
-        benevonTypeID = Schema.SObjectType.Campaign.getRecordTypeInfosByName().get('Benevon').getRecordTypeId();
         changeEmailAddress=false;
         triedUpdate = false;
         isPublic = true;
+        //Get the name (address) of the page usign the controller
         String PageURL = ApexPages.currentPage().getUrl();
         PageUrl = PageURL.toLowerCase();
-        if (! PageURL.contains('signupmember'))
+        if (PageURL.containsIgnoreCase('signupprivate'))
         {
             //if the POE is private retrieve the campaign with the id in the URL
             isPublic = false;
@@ -28,20 +35,34 @@ public class signUpBenevonMembers {
                                WHERE id = :campaignID
                                LIMIT 1];
         }
+        else
+        {
+        if (PageURL.containsIgnoreCase('signupmember')) {
+            campType = 'Benevon';
+        }
+        else {
+            campType = 'Volunteer Campaign';
+        }
+        campTypeID = Schema.SObjectType.Campaign.getRecordTypeInfosByName().get(campType).getRecordTypeId();
+        }
+        return true;
     }
     
-    public List<SelectOption> getBenevonEvents(){
+    public List<SelectOption> getCampaignEvents(){
         //retrieve the next 5 Benevon POE events
-        BenCamp = new Map<id, Campaign>([SELECT ID, Name, StartDate
-                                         FROM Campaign
-                                         WHERE RecordTypeId = :benevonTypeId
-                                         AND StartDate >= Today
-                                         AND Type = 'POE'
-                                         AND Public_Event__c = true
-                                         ORDER by StartDate
-                                         Limit 5]);
+        String extFilter;
+        if (campType == 'Benevon') {
+            extFilter = 'Type = \'POE\'';
+        }
+        else {
+            extFilter = 'Name Like \'Volunteer Volunteer Orientation%\'';
+        }
+        String queryString = 'SELECT ID, Name, StartDate FROM Campaign WHERE RecordTypeId = :campTypeId';
+        queryString = queryString + ' AND StartDate >= Today AND Public_Event__c = true AND ' + extFilter; 
+        queryString = queryString + ' ORDER by StartDate Limit 5';
+        List<Campaign> campaigns = Database.query(queryString);
+        CampaignsMap = new Map<id, Campaign>(campaigns);
         List<SelectOption> POEevents = new List<SelectOption>();
-        List<Campaign> campaigns = BenCamp.values();
         for (Campaign c : campaigns)
             POEevents.add(new SelectOption(c.id,c.Name));        
         return POEevents;
@@ -63,9 +84,7 @@ public class signUpBenevonMembers {
         if (campaignID != null)
         {
             String stndcamp = '';
-            PageReference campPage;
-            //check if there are any required fields
-            //left blank
+            //check if there are any required fields left blank
             string mistake = '';
             If (invitee.FirstName.length() == 0)
                 mistake = 'Please type in the First Name';
@@ -75,7 +94,7 @@ public class signUpBenevonMembers {
             else
                 if (invitee.Email.length() == 0)
                 mistake = 'You must enter an Email address';
-            if (mistake.length() > 0)
+            if (mistake.length() > 0) //if there is an error 
             {
                 ApexPages.addmessage(new ApexPages.Message(ApexPages.severity.info, mistake));
                 return null;
@@ -89,6 +108,7 @@ public class signUpBenevonMembers {
             {
                 //if the contact is not in the database create a new one and
                 //insert it
+                newContact = true;
                 contact = new Contact(FirstName = invitee.FirstName,
                                       LastName = invitee.LastName,
                                       Phone = invitee.Phone,
@@ -123,7 +143,7 @@ public class signUpBenevonMembers {
                         }
                         catch (exception e){
                             ApexPages.addmessage(new ApexPages.Message(ApexPages.severity.info, 
-                                                                       'We were unable to update you email address at this time, please contact us. Go ahead and click on SIGN UP agan'));
+                                                                       'We were unable to update your email address at this time, please contact us. Go ahead and click on SIGN UP agan'));
                             triedUpdate = true;
                         }
                     }
@@ -146,19 +166,34 @@ public class signUpBenevonMembers {
                     return null; 
                 }
             }
+            // once the user has been signed on as a campaign member
             // direct the user to the confirmation page
             String campName; 
             if (isPublic) 
-                campName = BenCamp.get(campaignID).Name;  
+                campName = CampaignsMap.get(campaignID).Name;  
             else
                 campName = privateCampaign.Name;
-            PageReference confirmation = new PageReference('/apex/signUpConfirmationVF?poe=' + campName);
+            PageReference confirmation;    
+            if (campType == 'Volunteer Campaign') {
+                confirmation = new PageReference('/apex/signUpConfirmationVolOrVF?contID='+contact.id+'&camp='+campName);
+            }
+            else {
+                confirmation = new PageReference('/apex/signUpConfirmationVF?poe=' + campName);
+            }
             return confirmation;
         }
-        else
+        else // there is no campaign ID
         {
-            ApexPages.addmessage(new ApexPages.Message(ApexPages.severity.info, 'There are no Discover Daring Adventures events scheduled at this time please check back later.'));
-                return null; 
+            //if there is no campaign to sign on to send the user a message.
+            String errString;
+            if (campType == 'Volunteer Campaign') {
+                errString = ' Volunteer Orientations ';
+            }
+            else {
+                errString = ' Discover Daring Adventures events ';
+            }
+            ApexPages.addmessage(new ApexPages.Message(ApexPages.severity.info, 'There are no' + errString + 'scheduled at this time please check back later.'));
+            return null; 
         }
     }
     

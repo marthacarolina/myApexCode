@@ -1,6 +1,5 @@
-<!-- Sign Up for public POE campaigns
-This page will be in the Benevon public site. The link to the page to sign up for the event 
-will be in the calendar of events -->
+<!-- This page will be on one of the SF sites, 
+This is sign up form page for the public to sign up for a Volunteer Orientation -->
 
 <apex:page showHeader="false" Controller="signUpBenevonMembers" standardStylesheets="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0">
     <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en" />
@@ -10,12 +9,19 @@ will be in the calendar of events -->
     </head>
     <body style="background-color:#ffccb3;">
         <div class="slds-scope">
-            <!-- Page Title -->
             <apex:variable var="dommy" value="{!begin}"/>
-            <div style="margin:auto;width:400px;padding:20px;background-color:white;">                
-                <h2 id="pageTitle" class="slds-text-heading_large slds-m-vertical--large slds-text-align_center">Sign Up for<br/>{!privateCampaign.name}</h2>
-                <apex:form >                
+            <div style="margin:auto;width:400px;padding:20px;background-color:white;">
+                <!-- Page Title -->
+                <h2 id="pageTitle" class="slds-text-heading_large slds-m-vertical--large">Sign Up for a Benevon Event</h2>
+                <apex:form >
+                    <!-- display a list of DDA events for the user to choose from -->
+                    <h4 id="instructions" class="slds-text-heading_medium slds-p-bottom_xxx-small">Select the Event</h4>
+                    <apex:selectList value="{!campaignID}" multiselect="false" size="1" style="font-size:1.2em;">
+                        <apex:selectOptions value="{!CampaignEvents}"/>
+                    </apex:selectList>    
+                    
                     <div class="slds-p-horizontal_large slds-m-vertical--medium">
+                        <!-- input the name, Last Name, email and Phone number -->
                         <div class="slds-form-element">
                             <label class="slds-form-element__label" for="input-unique-id">
                                 <abbr class="slds-required" title="required">*</abbr>First Name</label>
@@ -43,12 +49,12 @@ will be in the calendar of events -->
                                 <apex:inputText value="{!invitee.Phone}" />
                             </div>
                         </div>
-                    </div>
+                    </div>                    
                     <div class="slds-text-heading_small slds-text-color_error">
                         <apex:pageMessages ></apex:pageMessages>
                     </div>
-                    <apex:commandButton value="Sign Up" action="{!save}" style="font-size:100%;"/>
-                </apex:form>                
+                    <apex:commandButton value="Sign Up" action="{!save}" style="font-size:100%;"/>                                    
+                </apex:form>
             </div>
         </div>
     </body>
