@@ -1,3 +1,8 @@
+//Controller for visualforce page volApplication
+//
+//Martha Vance
+
+
 public class VolRegistrationController {
 
     public Contact volunteer {get;set;}
@@ -7,7 +12,6 @@ public class VolRegistrationController {
     public Application__c vApplication {get;set;}
     public List<Medication__c> meds {get;set;}
     public Medication__c med {get;set;}
-    public Boolean accToDrvRec {get;set;}
     
     @testVisible private Boolean changeEmailAddress;
     @TestVisible private Boolean newContact;
@@ -37,7 +41,6 @@ public class VolRegistrationController {
             volunteer.LastName = '';
             volunteer.Email = '';
         }  
-        accToDrvRec = false;
         moreCerts = new moreCerts();        
         vApplication = new Application__c();
         meds = new List<Medication__c>();
@@ -75,12 +78,7 @@ public class VolRegistrationController {
             volunteer.First_Aid_Certification__c = true;
         if (volunteer.Fingerprint_Clearance_Expiration_Date__c > date.today())
             volunteer.Fingerprint_Clearance__c = true;
-        if (accToDrvRec){            
-            vApplication.Access_to_Driving_Record__c = 'Yes';            
-        }
-        else {
-            vApplication.Access_to_Driving_Record__c = 'No';
-        }
+        
         //look for the contact record
         if (! existingContact) {
             Contact contact = new Contact();

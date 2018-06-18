@@ -1,5 +1,6 @@
 <!-- This page will be on one of the SF sites, 
-This is sign up form page for the public to sign up for a Volunteer Orientation -->
+This is the Volunteer Application form page for the public to apply to become a Volunteer with DA -->
+<!--  Martha Vance  -->
 
 <apex:page showHeader="false" Controller="VolRegistrationController" standardStylesheets="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0">
     <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en" />
@@ -321,7 +322,7 @@ This is sign up form page for the public to sign up for a Volunteer Orientation 
                         <label class="slds-form-element__label" ></label>
                         <div class="slds-form-element__control">
                             <span class="slds-text-color_default" style="font-size:105%;">May Daring Adventures have access to your driving records?  </span>
-                            <apex:inputCheckbox value="{!accToDrvRec}" />
+                            <apex:inputCheckbox value="{!vApplication.Access_to_Driving_Record__c}" />
                             <span>&nbsp;&nbsp;&nbsp; (If driving participants, Daring Adventures may need to review your driving record) </span>
                         </div>
                     </div>
