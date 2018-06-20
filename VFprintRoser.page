@@ -1,6 +1,7 @@
 <apex:page standardController="Campaign" extensions="printCampaignRosters" action="{!autoRun}">
 <!--this page's only purpose is to call the apex class that will call the report.-->
     <apex:sectionHeader title="Auto-Running Apex Code"/>
+    <apex:variable var="RelCamp" value="{!campaign.Related_Campaign__c}"/>
       <apex:outputPanel >
       You tried calling Apex Code from a button.  If you see this page, something went wrong.  You should have 
       been redirected back to the record you clicked the button from.
